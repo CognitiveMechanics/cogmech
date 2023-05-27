@@ -1,0 +1,5 @@
+/cogmech
+*.o
+.DS-Store
+.idea
+
