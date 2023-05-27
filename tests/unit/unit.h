@@ -4,6 +4,7 @@
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdarg.h>
+#include <assert.h>
 
 
 typedef bool CMUnitTest();
@@ -16,7 +17,7 @@ size_t _cm_test_count = 0;
 
 
 #define cm_test_error(...) fprintf(stderr, "FAILURE %s:%d: ", __FILE__, __LINE__); fprintf (stderr, __VA_ARGS__)
-#define cm_add_test(test) _cm_tests[_cm_test_count] = & test; _cm_test_count += 1
+#define cm_add_test(test) assert(_cm_test_count < 2048); _cm_tests[_cm_test_count] = & test; _cm_test_count += 1
 
 
 bool _cm_run_tests (CMUnitTest *tests[], size_t n)
