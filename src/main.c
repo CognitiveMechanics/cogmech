@@ -5,6 +5,7 @@
 #include <string.h>
 #include <libgen.h>
 
+#include "tokenize.h"
 
 #define USAGE_BUFFER_SIZE 2048
 char cm_usage_buffer[USAGE_BUFFER_SIZE] = {0};
@@ -36,6 +37,7 @@ void cm_print_usage ()
 
 int main (int argc, const char **argv)
 {
-	cm_print_usage();
+	printf("%s\n", cm_trim_left(cm_sv("\ttest1"), "").data);
+	printf("%s\n", cm_trim_left_ws(cm_sv("\ttest2")).data);
 	return 0;
 }

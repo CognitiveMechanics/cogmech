@@ -4,4 +4,4 @@ OVERVIEW: A utility for working with cogmech files
 USAGE: cogm <subcommand> [args]
 
 SUBCOMMANDS:
-  exec <file>       Executes a valid .cogm <file>
+  tokenize <file>       Tokenizes a valid .cogm <file>
