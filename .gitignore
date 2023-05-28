@@ -3,3 +3,4 @@
 .DS-Store
 .idea
 cmake-build-debug
+/test
