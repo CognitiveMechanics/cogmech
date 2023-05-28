@@ -4,7 +4,7 @@
 #include <string.h>
 
 #include "unit.h"
-#include "../../src/tokenize.h"
+#include "../../src/stringview.h"
 
 
 typedef struct CMTestInChars {
@@ -172,8 +172,10 @@ bool cm_test_trim_left_ws ()
 }
 
 
-void cm_test_tokenize ()
+void cm_test_stringview ()
 {
+	printf("Testing stringview...\n");
+
 	cm_add_test(cm_test_sv);
 	cm_add_test(cm_test_sv_to_cstr);
 	cm_add_test(cm_test_sv_cmp);

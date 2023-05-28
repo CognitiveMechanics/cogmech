@@ -1,1 +1,4 @@
-print("hello")
+a := "hello"
+b := <a, "world">
+
+: b

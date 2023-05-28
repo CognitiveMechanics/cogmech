@@ -1,11 +1,10 @@
-#include <stdlib.h>
+
 #include <stdio.h>
-#include <errno.h>
 #include <assert.h>
 #include <string.h>
 #include <libgen.h>
 
-#include "tokenize.h"
+#include "stringview.h"
 
 
 #define USAGE_BUFFER_SIZE 2048
@@ -38,7 +37,6 @@ void cm_print_usage ()
 
 int main (int argc, const char **argv)
 {
-	printf("%s\n", cm_trim_left(cm_sv("\ttest1"), "").data);
-	printf("%s\n", cm_trim_left_ws(cm_sv("\ttest2")).data);
+	cm_print_usage();
 	return 0;
 }
