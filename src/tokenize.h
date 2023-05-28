@@ -1,3 +1,6 @@
+#ifndef CM_TOKENIZE_H
+#define CM_TOKENIZE_H
+
 #include <stdbool.h>
 #include <string.h>
 #include <ctype.h>
@@ -63,3 +66,6 @@ struct CMStringView cm_trim_left_ws (const struct CMStringView sv)
 		.len = sv.len - i
 	};
 }
+
+
+#endif // CM_TOKENIZE_H

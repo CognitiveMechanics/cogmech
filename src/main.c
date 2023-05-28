@@ -7,6 +7,7 @@
 
 #include "tokenize.h"
 
+
 #define USAGE_BUFFER_SIZE 2048
 char cm_usage_buffer[USAGE_BUFFER_SIZE] = {0};
 
