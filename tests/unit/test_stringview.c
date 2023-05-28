@@ -138,11 +138,27 @@ bool test_cm_trim_left ()
 	};
 
 	for (size_t i = 0; i < sizeof(tests) / sizeof(struct CMTestSvSv); i += 1) {
-		CMStringView sv1 = cm_trim_left(tests[i].sv1, " \t\n");
-		CMStringView sv2 = cm_trim_left(tests[i].sv2, " \t\n");
+		CMStringView sv1 = tests[i].sv1;
+		CMStringView sv2 = tests[i].sv2;
+
+		size_t len1 = sv1.len;
+		size_t len2 = sv2.len;
+
+		size_t trimmed1 = cm_trim_left(&sv1, " \t\n");
+		size_t trimmed2 = cm_trim_left(&sv2, " \t\n");
 
 		if (cm_sv_eq(sv1, sv2) != tests[i].result) {
 			cm_test_error("Failed test_cm_trim_left test: %s, %s, %d\n", tests[i].sv1.data, tests[i].sv2.data, tests[i].result);
+			return false;
+		}
+
+		if (sv1.len != len1 - trimmed1) {
+			cm_test_error("test_cm_trim_left: invalid trimmed length %zu in string one", trimmed1);
+			return false;
+		}
+
+		if (sv2.len != len2 - trimmed2) {
+			cm_test_error("test_cm_trim_left: invalid trimmed length %zu in string two", trimmed2);
 			return false;
 		}
 	}
@@ -162,11 +178,27 @@ bool test_cm_trim_left_ws ()
 	};
 
 	for (size_t i = 0; i < sizeof(tests) / sizeof(struct CMTestSvSv); i += 1) {
-		CMStringView sv1 = cm_trim_left_ws(tests[i].sv1);
-		CMStringView sv2 = cm_trim_left_ws(tests[i].sv2);
+		CMStringView sv1 = tests[i].sv1;
+		CMStringView sv2 = tests[i].sv2;
+
+		size_t len1 = sv1.len;
+		size_t len2 = sv2.len;
+
+		size_t trimmed1 = cm_trim_left_ws(&sv1);
+		size_t trimmed2 = cm_trim_left_ws(&sv2);
 
 		if (cm_sv_eq(sv1, sv2) != tests[i].result) {
-			cm_test_error("Failed test_cm_trim_left_ws test: %s, %s, %d\n", tests[i].sv1.data, tests[i].sv2.data, tests[i].result);
+			cm_test_error("Failed test_cm_trim_left test: %s, %s, %d\n", tests[i].sv1.data, tests[i].sv2.data, tests[i].result);
+			return false;
+		}
+
+		if (sv1.len != len1 - trimmed1) {
+			cm_test_error("test_cm_trim_left: invalid trimmed length %zu in string one", trimmed1);
+			return false;
+		}
+
+		if (sv2.len != len2 - trimmed2) {
+			cm_test_error("test_cm_trim_left: invalid trimmed length %zu in string two", trimmed2);
 			return false;
 		}
 	}

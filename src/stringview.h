@@ -91,33 +91,33 @@ bool cm_in_chars (char c, const char *chars)
 }
 
 
-CMStringView cm_trim_left (const CMStringView sv, const char *chars)
+size_t cm_trim_left (CMStringView *sv, const char *chars)
 {
-	int i = 0;
+	size_t i = 0;
 
-	while (i < sv.len && cm_in_chars(sv.data[i], chars)) {
+	while (i < sv->len && cm_in_chars(sv->data[i], chars)) {
 		i += 1;
 	}
 
-	return (CMStringView) {
-		.data = sv.data + i,
-		.len = sv.len - i
-	};
+	sv->data = sv->data + i;
+	sv->len = sv->len - i;
+
+	return i;
 }
 
 
-CMStringView cm_trim_left_ws (const CMStringView sv)
+size_t cm_trim_left_ws (CMStringView *sv)
 {
-	int i = 0;
+	size_t i = 0;
 
-	while (i < sv.len && isspace(sv.data[i])) {
+	while (i < sv->len && isspace(sv->data[i])) {
 		i += 1;
 	}
 
-	return (CMStringView) {
-		.data = sv.data + i,
-		.len = sv.len - i
-	};
+	sv->data = sv->data + i;
+	sv->len = sv->len - i;
+
+	return i;
 }
 
 
