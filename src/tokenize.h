@@ -1,24 +1,74 @@
 #ifndef CM_TOKENIZE_H
 #define CM_TOKENIZE_H
 
+#include <stdlib.h>
 #include <stdbool.h>
 #include <string.h>
 #include <ctype.h>
 
+#ifndef CM_SV_CAPACITY
+#define CM_SV_CAPACITY (1024 * 1024)
+#endif
 
-struct CMStringView
+typedef struct CMStringView
 {
 	const char *data;
 	size_t len;
-};
+} CMStringView;
 
 
-struct CMStringView cm_sv (const char *cstr)
+CMStringView cm_sv (const char *cstr)
 {
-	return (struct CMStringView) {
+	return (CMStringView) {
         .data = cstr,
         .len = strlen(cstr)
     };
+}
+
+
+const char *cm_sv_to_cstr (CMStringView sv)
+{
+	char *cstr = (char *)malloc(sv.len + 1);  // +1 for null terminator
+
+	if (cstr == NULL) {
+		return NULL;
+	}
+
+	sprintf(cstr, "%.*s", (int) sv.len, sv.data);
+
+	return cstr;
+}
+
+
+bool cm_sv_cmp_cstr (CMStringView sv, const char *cstr)
+{
+	if (sv.len != strlen(cstr)) {
+		return false;
+	}
+
+	for (size_t i = 0; i < sv.len; i++) {
+		if (sv.data[i] != cstr[i]) {
+			return false;
+		}
+	}
+
+	return true;
+}
+
+
+bool cm_sv_cmp (CMStringView sv1, CMStringView sv2)
+{
+	if (sv1.len != sv2.len) {
+		return false;
+	}
+
+	for (size_t i = 0; i < sv1.len; i++) {
+		if (sv1.data[i] != sv2.data[i]) {
+			return false;
+		}
+	}
+
+	return true;
 }
 
 
@@ -38,7 +88,7 @@ bool cm_in_chars (char c, const char *chars)
 }
 
 
-struct CMStringView cm_trim_left (const struct CMStringView sv, const char *chars)
+CMStringView cm_trim_left (const CMStringView sv, const char *chars)
 {
 	int i = 0;
 
@@ -46,14 +96,14 @@ struct CMStringView cm_trim_left (const struct CMStringView sv, const char *char
 		i += 1;
 	}
 
-	return (struct CMStringView) {
+	return (CMStringView) {
 		.data = sv.data + i,
 		.len = sv.len - i
 	};
 }
 
 
-struct CMStringView cm_trim_left_ws (const struct CMStringView sv)
+CMStringView cm_trim_left_ws (const CMStringView sv)
 {
 	int i = 0;
 
@@ -61,7 +111,7 @@ struct CMStringView cm_trim_left_ws (const struct CMStringView sv)
 		i += 1;
 	}
 
-	return (struct CMStringView) {
+	return (CMStringView) {
 		.data = sv.data + i,
 		.len = sv.len - i
 	};
