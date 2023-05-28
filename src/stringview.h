@@ -29,7 +29,7 @@ CMStringView cm_sv (const char *cstr)
 }
 
 
-const char *cm_sv_to_cstr (CMStringView sv)
+char *cm_sv_to_cstr (CMStringView sv)
 {
 	char *cstr = (char *)malloc(sv.len + 1);  // +1 for null terminator
 
@@ -184,6 +184,12 @@ CMStringView cm_chop_left_delim (CMStringView *sv, CMStringView delim)
 	sv->len = (sv->len - chop_len - delim.len);
 
 	return chopped;
+}
+
+
+bool cm_sv_empty (CMStringView sv)
+{
+	return sv.len == 0;
 }
 
 

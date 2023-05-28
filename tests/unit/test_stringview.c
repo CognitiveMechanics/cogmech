@@ -95,13 +95,15 @@ bool test_cm_sv_eq ()
 bool test_cm_sv_to_cstr ()
 {
 	CMStringView sv = cm_sv("test");
-	const char *cstr = cm_sv_to_cstr(sv);
+	char *cstr = cm_sv_to_cstr(sv);
 
 	if (strcmp(cstr, sv.data) != 0) {
+		free(cstr);
 		cm_test_error("Failed test_cm_sv_to_cstr conversion to cstring");
 		return false;
 	}
 
+	free(cstr);
 	return true;
 }
 
@@ -217,7 +219,7 @@ bool test_cm_chop_left_while ()
 }
 
 
-bool cm_test_chop_left_delim ()
+bool test_cm_chop_left_delim ()
 {
 	CMStringView sv = cm_sv("abc--def");
 	CMStringView delim = cm_sv("--");
@@ -225,6 +227,24 @@ bool cm_test_chop_left_delim ()
 
 	if (cm_sv_eq(chopped, cm_sv("def"))) {
 		cm_test_error("Failed test_cm_sv_chop_left_while test: %s, %s, %s\n", sv.data, delim.data, chopped.data);
+		return false;
+	}
+
+	return true;
+}
+
+
+bool test_cm_sv_empty ()
+{
+	if (! cm_sv_empty(cm_sv(""))) {
+		cm_test_error("test_cm_sv_empty failed on empty string\n");
+
+		return false;
+	}
+
+	if (cm_sv_empty(cm_sv("a"))) {
+		cm_test_error("test_cm_sv_empty failed on nonempty string\n");
+
 		return false;
 	}
 
@@ -245,5 +265,6 @@ void test_cm_stringview ()
 	cm_add_test(test_cm_trim_left_ws);
 	cm_add_test(test_cm_starts_with);
 	cm_add_test(test_cm_chop_left_while);
-	cm_add_test(cm_test_chop_left_delim);
+	cm_add_test(test_cm_chop_left_delim);
+	cm_add_test(test_cm_sv_empty);
 }
