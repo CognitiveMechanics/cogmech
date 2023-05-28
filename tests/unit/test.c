@@ -5,7 +5,7 @@
 
 int main ()
 {
-	cm_test_stringview();
+	test_cm_stringview();
 
 	return ! cm_run_tests();
 }
