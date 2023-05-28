@@ -8,3 +8,6 @@ include_directories(tests/unit)
 
 add_executable(cogmech
         src/main.c)
+
+add_executable(test
+        test/unit/test.c)
