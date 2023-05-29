@@ -27,7 +27,7 @@ char *cm_read_file_to_cstr (const char *filename)
 	str[length] = '\0';
 
 	fclose(f);
-	
+
 	return str;
 }
 

@@ -62,7 +62,7 @@ bool test_cm_cv_cmp_cstr ()
 
 	for (size_t i = 0; i < sizeof(tests) / sizeof(struct CMTestSvCstr); i += 1) {
 		if (cm_sv_cmp_cstr(tests[i].sv, tests[i].cstr) != tests[i].result) {
-			cm_test_error("Failed test_cm_cv_cmp_cstr test: %s, %s, %d\n", tests[i].sv.data, tests[i].cstr, tests[i].result);
+			cm_test_error("test_cm_cv_cmp_cstr test: %.*s, %s, %d\n", (int) tests[i].sv.len, tests[i].sv.data, tests[i].cstr, tests[i].result);
 			return false;
 		}
 	}
@@ -83,7 +83,7 @@ bool test_cm_sv_eq ()
 
 	for (size_t i = 0; i < sizeof(tests) / sizeof(struct CMTestSvSv); i += 1) {
 		if (cm_sv_eq(tests[i].sv1, tests[i].sv2) != tests[i].result) {
-			cm_test_error("Failed test_cm_sv_eq test: %s, %s, %d\n", tests[i].sv1.data, tests[i].sv2.data, tests[i].result);
+			cm_test_error("test_cm_sv_eq test: %.*s, %.*s, %d\n", (int) tests[i].sv1.len, tests[i].sv1.data, (int) tests[i].sv2.len, tests[i].sv2.data, tests[i].result);
 			return false;
 		}
 	}
@@ -99,7 +99,7 @@ bool test_cm_sv_to_cstr ()
 
 	if (strcmp(cstr, sv.data) != 0) {
 		free(cstr);
-		cm_test_error("Failed test_cm_sv_to_cstr conversion to cstring");
+		cm_test_error("test_cm_sv_to_cstr conversion to cstring");
 		return false;
 	}
 
@@ -118,7 +118,7 @@ bool test_cm_in_chars ()
 
 	for (size_t i = 0; i < sizeof(tests) / sizeof(struct CMTestInChars); i += 1) {
 		if (cm_in_chars(tests[i].c, tests[i].chars) != tests[i].result) {
-			cm_test_error("Failed test_cm_in_chars test: %c, %s, %d\n", tests[i].c, tests[i].chars, tests[i].result);
+			cm_test_error("test_cm_in_chars test: %c, %s, %d\n", tests[i].c, tests[i].chars, tests[i].result);
 			return false;
 		}
 	}
@@ -148,7 +148,7 @@ bool test_cm_trim_left ()
 		size_t trimmed2 = cm_trim_left(&sv2, " \t\n");
 
 		if (cm_sv_eq(sv1, sv2) != tests[i].result) {
-			cm_test_error("Failed test_cm_trim_left test: %s, %s, %d\n", tests[i].sv1.data, tests[i].sv2.data, tests[i].result);
+			cm_test_error("test_cm_trim_left test: %.*s, %.*s, %d\n", (int) tests[i].sv1.len, tests[i].sv1.data, (int) tests[i].sv2.len, tests[i].sv2.data, tests[i].result);
 			return false;
 		}
 
@@ -188,7 +188,7 @@ bool test_cm_trim_left_ws ()
 		size_t trimmed2 = cm_trim_left_ws(&sv2);
 
 		if (cm_sv_eq(sv1, sv2) != tests[i].result) {
-			cm_test_error("Failed test_cm_trim_left test: %s, %s, %d\n", tests[i].sv1.data, tests[i].sv2.data, tests[i].result);
+			cm_test_error("test_cm_trim_left test: %s, %s, %d\n", tests[i].sv1.data, tests[i].sv2.data, tests[i].result);
 			return false;
 		}
 
@@ -222,7 +222,7 @@ bool test_cm_starts_with ()
 		CMStringView sv2 = tests[i].sv2;
 
 		if (cm_starts_with(sv1, sv2) != tests[i].result) {
-			cm_test_error("Failed test_cm_starts_with test: %s, %s, %d\n", tests[i].sv1.data, tests[i].sv2.data, tests[i].result);
+			cm_test_error("test_cm_starts_with test: %.*s, %.*s, %d\n", (int) tests[i].sv1.len, tests[i].sv1.data, (int) tests[i].sv2.len, tests[i].sv2.data, tests[i].result);
 			return false;
 		}
 	}
@@ -241,9 +241,15 @@ bool test_cm_chop_left_while ()
 {
 	CMStringView sv1 = cm_sv("   abc");
 	CMStringView sv2 = cm_sv("abc");
+	CMStringView chopped = cm_chop_left_while(&sv1, test_cm_char_isspace);
 
-	if (cm_sv_eq(cm_chop_left_while(&sv1, test_cm_char_isspace), sv2)) {
-		cm_test_error("Failed test_cm_sv_chop_left_while test: %s, %s\n", sv1.data, sv2.data);
+	if (! cm_sv_eq(sv1, sv2)) {
+		cm_test_error("test_cm_sv_chop_left_while test: %.*s, %.*s\n", (int) sv1.len, sv1.data, (int) sv2.len, sv2.data);
+		return false;
+	}
+
+	if (! cm_sv_eq(chopped, cm_sv("   "))) {
+		cm_test_error("test_cm_sv_chop_left_while chopped: %.*s\n", (int) chopped.len, chopped.data);
 		return false;
 	}
 
@@ -257,8 +263,32 @@ bool test_cm_chop_left_delim ()
 	CMStringView delim = cm_sv("--");
 	CMStringView chopped = cm_chop_left_delim(&sv, delim);
 
-	if (cm_sv_eq(chopped, cm_sv("def"))) {
-		cm_test_error("Failed test_cm_sv_chop_left_while test: %s, %s, %s\n", sv.data, delim.data, chopped.data);
+	if (! cm_sv_eq(chopped, cm_sv("abc"))) {
+		cm_test_error("test_cm_chop_left_delim chopped: %.*s\n", (int) chopped.len, chopped.data);
+		return false;
+	}
+
+	if (! cm_sv_eq(sv, cm_sv("def"))) {
+		cm_test_error("test_cm_chop_left_delim sv: %.*sn", (int) sv.len, sv.data);
+		return false;
+	}
+
+	return true;
+}
+
+
+bool test_cm_chop_left_len ()
+{
+	CMStringView sv = cm_sv("abc--def");
+	CMStringView chopped = cm_chop_left_len(&sv, 5);
+
+	if (! cm_sv_eq(chopped, cm_sv("abc--"))) {
+		cm_test_error("test_cm_chop_left_len chopped: %.*s\n", (int) chopped.len, chopped.data);
+		return false;
+	}
+
+	if (! cm_sv_eq(sv, cm_sv("def"))) {
+		cm_test_error("test_cm_chop_left_len sv: %.*s\n", (int) sv.len, sv.data);
 		return false;
 	}
 
@@ -298,5 +328,6 @@ void test_cm_stringview ()
 	cm_add_test(test_cm_starts_with);
 	cm_add_test(test_cm_chop_left_while);
 	cm_add_test(test_cm_chop_left_delim);
+	cm_add_test(test_cm_chop_left_len);
 	cm_add_test(test_cm_sv_empty);
 }

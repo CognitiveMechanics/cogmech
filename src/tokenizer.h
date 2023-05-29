@@ -27,7 +27,7 @@ typedef enum CMTokenType
 	CM_TOKEN_TYPE_WORD = 0,
 	CM_TOKEN_TYPE_LT,
 	CM_TOKEN_TYPE_GT,
-	CM_TOKEN_TYPE_D_QUOTE,
+	CM_TOKEN_TYPE_QUOTED,
 	CM_TOKEN_TYPE_COLON_EQ,
 	CM_TOKEN_TYPE_PAREN_IN,
 	CM_TOKEN_TYPE_PAREN_OUT,
@@ -89,6 +89,7 @@ CMTokenList cm_tokenlist ()
 	return list;
 }
 
+
 void cm_tokenlist_realloc (CMTokenList *list)
 {
 	list->cap = list->cap + CM_TOKEN_LIST_BLOCK_SIZE;
@@ -136,6 +137,8 @@ CMTokenList cm_tokenize (const char *filename, CMStringView sv)
 //
 //		if (cm_starts_with(sv, cm_sv("<"))) {
 //			row += 1;
+//			cm_trim_left(&sv, "<");
+//
 //			cm_tokenlist_append(
 //				&list,
 //				cm_token(filename, row, col, CM_TOKEN_TYPE_GT)
@@ -143,6 +146,8 @@ CMTokenList cm_tokenize (const char *filename, CMStringView sv)
 //
 //		} else if (cm_starts_with(sv, cm_sv(">"))) {
 //			row += 1;
+//			cm_trim_left(&sv, ">");
+//
 //			cm_tokenlist_append(
 //				&list,
 //				cm_token(filename, row, col, CM_TOKEN_TYPE_LT)
@@ -150,16 +155,26 @@ CMTokenList cm_tokenize (const char *filename, CMStringView sv)
 //
 //		} else if (cm_starts_with(sv, cm_sv(":="))) {
 //			row += 2;
+//			cm_trim_left(&sv, ":=");
+//
 //			cm_tokenlist_append(
 //				&list,
 //				cm_token(filename, row, col, CM_TOKEN_TYPE_COLON_EQ)
 //			);
 //
 //		} else if (cm_starts_with(sv, cm_sv("\""))) {
-//			cm_tokenlist_append(
-//				&list,
-//				cm_token(filename, row, col, CM_TOKEN_TYPE_LT)
-//			);
+//			CMToken quoted = cm_token(filename, row, col, CM_TOKEN_TYPE_QUOTED);
+//			size_t curr = 1;
+//
+//			while (curr < sv.len) {
+//				if (sv.data[curr] == '"') {
+//				}
+//
+//				curr += 1;
+//			}
+//
+//			// TODO: improve tokenizer error handling
+//			assert(0 && "Unterminated quote");
 //
 //		}
 //	}

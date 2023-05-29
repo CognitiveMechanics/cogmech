@@ -151,7 +151,7 @@ CMStringView cm_chop_left_while (CMStringView *sv, CMCharPredicate predicate)
 	};
 
 	sv->data = sv->data + chop_len;
-	sv->len = (sv->len - chop_len);
+	sv->len = sv->len - chop_len;
 
 	return chopped;
 }
@@ -181,7 +181,23 @@ CMStringView cm_chop_left_delim (CMStringView *sv, CMStringView delim)
 	};
 
 	sv->data = sv->data + chop_len + delim.len;
-	sv->len = (sv->len - chop_len - delim.len);
+	sv->len = sv->len - chop_len - delim.len;
+
+	return chopped;
+}
+
+
+CMStringView cm_chop_left_len (CMStringView *sv, size_t chop_len)
+{
+	assert(chop_len < sv->len);
+
+	CMStringView chopped = {
+		.data = sv->data,
+		.len = chop_len,
+	};
+
+	sv->data = sv->data + chop_len;
+	sv->len = sv->len - chop_len;
 
 	return chopped;
 }
