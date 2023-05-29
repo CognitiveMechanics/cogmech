@@ -191,6 +191,7 @@ void cm_tokenlist_realloc (CMTokenList *list)
 	assert(list->tokens != NULL);
 }
 
+
 void cm_tokenlist_append (CMTokenList *list, CMToken token)
 {
 	if (list->len + 1 > list->cap) {
