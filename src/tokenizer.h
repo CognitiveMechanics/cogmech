@@ -6,6 +6,8 @@
 #define CM_TOKEN_LIST_BLOCK_SIZE 2048
 #endif
 
+#define CM_ERROR_EXIT_SYNTAX 2
+
 
 #include <stdlib.h>
 #include <assert.h>
@@ -24,7 +26,8 @@ typedef struct CMLoc
 
 typedef enum CMTokenType
 {
-	CM_TOKEN_TYPE_WORD = 0,
+	CM_TOKEN_TYPE_UNKNOWN = 0,
+	CM_TOKEN_TYPE_WORD,
 	CM_TOKEN_TYPE_QUOTED,
 	CM_TOKEN_TYPE_LT,
 	CM_TOKEN_TYPE_GT,
@@ -235,6 +238,13 @@ bool cm_is_alnum (char c)
 }
 
 
+void cm_syntax_error (CMToken token, const char *message)
+{
+	fprintf(stderr, "FAILURE %s:%zu:%zu: %s", token.loc.filename, token.loc.row, token.loc.col, message);
+	exit(CM_ERROR_EXIT_SYNTAX);
+}
+
+
 CMTokenList cm_tokenize (const char *filename, CMStringView sv)
 {
 	size_t row = 0;
@@ -243,7 +253,7 @@ CMTokenList cm_tokenize (const char *filename, CMStringView sv)
 	CMTokenList list = cm_tokenlist();
 	bool in_quotes = false;
 
-	assert(CM_TOKEN_TYPE_COUNT == 21);
+	assert(CM_TOKEN_TYPE_COUNT == 22);
 
 	while (! cm_sv_empty(sv)) {
 		size_t trimmed = cm_trim_left(&sv, " \t");
@@ -290,8 +300,7 @@ CMTokenList cm_tokenize (const char *filename, CMStringView sv)
 			}
 
 			if (! terminated) {
-				// TODO: improve tokenizer error handling
-				assert(0 && "Unterminated quote");
+				cm_syntax_error(quoted, "Unterminated quote");
 			}
 
 			col += quoted.value.len;
@@ -323,8 +332,8 @@ CMTokenList cm_tokenize (const char *filename, CMStringView sv)
 			cm_trim_left(&sv, "\r");
 
 		} else {
-			printf("Token: %.*s\n", (int) sv.len, sv.data);
-			assert(false && "Invalid token type");
+			CMToken unknown = cm_token(filename, row, col, CM_TOKEN_TYPE_UNKNOWN);
+			cm_syntax_error(unknown, "Invalid token");
 		}
 	}
 
