@@ -118,6 +118,10 @@ typedef struct CMTokenList
 } CMTokenList;
 
 
+CMToken CM_TOKEN_NULL = {0};
+
+
+
 const char *cm_readable_token_type (CMTokenType type)
 {
 	return CM_TOKEN_TYPES_READABLE[type];
@@ -178,15 +182,37 @@ CMTokenList cm_tokenlist ()
 }
 
 
+bool cm_token_eq (CMToken token1, CMToken token2)
+{
+	if (token1.type != token2.type) {
+		return false;
+	}
+
+	if (! cm_sv_eq(token1.value, token2.value)) {
+		return false;
+	}
+
+	return true;
+}
+
+
 CMToken cm_tokenlist_get (CMTokenList list, size_t i)
 {
+	if (list.len < 1 || i > list.len - 1) {
+		assert(false && "Attempted to access unset index with cm_tokenlist_get");
+	}
+
 	return list.tokens[i];
 }
 
 
 CMToken cm_tokenlist_last (CMTokenList list)
 {
-	return list.tokens[list.len - 1];
+	if (list.len < 1) {
+		return CM_TOKEN_NULL;
+	}
+
+	return cm_tokenlist_get(list, list.len - 1);
 }
 
 
@@ -323,7 +349,6 @@ CMTokenList cm_tokenize (const char *filename, CMStringView sv)
 			cm_chop_left_len(&sv, 1);
 
 			cm_tokenlist_append(&list, word);
-
 			row += 1;
 			col = 0;
 
