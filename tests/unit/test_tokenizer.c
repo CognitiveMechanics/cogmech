@@ -88,13 +88,13 @@ bool test_cm_tokenlist_append_clear ()
 		return false;
 	}
 
-	if (list.tokens[0].type != CM_TOKEN_TYPE_COLON) {
+	if (cm_tokenlist_get(list, 0).type != CM_TOKEN_TYPE_COLON) {
 		cm_tokenlist_free(&list);
 		cm_test_error("test_cm_tokenlist_append: Incorrect type for first token\n");
 		return false;
 	}
 
-	if (list.tokens[1].type != CM_TOKEN_TYPE_COMMA) {
+	if (cm_tokenlist_last(list).type != CM_TOKEN_TYPE_COMMA) {
 		cm_tokenlist_free(&list);
 		cm_test_error("test_cm_tokenlist_append: Incorrect type for first token\n");
 		return false;

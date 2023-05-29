@@ -163,14 +163,6 @@ void cm_print_token (CMToken token)
 }
 
 
-void cm_print_tokenlist (CMTokenList list)
-{
-	for (size_t i = 0; i < list.len; i++) {
-		cm_print_token(list.tokens[i]);
-	}
-}
-
-
 CMTokenList cm_tokenlist ()
 {
 	CMTokenList list;
@@ -180,6 +172,26 @@ CMTokenList cm_tokenlist ()
 	list.cap = CM_TOKEN_LIST_BLOCK_SIZE;
 
 	return list;
+}
+
+
+CMToken cm_tokenlist_get (CMTokenList list, size_t i)
+{
+	return list.tokens[i];
+}
+
+
+CMToken cm_tokenlist_last (CMTokenList list)
+{
+	return list.tokens[list.len - 1];
+}
+
+
+void cm_print_tokenlist (CMTokenList list)
+{
+	for (size_t i = 0; i < list.len; i++) {
+		cm_print_token(cm_tokenlist_get(list, i));
+	}
 }
 
 
