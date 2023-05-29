@@ -50,15 +50,18 @@ bool test_cm_tokenlist ()
 	CMTokenList list = cm_tokenlist();
 
 	if (list.len != 0) {
+		cm_tokenlist_free(&list);
 		cm_test_error("test_cm_tokenlist: List not empty\n");
 		return false;
 	}
+
+	cm_tokenlist_free(&list);
 
 	return true;
 }
 
 
-bool test_cm_tokenlist_append ()
+bool test_cm_tokenlist_append_clear ()
 {
 	CMTokenList list = cm_tokenlist();
 
@@ -80,19 +83,32 @@ bool test_cm_tokenlist_append ()
 	cm_tokenlist_append(&list, token2);
 
 	if (list.len != 2) {
-		cm_test_error("test_cm_tokenlist_append: List not empty\n");
+		cm_tokenlist_free(&list);
+		cm_test_error("test_cm_tokenlist_append: List contains incorrect number of elements\n");
 		return false;
 	}
 
 	if (list.tokens[0].type != CM_TOKEN_TYPE_COLON) {
+		cm_tokenlist_free(&list);
 		cm_test_error("test_cm_tokenlist_append: Incorrect type for first token\n");
 		return false;
 	}
 
 	if (list.tokens[1].type != CM_TOKEN_TYPE_COMMA) {
+		cm_tokenlist_free(&list);
 		cm_test_error("test_cm_tokenlist_append: Incorrect type for first token\n");
 		return false;
 	}
+
+	cm_tokenlist_clear(&list);
+
+	if (list.len != 0) {
+		cm_tokenlist_free(&list);
+		cm_test_error("test_cm_tokenlist_append: List did not clear\n");
+		return false;
+	}
+
+	cm_tokenlist_free(&list);
 
 	return true;
 }
@@ -103,14 +119,18 @@ bool test_cm_tokenize_file ()
 	CMTokenList list = cm_tokenize_file("tests/cogm/00-hello.cogm");
 
 	if (list.len == 0) {
+		cm_tokenlist_free(&list);
 		cm_test_error("test_cm_tokenize_file: No tokens read\n");
 		return false;
 	}
 
 	if (list.len != 15) {
+		cm_tokenlist_free(&list);
 		cm_test_error("test_cm_tokenize_file: Invalid number of tokens read\n");
 		return false;
 	}
+
+	cm_tokenlist_free(&list);
 
 	return true;
 }
@@ -122,6 +142,6 @@ void test_cm_tokenizer ()
 
 	cm_add_test(test_cm_token);
 	cm_add_test(test_cm_tokenlist);
-	cm_add_test(test_cm_tokenlist_append);
+	cm_add_test(test_cm_tokenlist_append_clear);
 	cm_add_test(test_cm_tokenize_file);
 }

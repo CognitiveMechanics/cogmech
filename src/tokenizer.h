@@ -203,6 +203,20 @@ void cm_tokenlist_append (CMTokenList *list, CMToken token)
 }
 
 
+void cm_tokenlist_clear (CMTokenList *list)
+{
+	list->len = 0;
+}
+
+
+void cm_tokenlist_free (CMTokenList *list)
+{
+	free(list->tokens);
+	list->len = 0;
+	list->cap = 0;
+}
+
+
 bool cm_is_alnum (char c)
 {
 	return (bool) isalnum(c);
