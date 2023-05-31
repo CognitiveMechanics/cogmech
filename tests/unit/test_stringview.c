@@ -316,7 +316,7 @@ bool test_cm_sv_empty ()
 
 void test_cm_stringview ()
 {
-	printf("Testing stringview...\n");
+	printf("Loading stringview tests...\n");
 
 	cm_add_test(test_cm_sv);
 	cm_add_test(test_cm_sv_to_cstr);

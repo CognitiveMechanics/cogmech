@@ -250,6 +250,12 @@ CMToken cm_tokenlist_shift (CMTokenList *list)
 }
 
 
+bool cm_tokenlist_empty (CMTokenList list)
+{
+	return list.len == 0;
+}
+
+
 void cm_print_tokenlist (CMTokenList list)
 {
 	for (size_t i = 0; i < list.len; i++) {

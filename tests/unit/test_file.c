@@ -22,7 +22,7 @@ bool test_cm_read_file_to_cstr ()
 
 void test_cm_file ()
 {
-	printf("Testing files...\n");
+	printf("Loading file tests...\n");
 
 	cm_add_test(test_cm_read_file_to_cstr);
 }

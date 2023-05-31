@@ -331,6 +331,35 @@ bool test_cm_tokenlist_shift ()
 	return true;
 }
 
+bool test_cm_tokenlist_empty ()
+{
+	CMTokenList list = cm_tokenlist();
+
+	if (! cm_tokenlist_empty(list)) {
+		cm_tokenlist_free(&list);
+		cm_test_error("test_cm_tokenlist_empty: List is empty\n");
+		return false;
+	}
+
+	CMToken token = cm_token(
+		"filename.cogm",
+		0,
+		0,
+		CM_TOKEN_TYPE_COLON_EQ
+	);
+
+	cm_tokenlist_append(&list, token);
+
+	if (cm_tokenlist_empty(list)) {
+		cm_tokenlist_free(&list);
+		cm_test_error("test_cm_tokenlist_empty: List is not empty\n");
+		return false;
+	}
+
+	cm_tokenlist_free(&list);
+	return true;
+}
+
 
 bool test_cm_tokenize_file ()
 {
@@ -356,7 +385,7 @@ bool test_cm_tokenize_file ()
 
 void test_cm_tokenizer ()
 {
-	printf("Testing tokenizer...\n");
+	printf("Loading tokenizer tests...\n");
 
 	cm_add_test(test_cm_token);
 	cm_add_test(test_cm_tokenlist);
@@ -365,5 +394,6 @@ void test_cm_tokenizer ()
 	cm_add_test(test_cm_tokenlist_get);
 	cm_add_test(test_cm_tokenlist_append_clear);
 	cm_add_test(test_cm_tokenlist_shift);
+	cm_add_test(test_cm_tokenlist_empty);
 	cm_add_test(test_cm_tokenize_file);
 }

@@ -20,7 +20,7 @@ size_t _cm_test_count = 0;
 
 
 #define cm_test_error(...) fprintf(stderr, "FAILURE %s:%d: ", __FILE__, __LINE__); fprintf (stderr, __VA_ARGS__)
-#define cm_add_test(test) assert(_cm_test_count < 2048); _cm_tests[_cm_test_count] = (CMUnitTest) {#test, &test}; _cm_test_count += 1
+#define cm_add_test(test) assert(_cm_test_count < CM_TEST_BUFFER_SIZE); _cm_tests[_cm_test_count] = (CMUnitTest) {#test, &test}; _cm_test_count += 1
 
 
 bool _cm_run_tests (CMUnitTest tests[], size_t n)
@@ -29,7 +29,7 @@ bool _cm_run_tests (CMUnitTest tests[], size_t n)
 	int failure_count = 0;
 
 	for (int i = 0; i < n; i += 1) {
-		printf("Executing %s\n", tests[i].name);
+		printf("Executing %s...\n", tests[i].name);
 		bool result = (* (tests[i].test))();
 
 		if (!result) {

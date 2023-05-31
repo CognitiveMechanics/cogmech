@@ -42,8 +42,6 @@ void cm_alloc_node_children (CMNode *node, size_t n)
 
 CMNode cm_parse_tokenlist (CMTokenList list)
 {
-	CMTokenList token_queue = cm_tokenlist();
-
 	for (size_t i = 0; i < list.len; i++) {
 		CMToken token = cm_tokenlist_get(list, i);
 
