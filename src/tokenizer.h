@@ -116,6 +116,7 @@ typedef struct CMTokenList
 	CMToken *tokens;
 	size_t len;
 	size_t cap;
+	size_t cur;
 } CMTokenList;
 
 
@@ -178,6 +179,7 @@ CMTokenList cm_tokenlist ()
 	list.tokens = malloc(CM_TOKEN_LIST_BLOCK_SIZE);
 	list.len = 0;
 	list.cap = CM_TOKEN_LIST_BLOCK_SIZE;
+	list.cur = 0;
 
 	return list;
 }
@@ -203,7 +205,7 @@ CMToken cm_tokenlist_get (CMTokenList list, size_t i)
 		assert(false && "Attempted to access unset index with cm_tokenlist_get");
 	}
 
-	return list.tokens[i];
+	return list.tokens[list.cur + i];
 }
 
 
@@ -233,6 +235,21 @@ bool cm_tokenlist_like (CMTokenList list, CMTokenType types[], size_t types_len)
 }
 
 
+CMToken cm_tokenlist_shift (CMTokenList *list)
+{
+	if (list->len < 1) {
+		assert(false && "Attempted to shift empty list");
+	}
+
+	CMToken token = cm_tokenlist_get(*list, 0);
+
+	list->cur += 1;
+	list->len -= 1;
+
+	return token;
+}
+
+
 void cm_print_tokenlist (CMTokenList list)
 {
 	for (size_t i = 0; i < list.len; i++) {
@@ -252,11 +269,11 @@ void cm_tokenlist_realloc (CMTokenList *list)
 
 void cm_tokenlist_append (CMTokenList *list, CMToken token)
 {
-	if (list->len + 1 > list->cap) {
+	if (list->len + list->cur + 1 > list->cap) {
 		cm_tokenlist_realloc(list);
 	}
 
-	list->tokens[list->len] = token;
+	list->tokens[list->cur + list->len] = token;
 	list->len = list->len + 1;
 }
 
@@ -272,6 +289,7 @@ void cm_tokenlist_free (CMTokenList *list)
 	free(list->tokens);
 	list->len = 0;
 	list->cap = 0;
+	list->cur = 0;
 }
 
 
