@@ -167,7 +167,7 @@ bool test_cm_token_eq ()
 }
 
 
-bool test_token_list_get ()
+bool test_tokenlist_get ()
 {
 	CMTokenList list = cm_tokenlist();
 
@@ -219,6 +219,57 @@ bool test_token_list_get ()
 	return true;
 }
 
+bool test_cm_tokenlist_like ()
+{
+	CMTokenList list = cm_tokenlist();
+
+	CMToken token1 = cm_token(
+		"filename.cogm",
+		0,
+		0,
+		CM_TOKEN_TYPE_WORD
+	);
+
+	token1.value = cm_sv("a");
+
+	CMToken token2 = cm_token(
+		"filename.cogm",
+		0,
+		2,
+		CM_TOKEN_TYPE_COLON_EQ
+	);
+
+	CMToken token3 = cm_token(
+		"filename.cogm",
+		0,
+		0,
+		CM_TOKEN_TYPE_WORD
+	);
+
+	token3.value = cm_sv("b");
+
+	cm_tokenlist_append(&list, token1);
+	cm_tokenlist_append(&list, token2);
+	cm_tokenlist_append(&list, token3);
+
+	CMTokenType type_list1[] = {CM_TOKEN_TYPE_WORD, CM_TOKEN_TYPE_COLON_EQ};
+	CMTokenType type_list2[] = {CM_TOKEN_TYPE_WORD, CM_TOKEN_TYPE_WORD};
+
+	if (! cm_tokenlist_like(list, type_list1, ARRAY_LEN(type_list1))) {
+		cm_tokenlist_free(&list);
+		cm_test_error("test_cm_tokenlist_begin_like: Equals test failed\n");
+		return false;
+	}
+
+	if (cm_tokenlist_like(list, type_list2, ARRAY_LEN(type_list2))) {
+		cm_tokenlist_free(&list);
+		cm_test_error("test_cm_tokenlist_begin_like: Equals test failed\n");
+		return false;
+	}
+
+	return true;
+}
+
 
 bool test_cm_tokenize_file ()
 {
@@ -247,8 +298,10 @@ void test_cm_tokenizer ()
 	printf("Testing tokenizer...\n");
 
 	cm_add_test(test_cm_token);
-	cm_add_test(test_cm_token_eq);
 	cm_add_test(test_cm_tokenlist);
+	cm_add_test(test_cm_token_eq);
+	cm_add_test(test_cm_tokenlist_like);
+	cm_add_test(test_tokenlist_get);
 	cm_add_test(test_cm_tokenlist_append_clear);
 	cm_add_test(test_cm_tokenize_file);
 }
