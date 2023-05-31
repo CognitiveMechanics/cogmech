@@ -10,18 +10,13 @@
 
 typedef enum CMNodeType {
 	CM_NODE_TYPE_ROOT = 0,
-	CM_NODE_TYPE_ENTITY,
-	CM_NODE_TYPE_REF_DEF,
-	CM_NODE_TYPE_OP_INVOCATION,
+	CM_NODE_TYPE_SYMBOL_DEF,
+	CM_NODE_TYPE_LITERAL,
+	CM_NODE_TYPE_SYMBOL,
+	CM_NODE_TYPE_COMPOSITION,
 	CM_NODE_TYPE_PRINT,
 	CM_NODE_TYPE_COUNT
 } CMNodeType;
-
-
-typedef enum CMOpType {
-	CM_OP_TYPE_COMPOSE = 0,
-	CM_OP_TYPE_COUNT
-} CMOpType;
 
 
 typedef struct CMNode {
@@ -31,7 +26,7 @@ typedef struct CMNode {
 } CMNode;
 
 
-void cm_alloc_node_children (CMNode *node, size_t n)
+void cm_node_alloc_children (CMNode *node, size_t n)
 {
 	node->children = malloc(n);
 	assert(node->children != NULL);
@@ -40,35 +35,55 @@ void cm_alloc_node_children (CMNode *node, size_t n)
 }
 
 
-CMNode cm_parse_tokenlist (CMTokenList list)
+void cm_node_free_children (CMNode *node)
 {
-	for (size_t i = 0; i < list.len; i++) {
-		CMToken token = cm_tokenlist_get(list, i);
+	assert(node->children != NULL);
 
-		if (token_queue.len == 0) {
-			switch (token.type) {
-				case CM_TOKEN_TYPE_WORD:
-				case CM_TOKEN_TYPE_COLON: {
-					cm_tokenlist_append(&token_queue, token);
-					break;
-				}
-
-				default: {
-					char error_message[50];
-					sprintf(error_message, "%s cannot begin a statement\n", cm_readable_token_type(token.type));
-					cm_syntax_error(token, error_message);
-				}
-			}
-		} else {
-			CMToken stmt_first_token = cm_tokenlist_get(token_queue, 0);
-
-			if (stmt_first_token.type == CM_TOKEN_TYPE_WORD) {
-
-			}
+	for (size_t i = 0; i <= node->n_children; i++) {
+		if (node->children[i].children != NULL) {
+			cm_node_free_children(&node->children[i]);
 		}
 	}
 
-	cm_tokenlist_free(&token_queue);
+	free(node->children);
+
+	node->n_children = 0;
+}
+
+
+CMNode cm_parse_file (CMTokenList *list)
+{
+	CMNode root = {0};
+
+	while (! cm_tokenlist_empty(*list)) {
+		CMToken token = cm_tokenlist_get(*list, 0);
+
+		switch (token.type) {
+			case CM_TOKEN_TYPE_WORD: {
+
+				break;
+			}
+			case CM_TOKEN_TYPE_COLON: {
+				break;
+			}
+
+			default: {
+				char error_message[50];
+				sprintf(error_message, "%s cannot begin a statement\n", cm_readable_token_type(token.type));
+				cm_syntax_error(token, error_message);
+			}
+		}
+	}
+}
+
+
+CMNode cm_parse_assignment (CMTokenList *list)
+{
+	CMTokenType fmt_assign_to_symbol[] = {
+		CM_TOKEN_TYPE_WORD,
+		CM_TOKEN_TYPE_COLON_EQ,
+		CM_TOKEN_TYPE_WORD
+	};
 }
 
 #endif

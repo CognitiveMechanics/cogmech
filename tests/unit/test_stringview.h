@@ -1,4 +1,7 @@
 
+#ifndef CM_TEST_STRINGVIEW_H
+#define CM_TEST_STRINGVIEW_H
+
 #include <stdio.h>
 #include <stdbool.h>
 #include <string.h>
@@ -331,3 +334,5 @@ void test_cm_stringview ()
 	cm_add_test(test_cm_chop_left_len);
 	cm_add_test(test_cm_sv_empty);
 }
+
+#endif // CM_TEST_STRINGVIEW_H

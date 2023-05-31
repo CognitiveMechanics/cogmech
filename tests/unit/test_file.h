@@ -1,4 +1,7 @@
 
+#ifndef CM_TEST_FILE_H
+#define CM_TEST_FILE_H
+
 #include <stdio.h>
 #include <string.h>
 #include <stdbool.h>
@@ -26,3 +29,6 @@ void test_cm_file ()
 
 	cm_add_test(test_cm_read_file_to_cstr);
 }
+
+
+#endif // CM_TEST_FILE_H

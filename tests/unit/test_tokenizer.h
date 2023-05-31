@@ -1,4 +1,7 @@
 
+#ifndef CM_TEST_TOKENIZER_H
+#define CM_TEST_TOKENIZER_H
+
 #include <stdio.h>
 #include <stdbool.h>
 
@@ -397,3 +400,6 @@ void test_cm_tokenizer ()
 	cm_add_test(test_cm_tokenlist_empty);
 	cm_add_test(test_cm_tokenize_file);
 }
+
+
+#endif // CM_TEST_TOKENIZER_H
