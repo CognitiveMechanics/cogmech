@@ -13,6 +13,7 @@
 #include <assert.h>
 #include <ctype.h>
 
+#include "util.h"
 #include "stringview.h"
 
 
@@ -209,10 +210,26 @@ CMToken cm_tokenlist_get (CMTokenList list, size_t i)
 CMToken cm_tokenlist_last (CMTokenList list)
 {
 	if (list.len < 1) {
-		return CM_TOKEN_NULL;
+		assert(false && "Attempted to access empty list with cm_tokenlist_last");
 	}
 
 	return cm_tokenlist_get(list, list.len - 1);
+}
+
+
+bool cm_tokenlist_like (CMTokenList list, CMTokenType types[], size_t types_len)
+{
+	if (list.len < types_len) {
+		return false;
+	}
+
+	for (size_t i = 0; i < types_len; i += 1) {
+		if (cm_tokenlist_get(list, i).type != types[i]) {
+			return false;
+		}
+	}
+
+	return true;
 }
 
 
