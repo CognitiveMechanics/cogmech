@@ -1,8 +1,8 @@
 
 #include "unit.h"
-#include "test_file.c"
-#include "test_stringview.c"
-#include "test_tokenizer.c"
+#include "test_file.h"
+#include "test_stringview.h"
+#include "test_tokenizer.h"
 
 
 int main ()
