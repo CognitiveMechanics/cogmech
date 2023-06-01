@@ -7,6 +7,8 @@
 
 #include "tokenizer.h"
 
+#define CM_NODE_CHILDREN_BLOCK_SIZE 16
+
 
 typedef enum CMNodeType {
 	CM_NODE_TYPE_ROOT = 0,
@@ -21,33 +23,69 @@ typedef enum CMNodeType {
 
 typedef struct CMNode {
 	CMNodeType type;
+	struct CMNode **children;
 	size_t n_children;
-	struct CMNode *children;
+	size_t cap;
 } CMNode;
 
 
-void cm_node_alloc_children (CMNode *node, size_t n)
+void cm_node_alloc_children (CMNode *node)
 {
-	node->children = malloc(n);
+	node->children = malloc(CM_NODE_CHILDREN_BLOCK_SIZE);
 	assert(node->children != NULL);
 
-	node->n_children = n;
+	node->cap = CM_NODE_CHILDREN_BLOCK_SIZE;
 }
 
 
-void cm_node_free_children (CMNode *node)
+CMNode *cm_node (CMNodeType type)
+{
+	CMNode* node = malloc(sizeof(CMNode));
+	node->type = type;
+
+	cm_node_alloc_children(node);
+
+	return node;
+}
+
+
+void cm_node_realloc_children (CMNode *node)
+{
+	node->cap = node->cap + CM_NODE_CHILDREN_BLOCK_SIZE;
+	node->children = realloc(node->children, node->cap);
+
+	assert(node->children != NULL);
+}
+
+
+void cm_node_append_child (CMNode *node, CMNode *child)
+{
+	if (node->n_children + 1 > node->cap) {
+		cm_node_realloc_children(node);
+	}
+
+	node->children[node->n_children] = child;
+	node->n_children += 1;
+}
+
+
+void cm_node_free (CMNode *node)
 {
 	assert(node->children != NULL);
 
-	for (size_t i = 0; i <= node->n_children; i++) {
-		if (node->children[i].children != NULL) {
-			cm_node_free_children(&node->children[i]);
+	for (size_t i = 0; i < node->n_children; i++) {
+		if (node->children[i]->children != NULL) {
+			cm_node_free(node->children[i]);
 		}
 	}
 
 	free(node->children);
-
+	node->children = NULL;
 	node->n_children = 0;
+	node->cap = 0;
+
+	free(node);
+	node = NULL;
 }
 
 
@@ -74,16 +112,22 @@ CMNode cm_parse_file (CMTokenList *list)
 			}
 		}
 	}
+
+	return root;
 }
 
 
 CMNode cm_parse_assignment (CMTokenList *list)
 {
+	CMNode node = {0};
+
 	CMTokenType fmt_assign_to_symbol[] = {
 		CM_TOKEN_TYPE_WORD,
 		CM_TOKEN_TYPE_COLON_EQ,
 		CM_TOKEN_TYPE_WORD
 	};
+
+	return node;
 }
 
 #endif
