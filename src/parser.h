@@ -116,14 +116,16 @@ CMNode *cm_parse_composition (CMTokenList *list);
 
 CMNode *cm_parse_expr (CMTokenList *list)
 {
-	CMToken token = cm_tokenlist_get(*list, 0);
+	CMToken token = cm_tokenlist_first(*list);
 
 	switch (token.type) {
 		case CM_TOKEN_TYPE_WORD: {
+			cm_tokenlist_shift(list);
 			return cm_node_symbol(token.value);
 		}
 
 		case CM_TOKEN_TYPE_QUOTED: {
+			cm_tokenlist_shift(list);
 			return cm_node_literal(token.value);
 		}
 
@@ -135,6 +137,8 @@ CMNode *cm_parse_expr (CMTokenList *list)
 			cm_syntax_error(token, "Expected expression\n");
 		}
 	}
+
+	assert(false && "Unreachable");
 }
 
 
@@ -150,7 +154,7 @@ CMNode *cm_parse_composition (CMTokenList *list)
 			cm_parse_expr(list)
 		);
 
-		CMToken next_token = cm_tokenlist_get(*list, 0);
+		CMToken next_token = cm_tokenlist_first(*list);
 
 		if (next_token.type == CM_TOKEN_TYPE_COMMA) {
 			cm_tokenlist_shift(list);
@@ -201,6 +205,12 @@ CMNode *cm_parse_print (CMTokenList *list)
 {
 	CMNode *node = cm_node(CM_NODE_TYPE_PRINT);
 
+	// discard print
+	cm_tokenlist_shift(list);
+
+	CMNode *expr = cm_parse_expr(list);
+	cm_node_append_child(node, expr);
+
 	return node;
 }
 
@@ -210,7 +220,7 @@ CMNode *cm_parse_file (CMTokenList *list)
 	CMNode *root = cm_node(CM_NODE_TYPE_ROOT);
 
 	while (! cm_tokenlist_empty(*list)) {
-		CMToken token = cm_tokenlist_get(*list, 0);
+		CMToken token = cm_tokenlist_first(*list);
 
 		switch (token.type) {
 			case CM_TOKEN_TYPE_WORD: {
@@ -230,12 +240,18 @@ CMNode *cm_parse_file (CMTokenList *list)
 
 				break;
 			}
+
 			case CM_TOKEN_TYPE_COLON: {
 				cm_node_append_child(
 					root,
 					cm_parse_print(list)
 				);
 
+				break;
+			}
+
+			case CM_TOKEN_TYPE_ENDL: {
+				cm_tokenlist_shift(list);
 				break;
 			}
 

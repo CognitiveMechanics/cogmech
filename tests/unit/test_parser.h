@@ -68,6 +68,7 @@ bool test_cm_parse_file ()
 	CMNode *parsed = cm_parse_file(&list);
 
 	cm_tokenlist_free(&list);
+	cm_node_free(parsed);
 
 	return true;
 }

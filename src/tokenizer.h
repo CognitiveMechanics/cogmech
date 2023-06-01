@@ -211,6 +211,16 @@ CMToken cm_tokenlist_get (CMTokenList list, size_t i)
 }
 
 
+CMToken cm_tokenlist_first (CMTokenList list)
+{
+	if (list.len < 1) {
+		assert(false && "Attempted to access empty list with cm_tokenlist_first");
+	}
+
+	return cm_tokenlist_get(list, 0);
+}
+
+
 CMToken cm_tokenlist_last (CMTokenList list)
 {
 	if (list.len < 1) {
@@ -245,7 +255,7 @@ CMToken cm_tokenlist_shift (CMTokenList *list)
 		assert(false && "Attempted to shift empty list");
 	}
 
-	CMToken token = cm_tokenlist_get(*list, 0);
+	CMToken token = cm_tokenlist_first(*list);
 
 	list->cur += 1;
 	list->len -= 1;
@@ -311,7 +321,10 @@ bool cm_is_alnum (char c)
 
 void cm_syntax_error (CMToken token, const char *message)
 {
-	fprintf(stderr, "FAILURE %s:%zu:%zu: %s", token.loc.filename, token.loc.row, token.loc.col, message);
+	fprintf(stderr, "FAILURE %s:%zu:%zu: %s: %s",
+		token.loc.filename, token.loc.row + 1, token.loc.col + 1,
+		message, cm_readable_token_type(token.type));
+
 	exit(CM_ERROR_EXIT_SYNTAX);
 }
 
