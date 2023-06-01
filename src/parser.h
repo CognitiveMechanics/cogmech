@@ -26,6 +26,7 @@ typedef struct CMNode {
 	struct CMNode **children;
 	size_t n_children;
 	size_t cap;
+	CMStringView value;
 } CMNode;
 
 
@@ -41,7 +42,10 @@ void cm_node_alloc_children (CMNode *node)
 CMNode *cm_node (CMNodeType type)
 {
 	CMNode* node = malloc(sizeof(CMNode));
+
 	node->type = type;
+	node->n_children = 0;
+	node->value = CM_SV_NULL;
 
 	cm_node_alloc_children(node);
 
@@ -69,6 +73,24 @@ void cm_node_append_child (CMNode *node, CMNode *child)
 }
 
 
+CMNode *cm_node_symbol (CMStringView identifier)
+{
+	CMNode *symbol_node = cm_node(CM_NODE_TYPE_SYMBOL);
+	symbol_node->value = identifier;
+
+	return symbol_node;
+}
+
+
+CMNode *cm_node_literal (CMStringView name)
+{
+	CMNode *literal_node = cm_node(CM_NODE_TYPE_LITERAL);
+	literal_node->value = name;
+
+	return literal_node;
+}
+
+
 void cm_node_free (CMNode *node)
 {
 	assert(node->children != NULL);
@@ -89,45 +111,141 @@ void cm_node_free (CMNode *node)
 }
 
 
-CMNode cm_parse_file (CMTokenList *list)
+CMNode *cm_parse_composition (CMTokenList *list);
+
+
+CMNode *cm_parse_expr (CMTokenList *list)
 {
-	CMNode root = {0};
+	CMToken token = cm_tokenlist_get(*list, 0);
+
+	switch (token.type) {
+		case CM_TOKEN_TYPE_WORD: {
+			return cm_node_symbol(token.value);
+		}
+
+		case CM_TOKEN_TYPE_QUOTED: {
+			return cm_node_literal(token.value);
+		}
+
+		case CM_TOKEN_TYPE_LT: {
+			return cm_parse_composition(list);
+		}
+
+		default: {
+			cm_syntax_error(token, "Expected expression\n");
+		}
+	}
+}
+
+
+CMNode *cm_parse_composition (CMTokenList *list)
+{
+	CMNode *node = cm_node(CM_NODE_TYPE_COMPOSITION);
+	CMToken initial = cm_tokenlist_shift(list);
+	bool terminated = false;
+
+	do {
+		cm_node_append_child(
+			node,
+			cm_parse_expr(list)
+		);
+
+		CMToken next_token = cm_tokenlist_get(*list, 0);
+
+		if (next_token.type == CM_TOKEN_TYPE_COMMA) {
+			cm_tokenlist_shift(list);
+			continue;
+		} else if (next_token.type == CM_TOKEN_TYPE_GT) {
+			terminated = true;
+			cm_tokenlist_shift(list);
+			break;
+		}
+	} while (! cm_tokenlist_empty(*list));
+
+	if (! terminated) {
+		cm_syntax_error(initial, "Unterminated composition\n");
+	}
+
+	return node;
+}
+
+
+CMNode *cm_parse_symbol_definition (CMTokenList *list)
+{
+	CMNode *node = cm_node(CM_NODE_TYPE_SYMBOL_DEF);
+
+	CMTokenType fmt_assignment[] = {
+		CM_TOKEN_TYPE_WORD,
+		CM_TOKEN_TYPE_COLON_EQ,
+	};
+
+	if (! cm_tokenlist_like(*list, fmt_assignment)) {
+		assert(false && "Invalid token list for symbol definition");
+	}
+
+	CMToken symbol_token = cm_tokenlist_shift(list);
+	CMNode *symbol = cm_node_symbol(symbol_token.value);
+	cm_node_append_child(node, symbol);
+
+	// discard :=
+	cm_tokenlist_shift(list);
+
+	CMNode *expr = cm_parse_expr(list);
+	cm_node_append_child(node, expr);
+
+	return node;
+}
+
+
+CMNode *cm_parse_print (CMTokenList *list)
+{
+	CMNode *node = cm_node(CM_NODE_TYPE_PRINT);
+
+	return node;
+}
+
+
+CMNode *cm_parse_file (CMTokenList *list)
+{
+	CMNode *root = cm_node(CM_NODE_TYPE_ROOT);
 
 	while (! cm_tokenlist_empty(*list)) {
 		CMToken token = cm_tokenlist_get(*list, 0);
 
 		switch (token.type) {
 			case CM_TOKEN_TYPE_WORD: {
+				CMTokenType fmt_assignment[] = {
+					CM_TOKEN_TYPE_WORD,
+					CM_TOKEN_TYPE_COLON_EQ,
+				};
+
+				if (! cm_tokenlist_like(*list, fmt_assignment)) {
+					cm_syntax_error(token, "A statement that begins with a word must be a definition");
+				}
+
+				cm_node_append_child(
+					root,
+					cm_parse_symbol_definition(list)
+				);
 
 				break;
 			}
 			case CM_TOKEN_TYPE_COLON: {
+				cm_node_append_child(
+					root,
+					cm_parse_print(list)
+				);
+
 				break;
 			}
 
 			default: {
-				char error_message[50];
-				sprintf(error_message, "%s cannot begin a statement\n", cm_readable_token_type(token.type));
-				cm_syntax_error(token, error_message);
+				cm_syntax_error(token, "Invalid begin of statement");
 			}
 		}
 	}
 
 	return root;
-}
-
-
-CMNode cm_parse_assignment (CMTokenList *list)
-{
-	CMNode node = {0};
-
-	CMTokenType fmt_assign_to_symbol[] = {
-		CM_TOKEN_TYPE_WORD,
-		CM_TOKEN_TYPE_COLON_EQ,
-		CM_TOKEN_TYPE_WORD
-	};
-
-	return node;
 }
 
 #endif

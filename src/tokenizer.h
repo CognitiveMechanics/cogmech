@@ -54,6 +54,7 @@ typedef enum CMTokenType
 
 
 const char *CM_TOKEN_TYPES_READABLE[CM_TOKEN_TYPE_COUNT] = {
+	"CM_TOKEN_TYPE_UNKNOWN",
 	"CM_TOKEN_TYPE_WORD",
 	"CM_TOKEN_TYPE_QUOTED",
 	"CM_TOKEN_TYPE_LT",
@@ -79,6 +80,7 @@ const char *CM_TOKEN_TYPES_READABLE[CM_TOKEN_TYPE_COUNT] = {
 
 
 const char *CM_TOKEN_TYPE_SYMBOLS[CM_TOKEN_TYPE_COUNT] = {
+	NULL,
 	NULL,
 	NULL,
 	"<",
@@ -219,7 +221,9 @@ CMToken cm_tokenlist_last (CMTokenList list)
 }
 
 
-bool cm_tokenlist_like (CMTokenList list, CMTokenType types[], size_t types_len)
+#define cm_tokenlist_like(list, types) _cm_tokenlist_like(list, types, ARRAY_LEN(types))
+
+bool _cm_tokenlist_like (CMTokenList list, CMTokenType types[], size_t types_len)
 {
 	if (list.len < types_len) {
 		return false;

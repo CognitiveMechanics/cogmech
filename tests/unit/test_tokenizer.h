@@ -257,13 +257,13 @@ bool test_cm_tokenlist_like ()
 	CMTokenType type_list1[] = {CM_TOKEN_TYPE_WORD, CM_TOKEN_TYPE_COLON_EQ};
 	CMTokenType type_list2[] = {CM_TOKEN_TYPE_WORD, CM_TOKEN_TYPE_WORD};
 
-	if (! cm_tokenlist_like(list, type_list1, ARRAY_LEN(type_list1))) {
+	if (! cm_tokenlist_like(list, type_list1)) {
 		cm_tokenlist_free(&list);
 		cm_test_error("test_cm_tokenlist_like: Equals test failed\n");
 		return false;
 	}
 
-	if (cm_tokenlist_like(list, type_list2, ARRAY_LEN(type_list2))) {
+	if (cm_tokenlist_like(list, type_list2)) {
 		cm_tokenlist_free(&list);
 		cm_test_error("test_cm_tokenlist_like: Equals test failed\n");
 		return false;

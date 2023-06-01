@@ -62,11 +62,23 @@ bool test_cm_node_alloc_free ()
 }
 
 
+bool test_cm_parse_file ()
+{
+	CMTokenList list = cm_tokenize_file("../tests/cogm/00-hello.cogm");
+	CMNode *parsed = cm_parse_file(&list);
+
+	cm_tokenlist_free(&list);
+
+	return true;
+}
+
+
 void test_cm_parser ()
 {
 	printf("Loading parser tests...\n");
 
 	cm_add_test(test_cm_node_alloc_free);
+	cm_add_test(test_cm_parse_file);
 }
 
 
