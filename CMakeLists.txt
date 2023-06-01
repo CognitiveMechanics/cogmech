@@ -10,4 +10,4 @@ add_executable(cogmech
         src/main.c)
 
 add_executable(test
-        test/unit/test.c)
+        tests/unit/test.c)

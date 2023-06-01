@@ -6,4 +6,5 @@
 #define ARRAY_LEN(arr) (sizeof(arr) / sizeof((arr)[0]))
 #endif
 
+
 #endif // CM_UTIL_H

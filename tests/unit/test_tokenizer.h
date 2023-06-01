@@ -366,7 +366,7 @@ bool test_cm_tokenlist_empty ()
 
 bool test_cm_tokenize_file ()
 {
-	CMTokenList list = cm_tokenize_file("tests/cogm/00-hello.cogm");
+	CMTokenList list = cm_tokenize_file("../tests/cogm/00-hello.cogm");
 
 	if (list.len == 0) {
 		cm_tokenlist_free(&list);

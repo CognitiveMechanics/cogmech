@@ -8,13 +8,21 @@
 
 #include "unit.h"
 #include "../../src/file.h"
+#include "../../src/util.h"
 
 
 bool test_cm_read_file_to_cstr ()
 {
-	char *str = cm_read_file_to_cstr("USAGE.txt");
+	const char *contents = "test";
+	const char *path = "/tmp/cm_test_file";
 
-	if (strlen(str) <= 0) {
+	FILE *file = fopen(path, "w+");
+	fwrite(contents, sizeof(char), sizeof(contents), file);
+	fclose(file);
+
+	char *str = cm_read_file_to_cstr(path);
+
+	if (strlen(str) != 4) {
 		cm_test_error("test_cm_read_file_to_cstr failed to read file\n");
 		return false;
 	}
