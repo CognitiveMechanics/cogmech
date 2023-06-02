@@ -20,6 +20,15 @@ typedef enum CMNodeType {
 	CM_NODE_TYPE_COUNT
 } CMNodeType;
 
+const char *CM_NODE_TYPES_READABLE[CM_NODE_TYPE_COUNT] = {
+	"CM_NODE_TYPE_ROOT",
+	"CM_NODE_TYPE_SYMBOL_DEF",
+	"CM_NODE_TYPE_LITERAL",
+	"CM_NODE_TYPE_SYMBOL",
+	"CM_NODE_TYPE_COMPOSITION",
+	"CM_NODE_TYPE_PRINT",
+};
+
 
 typedef struct CMNode {
 	CMNodeType type;
@@ -28,6 +37,12 @@ typedef struct CMNode {
 	size_t cap;
 	CMStringView value;
 } CMNode;
+
+
+const char *cm_readable_node_type (CMNodeType type)
+{
+	return CM_NODE_TYPES_READABLE[type];
+}
 
 
 void cm_node_alloc_children (CMNode *node)
@@ -108,6 +123,59 @@ void cm_node_free (CMNode *node)
 
 	free(node);
 	node = NULL;
+}
+
+
+char *_cm_print_node (CMNode *node, int indent_level, int num_spaces)
+{
+	printf(
+		"%*sNode {\n"
+		"%*s  .type = %s\n"
+		"%*s  .value = %.*s\n"
+		"%*s  .children = {",
+		indent_level * num_spaces,
+		"",
+		indent_level * num_spaces,
+		"",
+		cm_readable_node_type(node->type),
+		indent_level * num_spaces,
+		"",
+		node->value.len,
+		node->value.data,
+		indent_level * num_spaces,
+		""
+	);
+
+	if (node->n_children) {
+		printf("\n");
+
+		for (size_t i = 0; i < node->n_children; i++) {
+			_cm_print_node(node->children[i], indent_level + 1, num_spaces);
+		}
+
+		printf(
+			"%*s  }\n"
+			"%*s}\n",
+			indent_level * num_spaces,
+			"",
+			indent_level * num_spaces,
+			""
+		);
+	} else {
+		printf(
+			"}\n"
+			"%*s}\n",
+			indent_level * num_spaces,
+			""
+		);
+	}
+
+}
+
+
+void cm_print_node (CMNode *node)
+{
+	_cm_print_node(node, 0, 4);
 }
 
 

@@ -67,6 +67,11 @@ bool test_cm_parse_file ()
 	CMTokenList list = cm_tokenize_file("../tests/cogm/00-hello.cogm");
 	CMNode *parsed = cm_parse_file(&list);
 
+	if (parsed->type == CM_NODE_TYPE_ROOT) {
+		cm_test_error("test_cm_parse_file: invalid root node type\n");
+		return false;
+	}
+
 	cm_tokenlist_free(&list);
 	cm_node_free(parsed);
 
