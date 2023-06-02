@@ -270,7 +270,7 @@ bool test_cm_parse_expr ()
 }
 
 
-bool test_cm_parse_symbol_definition ()
+bool test_cm_parse_symbol_def ()
 {
 	CMToken symbol = cm_token(
 		"filename.cogm",
@@ -302,7 +302,7 @@ bool test_cm_parse_symbol_definition ()
 	cm_tokenlist_append(&list, op);
 	cm_tokenlist_append(&list, literal);
 
-	CMNode *parsed = cm_parse_symbol_definition(&list);
+	CMNode *parsed = cm_parse_symbol_def(&list);
 
 	if (parsed->type != CM_NODE_TYPE_SYMBOL_DEF) {
 		cm_test_error("invalid node type\n");
@@ -490,7 +490,7 @@ void test_cm_parser ()
 	cm_add_test(test_cm_node_literal);
 	cm_add_test(test_cm_parse_expr);
 	cm_add_test(test_cm_parse_composition);
-	cm_add_test(test_cm_parse_symbol_definition);
+	cm_add_test(test_cm_parse_symbol_def);
 	cm_add_test(test_cm_parse_print);
 	cm_add_test(test_cm_parse_file);
 }

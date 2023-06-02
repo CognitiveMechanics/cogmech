@@ -244,7 +244,7 @@ CMNode *cm_parse_composition (CMTokenList *list)
 }
 
 
-CMNode *cm_parse_symbol_definition (CMTokenList *list)
+CMNode *cm_parse_symbol_def (CMTokenList *list)
 {
 	CMNode *node = cm_node(CM_NODE_TYPE_SYMBOL_DEF);
 
@@ -305,7 +305,7 @@ CMNode *cm_parse_file (CMTokenList *list)
 
 				cm_node_append_child(
 					root,
-					cm_parse_symbol_definition(list)
+					cm_parse_symbol_def(list)
 				);
 
 				break;
