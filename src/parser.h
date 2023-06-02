@@ -329,8 +329,6 @@ CMNode *cm_parse_file (CMTokenList *list)
 				cm_syntax_error(token, "Invalid begin of statement");
 			}
 		}
-
-		void *test = 0;
 	}
 
 	return root;
