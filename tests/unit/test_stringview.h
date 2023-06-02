@@ -156,12 +156,12 @@ bool test_cm_trim_left ()
 		}
 
 		if (sv1.len != len1 - trimmed1) {
-			cm_test_error("test_cm_trim_left: invalid trimmed length %zu in string one", trimmed1);
+			cm_test_error("invalid trimmed length %zu in string one", trimmed1);
 			return false;
 		}
 
 		if (sv2.len != len2 - trimmed2) {
-			cm_test_error("test_cm_trim_left: invalid trimmed length %zu in string two", trimmed2);
+			cm_test_error("invalid trimmed length %zu in string two", trimmed2);
 			return false;
 		}
 	}
@@ -196,12 +196,12 @@ bool test_cm_trim_left_ws ()
 		}
 
 		if (sv1.len != len1 - trimmed1) {
-			cm_test_error("test_cm_trim_left: invalid trimmed length %zu in string one", trimmed1);
+			cm_test_error("invalid trimmed length %zu in string one", trimmed1);
 			return false;
 		}
 
 		if (sv2.len != len2 - trimmed2) {
-			cm_test_error("test_cm_trim_left: invalid trimmed length %zu in string two", trimmed2);
+			cm_test_error("invalid trimmed length %zu in string two", trimmed2);
 			return false;
 		}
 	}

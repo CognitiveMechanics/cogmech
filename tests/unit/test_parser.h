@@ -10,24 +10,24 @@ bool test_cm_node_alloc_free ()
 	CMNode *parent = cm_node(CM_NODE_TYPE_ROOT);
 
 	if (parent->children == NULL) {
-		cm_test_error("test_cm_node_alloc_free_children: failed to allocate parent children\n");
+		cm_test_error("failed to allocate parent children\n");
 		return false;
 	}
 
 	if (parent->n_children != 0) {
-		cm_test_error("test_cm_node_alloc_free_children: parent node indicates children before any have been appended\n");
+		cm_test_error("parent node indicates children before any have been appended\n");
 		return false;
 	}
 	
 	CMNode *child = cm_node(CM_NODE_TYPE_SYMBOL);
 
 	if (child->children == NULL) {
-		cm_test_error("test_cm_node_alloc_free_children: failed to allocate child children\n");
+		cm_test_error("failed to allocate child children\n");
 		return false;
 	}
 
 	if (child->n_children != 0) {
-		cm_test_error("test_cm_node_alloc_free_children: child node indicates children before any have been appended\n");
+		cm_test_error("child node indicates children before any have been appended\n");
 		return false;
 	}
 	
@@ -37,24 +37,24 @@ bool test_cm_node_alloc_free ()
 	cm_node_append_child(parent, child);
 
 	if (child->n_children != 1) {
-		cm_test_error("test_cm_node_alloc_free_children: child node indicates no children\n");
+		cm_test_error("child node indicates no children\n");
 		return false;
 	}
 
 	if (parent->n_children != 1) {
-		cm_test_error("test_cm_node_alloc_free_children: parent node indicates no children\n");
+		cm_test_error("parent node indicates no children\n");
 		return false;
 	}
 
 	cm_node_free(parent);
 
 	if (child->n_children != 0) {
-		cm_test_error("test_cm_node_alloc_free_children: child still indicates children after parent has been freed\n");
+		cm_test_error("child still indicates children after parent has been freed\n");
 		return false;
 	}
 
 	if (parent->n_children != 0) {
-		cm_test_error("test_cm_node_alloc_free_children: parent still indicates children after it has been freed\n");
+		cm_test_error("parent still indicates children after it has been freed\n");
 		return false;
 	}
 	
@@ -67,8 +67,8 @@ bool test_cm_parse_file ()
 	CMTokenList list = cm_tokenize_file("../tests/cogm/00-hello.cogm");
 	CMNode *parsed = cm_parse_file(&list);
 
-	if (parsed->type == CM_NODE_TYPE_ROOT) {
-		cm_test_error("test_cm_parse_file: invalid root node type\n");
+	if (parsed->type != CM_NODE_TYPE_ROOT) {
+		cm_test_error("invalid root node type\n");
 		return false;
 	}
 

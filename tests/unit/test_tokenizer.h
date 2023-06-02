@@ -20,27 +20,27 @@ bool test_cm_token ()
 	token.value = cm_sv("value");
 
 	if (token.type != CM_TOKEN_TYPE_WORD) {
-		cm_test_error("test_cm_token: Type doesn't match\n");
+		cm_test_error("Type doesn't match\n");
 		return false;
 	}
 
 	if (token.loc.row != 0) {
-		cm_test_error("test_cm_token: Row doesn't match\n");
+		cm_test_error("Row doesn't match\n");
 		return false;
 	}
 
 	if (token.loc.col != 1) {
-		cm_test_error("test_cm_token: Col doesn't match\n");
+		cm_test_error("Col doesn't match\n");
 		return false;
 	}
 
 	if (strcmp(token.loc.filename, "filename.cogm") != 0) {
-		cm_test_error("test_cm_token: Filename doesn't match\n");
+		cm_test_error("Filename doesn't match\n");
 		return false;
 	}
 
 	if (! cm_sv_eq(token.value, cm_sv("value"))) {
-		cm_test_error("test_cm_token: Value doesn't match\n");
+		cm_test_error("Value doesn't match\n");
 		return false;
 	}
 
@@ -54,7 +54,7 @@ bool test_cm_tokenlist ()
 
 	if (list.len != 0) {
 		cm_tokenlist_free(&list);
-		cm_test_error("test_cm_tokenlist: List not empty\n");
+		cm_test_error("List not empty\n");
 		return false;
 	}
 
@@ -87,19 +87,19 @@ bool test_cm_tokenlist_append_clear ()
 
 	if (list.len != 2) {
 		cm_tokenlist_free(&list);
-		cm_test_error("test_cm_tokenlist_append: List contains incorrect number of elements\n");
+		cm_test_error("List contains incorrect number of elements\n");
 		return false;
 	}
 
 	if (cm_tokenlist_first(list).type != CM_TOKEN_TYPE_COLON) {
 		cm_tokenlist_free(&list);
-		cm_test_error("test_cm_tokenlist_append: Incorrect type for first token\n");
+		cm_test_error("Incorrect type for first token\n");
 		return false;
 	}
 
 	if (cm_tokenlist_last(list).type != CM_TOKEN_TYPE_COMMA) {
 		cm_tokenlist_free(&list);
-		cm_test_error("test_cm_tokenlist_append: Incorrect type for first token\n");
+		cm_test_error("Incorrect type for first token\n");
 		return false;
 	}
 
@@ -107,7 +107,7 @@ bool test_cm_tokenlist_append_clear ()
 
 	if (list.len != 0) {
 		cm_tokenlist_free(&list);
-		cm_test_error("test_cm_tokenlist_append: List did not clear\n");
+		cm_test_error("List did not clear\n");
 		return false;
 	}
 
@@ -147,22 +147,22 @@ bool test_cm_token_eq ()
 	token4.value = cm_sv("test-value");
 
 	if (cm_token_eq(token1, token2)) {
-		cm_test_error("test_cm_token_eq: Eq states that two different tokens are the same\n");
+		cm_test_error("Eq states that two different tokens are the same\n");
 		return false;
 	}
 
 	if (! cm_token_eq(token1, token1)) {
-		cm_test_error("test_cm_token_eq: Eq states that the same tokens are different\n");
+		cm_test_error("Eq states that the same tokens are different\n");
 		return false;
 	}
 
 	if (! cm_token_eq(token1, token3)) {
-		cm_test_error("test_cm_token_eq: Eq states that equivalent tokens are different\n");
+		cm_test_error("Eq states that equivalent tokens are different\n");
 		return false;
 	}
 
 	if (! cm_token_eq(token1, token4)) {
-		cm_test_error("test_cm_token_eq: Eq states that same-valued tokens are different\n");
+		cm_test_error("Eq states that same-valued tokens are different\n");
 		return false;
 	}
 
@@ -193,25 +193,25 @@ bool test_cm_tokenlist_get ()
 
 	if (list.len != 2) {
 		cm_tokenlist_free(&list);
-		cm_test_error("test_cm_tokenlist_get: List contains incorrect number of elements\n");
+		cm_test_error("List contains incorrect number of elements\n");
 		return false;
 	}
 
 	if (cm_tokenlist_get(list, 0).type != CM_TOKEN_TYPE_COLON) {
 		cm_tokenlist_free(&list);
-		cm_test_error("test_cm_tokenlist_get: Incorrect type for first token\n");
+		cm_test_error("Incorrect type for first token\n");
 		return false;
 	}
 
 	if (! cm_token_eq(cm_tokenlist_get(list, 0), cm_tokenlist_first(list))) {
 		cm_tokenlist_free(&list);
-		cm_test_error("test_cm_tokenlist_get: cm_tokenlist_first failed\n");
+		cm_test_error("cm_tokenlist_first failed\n");
 		return false;
 	}
 
 	if (cm_tokenlist_last(list).type != CM_TOKEN_TYPE_COMMA) {
 		cm_tokenlist_free(&list);
-		cm_test_error("test_cm_tokenlist_get: Incorrect type for first token\n");
+		cm_test_error("Incorrect type for first token\n");
 		return false;
 	}
 
@@ -219,7 +219,7 @@ bool test_cm_tokenlist_get ()
 
 	if (list.len != 0) {
 		cm_tokenlist_free(&list);
-		cm_test_error("test_cm_tokenlist_append: List did not clear\n");
+		cm_test_error("List did not clear\n");
 		return false;
 	}
 
@@ -266,13 +266,13 @@ bool test_cm_tokenlist_like ()
 
 	if (! cm_tokenlist_like(list, type_list1)) {
 		cm_tokenlist_free(&list);
-		cm_test_error("test_cm_tokenlist_like: Equals test failed\n");
+		cm_test_error("Equals test failed\n");
 		return false;
 	}
 
 	if (cm_tokenlist_like(list, type_list2)) {
 		cm_tokenlist_free(&list);
-		cm_test_error("test_cm_tokenlist_like: Equals test failed\n");
+		cm_test_error("Equals test failed\n");
 		return false;
 	}
 
@@ -307,19 +307,19 @@ bool test_cm_tokenlist_shift ()
 
 	if (shifted1.type != CM_TOKEN_TYPE_WORD) {
 		cm_tokenlist_free(&list);
-		cm_test_error("test_cm_tokenlist_shift: Invalid token type after first shift\n");
+		cm_test_error("Invalid token type after first shift\n");
 		return false;
 	}
 
 	if (list.len != 1) {
 		cm_tokenlist_free(&list);
-		cm_test_error("test_cm_tokenlist_shift: Invalid list length after first shift\n");
+		cm_test_error("Invalid list length after first shift\n");
 		return false;
 	}
 
 	if (cm_tokenlist_first(list).type != CM_TOKEN_TYPE_COLON_EQ) {
 		cm_tokenlist_free(&list);
-		cm_test_error("test_cm_tokenlist_shift: Invalid list element token type after shift\n");
+		cm_test_error("Invalid list element token type after shift\n");
 		return false;
 	}
 
@@ -327,13 +327,13 @@ bool test_cm_tokenlist_shift ()
 
 	if (shifted2.type != CM_TOKEN_TYPE_COLON_EQ) {
 		cm_tokenlist_free(&list);
-		cm_test_error("test_cm_tokenlist_shift: Invalid token type after second shift\n");
+		cm_test_error("Invalid token type after second shift\n");
 		return false;
 	}
 
 	if (list.len != 0) {
 		cm_tokenlist_free(&list);
-		cm_test_error("test_cm_tokenlist_shift: Invalid list length after second shift\n");
+		cm_test_error("Invalid list length after second shift\n");
 		return false;
 	}
 
@@ -347,7 +347,7 @@ bool test_cm_tokenlist_empty ()
 
 	if (! cm_tokenlist_empty(list)) {
 		cm_tokenlist_free(&list);
-		cm_test_error("test_cm_tokenlist_empty: List is empty\n");
+		cm_test_error("List is empty\n");
 		return false;
 	}
 
@@ -362,7 +362,7 @@ bool test_cm_tokenlist_empty ()
 
 	if (cm_tokenlist_empty(list)) {
 		cm_tokenlist_free(&list);
-		cm_test_error("test_cm_tokenlist_empty: List is not empty\n");
+		cm_test_error("List is not empty\n");
 		return false;
 	}
 
@@ -377,13 +377,13 @@ bool test_cm_tokenize_file ()
 
 	if (list.len == 0) {
 		cm_tokenlist_free(&list);
-		cm_test_error("test_cm_tokenize_file: No tokens read\n");
+		cm_test_error("No tokens read\n");
 		return false;
 	}
 
 	if (list.len != 15) {
 		cm_tokenlist_free(&list);
-		cm_test_error("test_cm_tokenize_file: Invalid number of tokens read\n");
+		cm_test_error("Invalid number of tokens read\n");
 		return false;
 	}
 
