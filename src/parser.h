@@ -47,8 +47,10 @@ const char *cm_readable_node_type (CMNodeType type)
 
 void cm_node_alloc_children (CMNode *node)
 {
-	node->children = malloc(CM_NODE_CHILDREN_BLOCK_SIZE);
+	node->children = calloc(CM_NODE_CHILDREN_BLOCK_SIZE, sizeof(CMNode *));
+
 	assert(node->children != NULL);
+	assert(node->children[0] == NULL);
 
 	node->cap = CM_NODE_CHILDREN_BLOCK_SIZE;
 }
@@ -327,6 +329,8 @@ CMNode *cm_parse_file (CMTokenList *list)
 				cm_syntax_error(token, "Invalid begin of statement");
 			}
 		}
+
+		void *test = 0;
 	}
 
 	return root;
