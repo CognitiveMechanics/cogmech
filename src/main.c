@@ -64,12 +64,12 @@ int main (int argc, const char **argv)
 
 	} else if (strcmp(subcommand, "parse") == 0) {
 		CMTokenList list = cm_tokenize_file(filepath);
-		CMNode *ast = cm_parse_file(&list);
+		CMNode *ast = cm_parse(&list);
 		cm_print_node(ast);
 
 	} else if (strcmp(subcommand, "exec") == 0) {
 		CMTokenList list = cm_tokenize_file(filepath);
-		CMNode *ast = cm_parse_file(&list);
+		CMNode *ast = cm_parse(&list);
 		CMContext context = cm_context();
 
 		cm_interpret(&context, ast);

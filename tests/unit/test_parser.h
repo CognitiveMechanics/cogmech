@@ -127,9 +127,9 @@ bool test_cm_node_eq (void)
 	CMTokenList seq2 = cm_tokenize("test2.cogm", cm_sv("a := < \"b\" , c > \n"));
 	CMTokenList seq3 = cm_tokenize("test3.cogm", cm_sv("a := <\"b\", x>\n"));
 
-	CMNode *ast1 = cm_parse_file(&seq1);
-	CMNode *ast2 = cm_parse_file(&seq2);
-	CMNode *ast3 = cm_parse_file(&seq3);
+	CMNode *ast1 = cm_parse(&seq1);
+	CMNode *ast2 = cm_parse(&seq2);
+	CMNode *ast3 = cm_parse(&seq3);
 
 	if (! cm_node_eq(ast1, ast1)) {
 		cm_test_error("identical nodes should be equal\n");
@@ -492,10 +492,10 @@ bool test_cm_parse_print (void)
 }
 
 
-bool test_cm_parse_file (void)
+bool test_cm_parse (void)
 {
 	CMTokenList list = cm_tokenize_file("../tests/cogm/00-hello.cogm");
-	CMNode *parsed = cm_parse_file(&list);
+	CMNode *parsed = cm_parse(&list);
 
 	// root
 
@@ -611,7 +611,7 @@ void test_cm_parser (void)
 	cm_add_test(test_cm_parse_extract);
 	cm_add_test(test_cm_parse_symbol_def);
 	cm_add_test(test_cm_parse_print);
-	cm_add_test(test_cm_parse_file);
+	cm_add_test(test_cm_parse);
 }
 
 

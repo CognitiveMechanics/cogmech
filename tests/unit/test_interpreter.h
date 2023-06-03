@@ -171,7 +171,7 @@ bool test_cm_interpret (void)
 	};
 
 	for (size_t i = 0; i < ARRAY_LEN(lists); i++) {
-		CMNode *ast = cm_parse_file(&lists[i]);
+		CMNode *ast = cm_parse(&lists[i]);
 		CMContext context = cm_context();
 		cm_interpret(&context, ast);
 	}

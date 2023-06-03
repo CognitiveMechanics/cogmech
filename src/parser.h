@@ -369,7 +369,7 @@ CMNode *cm_parse_print (CMTokenList *list)
 }
 
 
-CMNode *cm_parse_file (CMTokenList *list)
+CMNode *cm_parse (CMTokenList *list)
 {
 	CMNode *root = cm_node(CM_NODE_TYPE_ROOT);
 
