@@ -20,7 +20,13 @@ typedef struct CMContext {
 } CMContext;
 
 
-bool cm_has_symbol_def (CMContext *context, CMStringView name)
+CMContext cm_context ()
+{
+	return (CMContext) {0};
+}
+
+
+bool cm_context_has_symbol (CMContext *context, CMStringView name)
 {
 	for (size_t i = 0; i < context->n_symbol_defs; i++) {
 		CMSymbolDef def = context->symbol_defs[i];
@@ -34,7 +40,7 @@ bool cm_has_symbol_def (CMContext *context, CMStringView name)
 }
 
 
-CMNode *cm_lookup_symbol_def (CMContext *context, CMStringView name)
+CMNode *cm_context_get_symbol (CMContext *context, CMStringView name)
 {
 	for (size_t i = 0; i < context->n_symbol_defs; i++) {
 		CMSymbolDef def = context->symbol_defs[i];
@@ -48,10 +54,10 @@ CMNode *cm_lookup_symbol_def (CMContext *context, CMStringView name)
 }
 
 
-void cm_add_symbol_def (CMContext *context, CMStringView name, CMNode *value)
+void cm_context_def_symbol (CMContext *context, CMStringView name, CMNode *value)
 {
 	assert(context->n_symbol_defs < CM_MAX_SYMBOLS);
-	assert(! cm_has_symbol_def(context, name));
+	assert(! cm_context_has_symbol(context, name));
 
 	context->symbol_defs[context->n_symbol_defs] = (CMSymbolDef) {name, value};
 	context->n_symbol_defs += 1;
@@ -66,7 +72,7 @@ CMNode *cm_interpret_entity (CMContext *context, CMNode *node)
 		}
 
 		case CM_NODE_TYPE_SYMBOL: {
-			return cm_lookup_symbol_def(context, node->value);
+			return cm_context_get_symbol(context, node->value);
 		}
 
 		case CM_NODE_TYPE_COMPOSITION: {
@@ -100,13 +106,13 @@ void cm_interpret_symbol_def (CMContext *context, CMNode *node)
 
 	assert(symbol->type == CM_NODE_TYPE_SYMBOL);
 
-	if (cm_has_symbol_def(context, symbol->value)) {
+	if (cm_context_has_symbol(context, symbol->value)) {
 		// TODO: update to syntax error
 		assert(false && "Symbol redefined");
 	}
 
 	CMNode *interpreted = cm_interpret_entity(context, value);
-	cm_add_symbol_def(context, symbol->value, interpreted);
+	cm_context_def_symbol(context, symbol->value, interpreted);
 }
 
 
@@ -203,7 +209,7 @@ void _cm_print_entity (CMNode *node, int indent_level, int num_spaces, bool with
 
 void cm_print_entity (CMNode *node)
 {
-	_cm_print_entity(node, 0, 4, false);
+	_cm_print_entity(node, 0, 2, false);
 }
 
 
