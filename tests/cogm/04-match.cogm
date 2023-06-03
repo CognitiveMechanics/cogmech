@@ -1,0 +1,5 @@
+walking := <<"walker", []>>
+bob_walking := T(walking, "walker", "Bob")
+
+: %(bob_walking, walking)
+: %(walking, bob_walking)

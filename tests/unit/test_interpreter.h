@@ -229,6 +229,94 @@ bool test_cm_interpret_transclude (void)
 }
 
 
+bool test_cm_interpret_match (void)
+{
+	CMContext context = cm_context();
+
+	CMStringView tag = cm_sv("tag");
+	CMNode *tag_node = cm_node_literal(tag);
+
+	CMStringView value = cm_sv("value");
+	CMNode *value_node = cm_node_literal(value);
+
+	CMNode *proxy_node = cm_node(CM_NODE_TYPE_PROXY);
+
+	CMNode *outer_1 = cm_node(CM_NODE_TYPE_COMPOSE);
+	CMNode *inner_1 = cm_node(CM_NODE_TYPE_COMPOSE);
+	cm_node_append_child(inner_1, tag_node);
+	cm_node_append_child(inner_1, value_node);
+	cm_node_append_child(outer_1, inner_1);
+
+	CMNode *outer_2 = cm_node(CM_NODE_TYPE_COMPOSE);
+	CMNode *inner_2 = cm_node(CM_NODE_TYPE_COMPOSE);
+	cm_node_append_child(inner_2, tag_node);
+	cm_node_append_child(inner_2, proxy_node);
+	cm_node_append_child(outer_2, inner_2);
+
+	CMNode *true_match = cm_node(CM_NODE_TYPE_MATCH);
+	cm_node_append_child(true_match, outer_1);
+	cm_node_append_child(true_match, outer_2);
+
+	CMNode *false_match = cm_node(CM_NODE_TYPE_MATCH);
+	cm_node_append_child(false_match, outer_2);
+	cm_node_append_child(false_match, outer_1);
+
+	CMNode *true_result = cm_interpret_match(&context, true_match);
+	CMNode *false_result = cm_interpret_match(&context, false_match);
+
+	if (! cm_node_eq(true_result, cm_node(CM_NODE_TYPE_TRUE))) {
+		cm_test_error("true result is not true");
+		return false;
+	}
+
+	if (! cm_node_eq(false_result, cm_node_null())) {
+		cm_test_error("false result is not null");
+		return false;
+	}
+
+	return true;
+}
+
+
+bool test_cm_match (void)
+{
+	CMStringView tag = cm_sv("tag");
+	CMNode *tag_node = cm_node_literal(tag);
+
+	CMStringView value = cm_sv("value");
+	CMNode *value_node = cm_node_literal(value);
+
+	CMNode *proxy_node = cm_node(CM_NODE_TYPE_PROXY);
+
+	CMNode *outer_1 = cm_node(CM_NODE_TYPE_COMPOSE);
+	CMNode *inner_1 = cm_node(CM_NODE_TYPE_COMPOSE);
+	cm_node_append_child(inner_1, tag_node);
+	cm_node_append_child(inner_1, value_node);
+	cm_node_append_child(outer_1, inner_1);
+
+	CMNode *outer_2 = cm_node(CM_NODE_TYPE_COMPOSE);
+	CMNode *inner_2 = cm_node(CM_NODE_TYPE_COMPOSE);
+	cm_node_append_child(inner_2, tag_node);
+	cm_node_append_child(inner_2, proxy_node);
+	cm_node_append_child(outer_2, inner_2);
+
+	bool true_result = cm_match(outer_1, outer_2);
+	bool false_result = cm_match(outer_2, outer_1);
+
+	if (! true_result) {
+		cm_test_error("true result is not true");
+		return false;
+	}
+
+	if (false_result) {
+		cm_test_error("false result is not false");
+		return false;
+	}
+
+	return true;
+}
+
+
 bool test_cm_interpret_print (void)
 {
 	CMContext context = cm_context();
@@ -250,6 +338,7 @@ bool test_cm_interpret (void)
 		cm_tokenize_file("../tests/cogm/01-silent.cogm"),
 		cm_tokenize_file("../tests/cogm/02-extract.cogm"),
 		cm_tokenize_file("../tests/cogm/03-transclude.cogm"),
+		cm_tokenize_file("../tests/cogm/04-match.cogm"),
 	};
 
 	for (size_t i = 0; i < ARRAY_LEN(lists); i++) {
@@ -272,6 +361,8 @@ void test_cm_interpreter (void)
 	cm_add_test(test_cm_interpret_entity);
 	cm_add_test(test_cm_interpret_extract);
 	cm_add_test(test_cm_interpret_transclude);
+	cm_add_test(test_cm_interpret_match);
+	cm_add_test(test_cm_match);
 	cm_add_test(test_cm_interpret_symbol_def);
 	cm_add_test(test_cm_interpret_print);
 	cm_add_test(test_cm_interpret);

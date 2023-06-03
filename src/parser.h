@@ -18,8 +18,10 @@ typedef enum CMNodeType {
 	CM_NODE_TYPE_COMPOSE,
 	CM_NODE_TYPE_EXTRACT,
 	CM_NODE_TYPE_TRANSCLUDE,
+	CM_NODE_TYPE_MATCH,
 	CM_NODE_TYPE_PRINT,
 	CM_NODE_TYPE_NULL,
+	CM_NODE_TYPE_TRUE,
 	CM_NODE_TYPE_PROXY,
 	CM_NODE_TYPE_DOT_PROXY,
 	CM_NODE_TYPE_COUNT
@@ -43,8 +45,10 @@ const char *CM_NODE_TYPES_READABLE[CM_NODE_TYPE_COUNT] = {
 	"CM_NODE_TYPE_COMPOSE",
 	"CM_NODE_TYPE_EXTRACT",
 	"CM_NODE_TYPE_TRANSCLUDE",
+	"CM_NODE_TYPE_MATCH",
 	"CM_NODE_TYPE_PRINT",
 	"CM_NODE_TYPE_NULL",
+	"CM_NODE_TYPE_TRUE",
 	"CM_NODE_TYPE_PROXY",
 	"CM_NODE_TYPE_DOT_PROXY",
 };
@@ -58,6 +62,9 @@ const char* CM_NODE_TYPE_WORDS[CM_NODE_TYPE_COUNT] = {
 	NULL,
 	NULL,
 	"T",
+	NULL,
+	NULL,
+	NULL,
 	NULL,
 	NULL,
 	NULL,
@@ -327,6 +334,25 @@ CMNode *cm_parse_transclude (CMTokenList *list)
 }
 
 
+CMNode *cm_parse_match (CMTokenList *list)
+{
+	cm_tokenlist_shift(list); // shift %
+
+	// arg list should be in the format (node, against)
+	cm_tokenlist_expect(list, CM_TOKEN_TYPE_PAREN_IN);   // (
+	CMNode *node = cm_parse_expr(list);                       // node
+	cm_tokenlist_expect(list, CM_TOKEN_TYPE_COMMA);      // ,
+	CMNode *against = cm_parse_expr(list);                    // expr2
+	cm_tokenlist_expect(list, CM_TOKEN_TYPE_PAREN_OUT); // )
+
+	CMNode *match = cm_node(CM_NODE_TYPE_MATCH);
+	cm_node_append_child(match, node);
+	cm_node_append_child(match, against);
+
+	return match;
+}
+
+
 CMNode *cm_parse_builtin (CMTokenList *list)
 {
 	CMToken token = cm_tokenlist_first(*list);
@@ -387,6 +413,10 @@ CMNode *cm_parse_expr (CMTokenList *list)
 		case CM_TOKEN_TYPE_DOT_PROXY: {
 			cm_tokenlist_shift(list);
 			return cm_node(CM_NODE_TYPE_DOT_PROXY);
+		}
+
+		case CM_TOKEN_TYPE_PERCENT: {
+			return cm_parse_match(list);
 		}
 
 		default: {
@@ -473,8 +503,8 @@ CMNode *cm_parse_print (CMTokenList *list)
 
 CMNode *cm_parse (CMTokenList *list)
 {
-	assert(CM_NODE_TYPE_COUNT == 11);
-	assert(CM_TOKEN_TYPE_COUNT == 15);
+	assert(CM_NODE_TYPE_COUNT == 13);
+	assert(CM_TOKEN_TYPE_COUNT == 16);
 
 	CMNode *root = cm_node(CM_NODE_TYPE_ROOT);
 

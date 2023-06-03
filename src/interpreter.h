@@ -101,6 +101,15 @@ void _cm_print_entity (CMNode *node, int indent_level, int num_spaces, bool with
 
 			break;
 		}
+		case CM_NODE_TYPE_TRUE: {
+			printf(
+				"%*s+\n",
+				indent_level * num_spaces,
+				""
+			);
+
+			break;
+		}
 
 		case CM_NODE_TYPE_PROXY: {
 			printf(
@@ -172,6 +181,9 @@ void _cm_print_entity (CMNode *node, int indent_level, int num_spaces, bool with
 					} else if (child->type == CM_NODE_TYPE_NULL) {
 						printf("Ø");
 
+					} else if (child->type == CM_NODE_TYPE_TRUE) {
+						printf("+");
+
 					} else if (child->type == CM_NODE_TYPE_PROXY) {
 						printf("[]");
 
@@ -206,7 +218,7 @@ void cm_print_entity (CMNode *node)
 }
 
 
-CMNode *cm_create_key_value (CMNode * key, CMNode *value)
+CMNode *cm_create_key_value (CMNode *key, CMNode *value)
 {
 	assert(key);
 	assert(value);
@@ -216,6 +228,50 @@ CMNode *cm_create_key_value (CMNode * key, CMNode *value)
 	cm_node_append_child(pair, value);
 
 	return pair;
+}
+
+
+bool cm_match (CMNode *match, CMNode *against)
+{
+	assert(match);
+	assert(against);
+
+	bool is_equal = cm_node_eq(match, against);
+	bool against_is_proxy = (against->type == CM_NODE_TYPE_PROXY);
+	bool proxy_against_dot_proxy = (match->type == CM_NODE_TYPE_PROXY && against->type == CM_NODE_TYPE_DOT_PROXY);
+
+	if (is_equal || against_is_proxy || proxy_against_dot_proxy) {
+		return true;
+	}
+
+	if (match->type != against->type) {
+		return false;
+	}
+
+	if (cm_node_type_has_value(against->type)) {
+		if (! cm_sv_eq(match->value, against->value)) {
+			return false;
+		}
+	}
+
+	for (size_t i = 0; i < against->n_children; i++) {
+		bool matched = false;
+
+		for (size_t j = 0; j < match->n_children; j++) {
+			bool result = cm_match(match->children[j], against->children[i]);
+
+			if (result) {
+				matched = true;
+				break;
+			}
+		}
+
+		if (! matched) {
+			return false;
+		}
+	}
+
+	return true;
 }
 
 
@@ -299,6 +355,24 @@ CMNode *cm_interpret_transclude (CMContext *context, CMNode *node)
 }
 
 
+CMNode *cm_interpret_match (CMContext *context, CMNode *node)
+{
+	assert(node->n_children == 2);
+	assert(node->type == CM_NODE_TYPE_MATCH);
+
+	CMNode *match = cm_interpret_entity(context, node->children[0]);
+	CMNode *against = cm_interpret_entity(context, node->children[1]);
+
+	bool result = cm_match(match, against);
+
+	if (result) {
+		return cm_node(CM_NODE_TYPE_TRUE);
+	} else {
+		return cm_node_null();
+	}
+}
+
+
 CMNode *cm_interpret_entity (CMContext *context, CMNode *node)
 {
 	switch (node->type) {
@@ -320,6 +394,10 @@ CMNode *cm_interpret_entity (CMContext *context, CMNode *node)
 
 		case CM_NODE_TYPE_TRANSCLUDE: {
 			return cm_interpret_transclude(context, node);
+		}
+
+		case CM_NODE_TYPE_MATCH: {
+			return cm_interpret_match(context, node);
 		}
 
 		case CM_NODE_TYPE_PROXY:
@@ -369,8 +447,8 @@ void cm_interpret_print (CMContext *context, CMNode *node)
 
 void cm_interpret (CMContext *context, CMNode *ast)
 {
-	assert(CM_NODE_TYPE_COUNT == 11);
-	assert(CM_TOKEN_TYPE_COUNT == 15);
+	assert(CM_NODE_TYPE_COUNT == 13);
+	assert(CM_TOKEN_TYPE_COUNT == 16);
 
 	assert(ast->type == CM_NODE_TYPE_ROOT);
 
