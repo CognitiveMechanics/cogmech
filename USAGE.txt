@@ -1,7 +1,0 @@
-
-OVERVIEW: A utility for working with cogmech files
-
-USAGE: cogm <subcommand> [args]
-
-SUBCOMMANDS:
-  tokenize <file>       Tokenizes a valid .cogm <file>
