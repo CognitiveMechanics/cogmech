@@ -280,7 +280,7 @@ bool test_cm_tokenlist_like (void)
 	return true;
 }
 
-bool test_cm_tokenlist_shift (void)
+bool test_cm_tokenlist_shift_expect (void)
 {
 	CMTokenList list = cm_tokenlist();
 
@@ -323,7 +323,7 @@ bool test_cm_tokenlist_shift (void)
 		return false;
 	}
 
-	CMToken shifted2 = cm_tokenlist_shift(&list);
+	CMToken shifted2 = cm_tokenlist_expect(&list, CM_TOKEN_TYPE_COLON_EQ);
 
 	if (shifted2.type != CM_TOKEN_TYPE_COLON_EQ) {
 		cm_tokenlist_free(&list);
@@ -403,7 +403,7 @@ void test_cm_tokenizer (void)
 	cm_add_test(test_cm_tokenlist_like);
 	cm_add_test(test_cm_tokenlist_get);
 	cm_add_test(test_cm_tokenlist_append_clear);
-	cm_add_test(test_cm_tokenlist_shift);
+	cm_add_test(test_cm_tokenlist_shift_expect);
 	cm_add_test(test_cm_tokenlist_empty);
 	cm_add_test(test_cm_tokenize_file);
 }

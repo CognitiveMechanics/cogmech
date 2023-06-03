@@ -36,8 +36,12 @@ typedef enum CMTokenType
 	CM_TOKEN_TYPE_COMMA,
 	CM_TOKEN_TYPE_COLON_EQ,
 	CM_TOKEN_TYPE_COLON,
+	CM_TOKEN_TYPE_PROXY,
+	CM_TOKEN_TYPE_DOT_PROXY,
 	CM_TOKEN_TYPE_SQ_BRACKET_IN,
 	CM_TOKEN_TYPE_SQ_BRACKET_OUT,
+	CM_TOKEN_TYPE_PAREN_IN,
+	CM_TOKEN_TYPE_PAREN_OUT,
 	CM_TOKEN_TYPE_COUNT,
 } CMTokenType;
 
@@ -52,8 +56,12 @@ const char *CM_TOKEN_TYPES_READABLE[CM_TOKEN_TYPE_COUNT] = {
 	"CM_TOKEN_TYPE_COMMA",
 	"CM_TOKEN_TYPE_COLON_EQ",
 	"CM_TOKEN_TYPE_COLON",
+	"CM_TOKEN_TYPE_PROXY",
+	"CM_TOKEN_TYPE_DOT_PROXY",
 	"CM_TOKEN_TYPE_SQ_BRACKET_IN",
 	"CM_TOKEN_TYPE_SQ_BRACKET_OUT",
+	"CM_TOKEN_TYPE_PAREN_IN",
+	"CM_TOKEN_TYPE_PAREN_OUT",
 };
 
 
@@ -67,8 +75,12 @@ const char *CM_TOKEN_TYPE_SYMBOLS[CM_TOKEN_TYPE_COUNT] = {
 	",",
 	":=",
 	":",
+	"[]",
+	"[.]",
 	"[",
 	"]",
+	"(",
+	")",
 };
 
 
@@ -102,6 +114,16 @@ const char *cm_readable_token_type (CMTokenType type)
 const char *cm_token_type_symbol (CMTokenType type)
 {
 	return CM_TOKEN_TYPE_SYMBOLS[type];
+}
+
+
+void cm_syntax_error (CMToken token, const char *message)
+{
+	fprintf(stderr, "FAILURE %s:%zu:%zu: %s: %s",
+		token.loc.filename, token.loc.row + 1, token.loc.col + 1,
+		message, cm_readable_token_type(token.type));
+
+	exit(CM_ERROR_EXIT_SYNTAX);
 }
 
 
@@ -231,6 +253,26 @@ CMToken cm_tokenlist_shift (CMTokenList *list)
 }
 
 
+CMToken cm_tokenlist_expect (CMTokenList *list, CMTokenType type)
+{
+	if (list->len < 1) {
+		assert(false && "cm_tokenlist_expect requires at least oine value in the list");
+	}
+
+	CMToken token = cm_tokenlist_shift(list);
+
+	if (token.type != type) {
+		char message[128];
+		const char *type_name = cm_readable_token_type(type);
+
+		snprintf(message, sizeof(message), "Expected %s", type_name);
+		cm_syntax_error(token, message);
+	}
+
+	return token;
+}
+
+
 bool cm_tokenlist_empty (CMTokenList list)
 {
 	return list.len == 0;
@@ -280,25 +322,15 @@ void cm_tokenlist_free (CMTokenList *list)
 }
 
 
-bool cm_is_alnum (char c)
+bool cm_is_word (char c)
 {
-	return (bool) isalnum(c);
-}
-
-
-void cm_syntax_error (CMToken token, const char *message)
-{
-	fprintf(stderr, "FAILURE %s:%zu:%zu: %s: %s",
-		token.loc.filename, token.loc.row + 1, token.loc.col + 1,
-		message, cm_readable_token_type(token.type));
-
-	exit(CM_ERROR_EXIT_SYNTAX);
+	return (bool) isalnum(c) || c == '_';
 }
 
 
 CMTokenList cm_tokenize (const char *filename, CMStringView sv)
 {
-	assert(CM_TOKEN_TYPE_COUNT == 11);
+	assert(CM_TOKEN_TYPE_COUNT == 15);
 
 	size_t row = 0;
 	size_t col = 0;
@@ -363,7 +395,7 @@ CMTokenList cm_tokenize (const char *filename, CMStringView sv)
 
 		} else if (isalpha(sv.data[0])) {
 			CMToken word = cm_token(filename, row, col, CM_TOKEN_TYPE_WORD);
-			word.value = cm_chop_left_while(&sv, cm_is_alnum);
+			word.value = cm_chop_left_while(&sv, cm_is_word);
 
 			cm_tokenlist_append(&list, word);
 			col += word.value.len;

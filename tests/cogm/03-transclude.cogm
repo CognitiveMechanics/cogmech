@@ -1,0 +1,4 @@
+walking := <<"walker", []>>
+bob_walking := T(walking, "walker", "Bob")
+
+: T(bob_walking, "surface", "grass")

@@ -155,6 +155,31 @@ bool test_cm_node_eq (void)
 }
 
 
+bool test_cm_node_from_word (void)
+{
+	CMNode *null_node_1 = cm_node_from_word(cm_sv(":"));
+	CMNode *null_node_2 = cm_node_from_word(cm_sv("O"));
+	CMNode *transclude_node = cm_node_from_word(cm_sv(CM_NODE_TYPE_WORDS[CM_NODE_TYPE_TRANSCLUDE]));
+
+	if (null_node_1 || null_node_2) {
+		cm_test_error("found node with unknown word\n");
+		return false;
+	}
+
+	if (! transclude_node) {
+		cm_test_error("transclude node not found\n");
+		return false;
+	}
+
+	if (transclude_node->type != CM_NODE_TYPE_TRANSCLUDE) {
+		cm_test_error("invalid transclude node type\n");
+		return false;
+	}
+
+	return true;
+}
+
+
 bool test_cm_parse_compose (void)
 {
 	CMTokenList list = cm_tokenlist();
@@ -305,6 +330,99 @@ bool test_cm_parse_extract (void)
 
 	if (composition->children[1]->type != CM_NODE_TYPE_LITERAL) {
 		cm_test_error("second element of composition should be CM_NODE_TYPE_LITERAL\n");
+		return false;
+	}
+
+	if (! cm_tokenlist_empty(list)) {
+		cm_test_error("list not empty\n");
+		return false;
+	}
+
+	return true;
+}
+
+
+bool test_cm_parse_transclude (void)
+{
+	CMTokenList list = cm_tokenlist();
+
+	CMToken keyword = cm_token(
+		"filename.cogm",
+		0,
+		0,
+		CM_TOKEN_TYPE_WORD
+	);
+	keyword.value = cm_sv("T");
+
+	CMToken tokens[] = {
+		keyword,
+		cm_token(
+			"filename.cogm",
+			0,
+			0,
+			CM_TOKEN_TYPE_PAREN_IN
+		),
+		cm_token(
+			"filename.cogm",
+			0,
+			0,
+			CM_TOKEN_TYPE_WORD
+		),
+		cm_token(
+			"filename.cogm",
+			0,
+			0,
+			CM_TOKEN_TYPE_COMMA
+		),
+		cm_token(
+			"filename.cogm",
+			0,
+			0,
+			CM_TOKEN_TYPE_QUOTED
+		),
+		cm_token(
+			"filename.cogm",
+			0,
+			0,
+			CM_TOKEN_TYPE_COMMA
+		),
+		cm_token(
+			"filename.cogm",
+			0,
+			0,
+			CM_TOKEN_TYPE_WORD
+		),
+		cm_token(
+			"filename.cogm",
+			0,
+			0,
+			CM_TOKEN_TYPE_PAREN_OUT
+		),
+	};
+
+	for (size_t i = 0; i < ARRAY_LEN(tokens); i++) {
+		cm_tokenlist_append(&list, tokens[i]);
+	}
+
+	CMNode *composition = cm_parse_transclude(&list);
+
+	if (composition->type != CM_NODE_TYPE_TRANSCLUDE) {
+		cm_test_error("invalid transclude expression\n");
+		return false;
+	}
+
+	if (composition->children[0]->type != CM_NODE_TYPE_SYMBOL) {
+		cm_test_error("first element of transclusion should be CM_NODE_TYPE_SYMBOL\n");
+		return false;
+	}
+
+	if (composition->children[1]->type != CM_NODE_TYPE_LITERAL) {
+		cm_test_error("second element of transclusion should be CM_NODE_TYPE_LITERAL\n");
+		return false;
+	}
+
+	if (composition->children[2]->type != CM_NODE_TYPE_SYMBOL) {
+		cm_test_error("third element of transclusion should be CM_NODE_TYPE_SYMBOL\n");
 		return false;
 	}
 
@@ -606,9 +724,11 @@ void test_cm_parser (void)
 	cm_add_test(test_cm_node_symbol);
 	cm_add_test(test_cm_node_literal);
 	cm_add_test(test_cm_node_eq);
+	cm_add_test(test_cm_node_from_word);
 	cm_add_test(test_cm_parse_expr);
 	cm_add_test(test_cm_parse_compose);
 	cm_add_test(test_cm_parse_extract);
+	cm_add_test(test_cm_parse_transclude);
 	cm_add_test(test_cm_parse_symbol_def);
 	cm_add_test(test_cm_parse_print);
 	cm_add_test(test_cm_parse);

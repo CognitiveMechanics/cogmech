@@ -20,8 +20,20 @@ typedef enum CMNodeType {
 	CM_NODE_TYPE_TRANSCLUDE,
 	CM_NODE_TYPE_PRINT,
 	CM_NODE_TYPE_NULL,
+	CM_NODE_TYPE_PROXY,
+	CM_NODE_TYPE_DOT_PROXY,
 	CM_NODE_TYPE_COUNT
 } CMNodeType;
+
+
+typedef struct CMNode {
+	CMNodeType type;
+	struct CMNode **children;
+	size_t n_children;
+	size_t cap;
+	CMStringView value;
+} CMNode;
+
 
 const char *CM_NODE_TYPES_READABLE[CM_NODE_TYPE_COUNT] = {
 	"CM_NODE_TYPE_ROOT",
@@ -33,16 +45,23 @@ const char *CM_NODE_TYPES_READABLE[CM_NODE_TYPE_COUNT] = {
 	"CM_NODE_TYPE_TRANSCLUDE",
 	"CM_NODE_TYPE_PRINT",
 	"CM_NODE_TYPE_NULL",
+	"CM_NODE_TYPE_PROXY",
+	"CM_NODE_TYPE_DOT_PROXY",
 };
 
 
-typedef struct CMNode {
-	CMNodeType type;
-	struct CMNode **children;
-	size_t n_children;
-	size_t cap;
-	CMStringView value;
-} CMNode;
+const char* CM_NODE_TYPE_WORDS[CM_NODE_TYPE_COUNT] = {
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	"T",
+	NULL,
+	NULL,
+	NULL,
+};
 
 
 const char *cm_readable_node_type (CMNodeType type)
@@ -181,6 +200,22 @@ bool cm_node_eq (const CMNode *node1, const CMNode *node2)
 }
 
 
+CMNode *cm_node_from_word (CMStringView name)
+{
+	for (size_t i = 1; i < ARRAY_LEN(CM_NODE_TYPE_WORDS); i++) {
+		const char *cstr = CM_NODE_TYPE_WORDS[i];
+
+		if (cstr) {
+			if (cm_sv_eq(name, cm_sv(cstr))) {
+				return cm_node(i);
+			}
+		}
+	}
+
+	return NULL;
+}
+
+
 void _cm_print_node (CMNode *node, int indent_level, int num_spaces)
 {
 	printf(
@@ -260,12 +295,69 @@ CMNode *cm_parse_extract (CMTokenList *list)
 }
 
 
+CMNode *cm_parse_transclude (CMTokenList *list)
+{
+	CMToken op = cm_tokenlist_shift(list);
+
+	assert(op.type == CM_TOKEN_TYPE_WORD);
+	assert(cm_sv_eq(op.value, cm_sv(CM_NODE_TYPE_WORDS[CM_NODE_TYPE_TRANSCLUDE])));
+	assert(list->len >= 4);
+
+	// arg list should be in the format (expr1, expr2, expr3)
+	cm_tokenlist_expect(list, CM_TOKEN_TYPE_PAREN_IN);   // (
+	CMNode *entity = cm_parse_expr(list);                     // expr1
+	cm_tokenlist_expect(list, CM_TOKEN_TYPE_COMMA);      // ,
+	CMNode *key = cm_parse_expr(list);                        // expr2
+	cm_tokenlist_expect(list, CM_TOKEN_TYPE_COMMA);     // ,
+	CMNode *value = cm_parse_expr(list);                      //expr3
+	cm_tokenlist_expect(list, CM_TOKEN_TYPE_PAREN_OUT); // )
+
+	// TODO: should be syntax error
+	assert(
+		(entity->type == CM_NODE_TYPE_COMPOSE || entity->type == CM_NODE_TYPE_SYMBOL)
+		&& "Transcluded nodes must be composed entities or symbols"
+	);
+
+	CMNode *new_node = cm_node(CM_NODE_TYPE_TRANSCLUDE);
+	cm_node_append_child(new_node, entity);
+	cm_node_append_child(new_node, key);
+	cm_node_append_child(new_node, value);
+
+	return new_node;
+}
+
+
+CMNode *cm_parse_builtin (CMTokenList *list)
+{
+	CMToken token = cm_tokenlist_first(*list);
+	CMNode *builtin = cm_node_from_word(token.value);
+
+	assert(builtin);
+
+	switch (builtin->type) {
+		case CM_NODE_TYPE_TRANSCLUDE: {
+			return cm_parse_transclude(list);
+		}
+
+		default: {
+			assert(false && "Invalid builtin word");
+		}
+	}
+}
+
+
 CMNode *cm_parse_expr (CMTokenList *list)
 {
 	CMToken token = cm_tokenlist_first(*list);
 
 	switch (token.type) {
 		case CM_TOKEN_TYPE_WORD: {
+			CMNode *builtin = cm_node_from_word(token.value);
+
+			if (builtin) {
+				return cm_parse_builtin(list);
+			}
+
 			if (list->len > 1) {
 				CMToken next_token = cm_tokenlist_get(*list, 1);
 
@@ -285,6 +377,16 @@ CMNode *cm_parse_expr (CMTokenList *list)
 
 		case CM_TOKEN_TYPE_LT: {
 			return cm_parse_compose(list);
+		}
+
+		case CM_TOKEN_TYPE_PROXY: {
+			cm_tokenlist_shift(list);
+			return cm_node(CM_NODE_TYPE_PROXY);
+		}
+
+		case CM_TOKEN_TYPE_DOT_PROXY: {
+			cm_tokenlist_shift(list);
+			return cm_node(CM_NODE_TYPE_DOT_PROXY);
 		}
 
 		default: {
@@ -371,6 +473,9 @@ CMNode *cm_parse_print (CMTokenList *list)
 
 CMNode *cm_parse (CMTokenList *list)
 {
+	assert(CM_NODE_TYPE_COUNT == 11);
+	assert(CM_TOKEN_TYPE_COUNT == 15);
+
 	CMNode *root = cm_node(CM_NODE_TYPE_ROOT);
 
 	while (! cm_tokenlist_empty(*list)) {
@@ -383,15 +488,18 @@ CMNode *cm_parse (CMTokenList *list)
 					CM_TOKEN_TYPE_COLON_EQ,
 				};
 
-				if (! cm_tokenlist_like(*list, fmt_assignment)) {
-					cm_syntax_error(token, "A statement that begins with a word must be a definition");
+				bool is_assignment = cm_tokenlist_like(*list, fmt_assignment);
+
+				if (is_assignment) {
+					cm_node_append_child(
+						root,
+						cm_parse_symbol_def(list)
+					);
+
+					break;
 				}
 
-				cm_node_append_child(
-					root,
-					cm_parse_symbol_def(list)
-				);
-
+				cm_syntax_error(token, "A statement that begins with a word must be a definition");
 				break;
 			}
 
