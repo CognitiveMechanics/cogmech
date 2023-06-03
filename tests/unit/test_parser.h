@@ -155,7 +155,7 @@ bool test_cm_node_eq (void)
 }
 
 
-bool test_cm_parse_composition (void)
+bool test_cm_parse_compose (void)
 {
 	CMTokenList list = cm_tokenlist();
 
@@ -222,7 +222,7 @@ bool test_cm_parse_composition (void)
 
 	CMNode *composition = cm_parse_expr(&list);
 
-	if (composition->type != CM_NODE_TYPE_COMPOSITION) {
+	if (composition->type != CM_NODE_TYPE_COMPOSE) {
 		cm_test_error("invalid composition expression\n");
 		return false;
 	}
@@ -237,8 +237,8 @@ bool test_cm_parse_composition (void)
 		return false;
 	}
 
-	if (composition->children[2]->type != CM_NODE_TYPE_COMPOSITION) {
-		cm_test_error("third element of composition should be CM_NODE_TYPE_COMPOSITION\n");
+	if (composition->children[2]->type != CM_NODE_TYPE_COMPOSE) {
+		cm_test_error("third element of composition should be CM_NODE_TYPE_COMPOSE\n");
 		return false;
 	}
 
@@ -372,7 +372,7 @@ bool test_cm_parse_expr (void)
 		return false;
 	}
 
-	if (composition->type != CM_NODE_TYPE_COMPOSITION) {
+	if (composition->type != CM_NODE_TYPE_COMPOSE) {
 		cm_test_error("invalid composition expression\n");
 		return false;
 	}
@@ -548,8 +548,8 @@ bool test_cm_parse_file (void)
 		return false;
 	}
 
-	if (parsed->children[1]->children[1]->type != CM_NODE_TYPE_COMPOSITION) {
-		cm_test_error("right hand of second assignment should be CM_NODE_TYPE_COMPOSITION\n");
+	if (parsed->children[1]->children[1]->type != CM_NODE_TYPE_COMPOSE) {
+		cm_test_error("right hand of second assignment should be CM_NODE_TYPE_COMPOSE\n");
 		return false;
 	}
 
@@ -607,7 +607,7 @@ void test_cm_parser (void)
 	cm_add_test(test_cm_node_literal);
 	cm_add_test(test_cm_node_eq);
 	cm_add_test(test_cm_parse_expr);
-	cm_add_test(test_cm_parse_composition);
+	cm_add_test(test_cm_parse_compose);
 	cm_add_test(test_cm_parse_extraction);
 	cm_add_test(test_cm_parse_symbol_def);
 	cm_add_test(test_cm_parse_print);

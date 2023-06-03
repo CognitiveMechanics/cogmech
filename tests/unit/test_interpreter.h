@@ -63,12 +63,12 @@ bool test_cm_interpret_entity (void)
 
 	cm_context_def_symbol(&context, name, value_node);
 
-	CMNode *composed = cm_node(CM_NODE_TYPE_COMPOSITION);
+	CMNode *composed = cm_node(CM_NODE_TYPE_COMPOSE);
 	cm_node_append_child(composed, symbol);
 
 	CMNode *interpreted = cm_interpret_entity(&context, composed);
 
-	if (interpreted->type != CM_NODE_TYPE_COMPOSITION) {
+	if (interpreted->type != CM_NODE_TYPE_COMPOSE) {
 		cm_test_error("Invalid root node type");
 		return false;
 	}
@@ -126,8 +126,8 @@ bool test_cm_interpret_extract (void)
 	CMStringView value = cm_sv("value");
 	CMNode *value_node = cm_node_literal(value);
 
-	CMNode *outer = cm_node(CM_NODE_TYPE_COMPOSITION);
-	CMNode *inner = cm_node(CM_NODE_TYPE_COMPOSITION);
+	CMNode *outer = cm_node(CM_NODE_TYPE_COMPOSE);
+	CMNode *inner = cm_node(CM_NODE_TYPE_COMPOSE);
 	cm_node_append_child(inner, tag_node);
 	cm_node_append_child(inner, value_node);
 	cm_node_append_child(outer, inner);

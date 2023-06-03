@@ -15,7 +15,7 @@ typedef enum CMNodeType {
 	CM_NODE_TYPE_SYMBOL_DEF,
 	CM_NODE_TYPE_LITERAL,
 	CM_NODE_TYPE_SYMBOL,
-	CM_NODE_TYPE_COMPOSITION,
+	CM_NODE_TYPE_COMPOSE,
 	CM_NODE_TYPE_EXTRACT,
 	CM_NODE_TYPE_PRINT,
 	CM_NODE_TYPE_NULL,
@@ -27,7 +27,7 @@ const char *CM_NODE_TYPES_READABLE[CM_NODE_TYPE_COUNT] = {
 	"CM_NODE_TYPE_SYMBOL_DEF",
 	"CM_NODE_TYPE_LITERAL",
 	"CM_NODE_TYPE_SYMBOL",
-	"CM_NODE_TYPE_COMPOSITION",
+	"CM_NODE_TYPE_COMPOSE",
 	"CM_NODE_TYPE_EXTRACT",
 	"CM_NODE_TYPE_PRINT",
 	"CM_NODE_TYPE_NULL",
@@ -231,7 +231,7 @@ void cm_print_node (CMNode *node)
 }
 
 
-CMNode *cm_parse_composition (CMTokenList *list);
+CMNode *cm_parse_compose (CMTokenList *list);
 CMNode *cm_parse_expr (CMTokenList *list);
 
 
@@ -282,7 +282,7 @@ CMNode *cm_parse_expr (CMTokenList *list)
 		}
 
 		case CM_TOKEN_TYPE_LT: {
-			return cm_parse_composition(list);
+			return cm_parse_compose(list);
 		}
 
 		default: {
@@ -294,9 +294,9 @@ CMNode *cm_parse_expr (CMTokenList *list)
 }
 
 
-CMNode *cm_parse_composition (CMTokenList *list)
+CMNode *cm_parse_compose (CMTokenList *list)
 {
-	CMNode *node = cm_node(CM_NODE_TYPE_COMPOSITION);
+	CMNode *node = cm_node(CM_NODE_TYPE_COMPOSE);
 	CMToken initial = cm_tokenlist_shift(list);
 	bool terminated = false;
 

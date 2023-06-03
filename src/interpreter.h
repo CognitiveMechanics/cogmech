@@ -69,7 +69,7 @@ CMNode *cm_interpret_entity (CMContext *context, CMNode *node);
 
 CMNode *cm_interpret_compose (CMContext *context, CMNode *node)
 {
-	CMNode *def_value = cm_node(CM_NODE_TYPE_COMPOSITION);
+	CMNode *def_value = cm_node(CM_NODE_TYPE_COMPOSE);
 
 	for (size_t i = 0; i < node->n_children; i++) {
 		cm_node_append_child(
@@ -90,12 +90,12 @@ CMNode *cm_interpret_extract (CMContext *context, CMNode *node)
 	CMNode *entity = cm_interpret_entity(context, node->children[0]);
 	CMNode *key = cm_interpret_entity(context, node->children[1]);
 
-	assert(entity->type == CM_NODE_TYPE_COMPOSITION);
+	assert(entity->type == CM_NODE_TYPE_COMPOSE);
 
 	for (size_t i = 0; i < entity->n_children; i++) {
 		CMNode *child = entity->children[i];
 
-		if (child->type == CM_NODE_TYPE_COMPOSITION && child->n_children == 2) {
+		if (child->type == CM_NODE_TYPE_COMPOSE && child->n_children == 2) {
 			if (cm_node_eq(child->children[0], key)) {
 				return cm_interpret_entity(context, child->children[1]);
 
@@ -120,7 +120,7 @@ CMNode *cm_interpret_entity (CMContext *context, CMNode *node)
 			return cm_context_get_symbol(context, node->value);
 		}
 
-		case CM_NODE_TYPE_COMPOSITION: {
+		case CM_NODE_TYPE_COMPOSE: {
 			return cm_interpret_compose(context, node);
 		}
 
@@ -158,10 +158,10 @@ void cm_interpret_symbol_def (CMContext *context, CMNode *node)
 
 bool _cm_print_entity_has_composition (CMNode *node)
 {
-	assert(node->type == CM_NODE_TYPE_COMPOSITION);
+	assert(node->type == CM_NODE_TYPE_COMPOSE);
 
 	for (size_t i = 0; i < node->n_children; i++) {
-		if (node->children[i]->type == CM_NODE_TYPE_COMPOSITION) {
+		if (node->children[i]->type == CM_NODE_TYPE_COMPOSE) {
 			return true;
 		}
 	}
@@ -172,7 +172,7 @@ bool _cm_print_entity_has_composition (CMNode *node)
 
 bool _cm_print_entity_should_indent (CMNode *node)
 {
-	bool is_composition = (node->type == CM_NODE_TYPE_COMPOSITION);
+	bool is_composition = (node->type == CM_NODE_TYPE_COMPOSE);
 	bool has_composition = _cm_print_entity_has_composition(node);
 	bool has_max_nodes = (node->n_children > 3);
 
@@ -205,7 +205,7 @@ void _cm_print_entity (CMNode *node, int indent_level, int num_spaces, bool with
 			break;
 		}
 
-		case CM_NODE_TYPE_COMPOSITION: {
+		case CM_NODE_TYPE_COMPOSE: {
 			if (_cm_print_entity_should_indent(node)) {
 				printf("%*s<\n", indent_level * num_spaces, "");
 
