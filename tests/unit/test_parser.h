@@ -256,7 +256,7 @@ bool test_cm_parse_compose (void)
 }
 
 
-bool test_cm_parse_extraction (void)
+bool test_cm_parse_extract (void)
 {
 	CMTokenList list = cm_tokenlist();
 
@@ -291,7 +291,7 @@ bool test_cm_parse_extraction (void)
 		cm_tokenlist_append(&list, tokens[i]);
 	}
 
-	CMNode *composition = cm_parse_extraction(&list);
+	CMNode *composition = cm_parse_extract(&list);
 
 	if (composition->type != CM_NODE_TYPE_EXTRACT) {
 		cm_test_error("invalid extract expression\n");
@@ -608,7 +608,7 @@ void test_cm_parser (void)
 	cm_add_test(test_cm_node_eq);
 	cm_add_test(test_cm_parse_expr);
 	cm_add_test(test_cm_parse_compose);
-	cm_add_test(test_cm_parse_extraction);
+	cm_add_test(test_cm_parse_extract);
 	cm_add_test(test_cm_parse_symbol_def);
 	cm_add_test(test_cm_parse_print);
 	cm_add_test(test_cm_parse_file);

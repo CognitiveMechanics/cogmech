@@ -17,6 +17,7 @@ typedef enum CMNodeType {
 	CM_NODE_TYPE_SYMBOL,
 	CM_NODE_TYPE_COMPOSE,
 	CM_NODE_TYPE_EXTRACT,
+	CM_NODE_TYPE_TRANSCLUDE,
 	CM_NODE_TYPE_PRINT,
 	CM_NODE_TYPE_NULL,
 	CM_NODE_TYPE_COUNT
@@ -29,6 +30,7 @@ const char *CM_NODE_TYPES_READABLE[CM_NODE_TYPE_COUNT] = {
 	"CM_NODE_TYPE_SYMBOL",
 	"CM_NODE_TYPE_COMPOSE",
 	"CM_NODE_TYPE_EXTRACT",
+	"CM_NODE_TYPE_TRANSCLUDE",
 	"CM_NODE_TYPE_PRINT",
 	"CM_NODE_TYPE_NULL",
 };
@@ -235,7 +237,7 @@ CMNode *cm_parse_compose (CMTokenList *list);
 CMNode *cm_parse_expr (CMTokenList *list);
 
 
-CMNode *cm_parse_extraction (CMTokenList *list)
+CMNode *cm_parse_extract (CMTokenList *list)
 {
 	CMToken token = cm_tokenlist_shift(list); // shift word
 	CMNode *symbol = cm_node_symbol(token.value);
@@ -268,7 +270,7 @@ CMNode *cm_parse_expr (CMTokenList *list)
 				CMToken next_token = cm_tokenlist_get(*list, 1);
 
 				if (next_token.type == CM_TOKEN_TYPE_SQ_BRACKET_IN) {
-					return cm_parse_extraction(list);
+					return cm_parse_extract(list);
 				}
 			}
 
