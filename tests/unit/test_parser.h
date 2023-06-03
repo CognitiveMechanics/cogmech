@@ -5,6 +5,27 @@
 #include "../../src/parser.h"
 
 
+bool test_cm_node_type_has_value (void)
+{
+	if (! cm_node_type_has_value(CM_NODE_TYPE_SYMBOL)) {
+		cm_test_error("CM_NODE_TYPE_SYMBOL should have value\n");
+		return false;
+	}
+
+	if (! cm_node_type_has_value(CM_NODE_TYPE_LITERAL)) {
+		cm_test_error("CM_NODE_TYPE_LITERAL should have value\n");
+		return false;
+	}
+
+	if (cm_node_type_has_value(CM_NODE_TYPE_PRINT)) {
+		cm_test_error("CM_NODE_TYPE_PRINT should not have value\n");
+		return false;
+	}
+
+	return true;
+}
+
+
 bool test_cm_node_alloc_free (void)
 {
 	CMNode *parent = cm_node(CM_NODE_TYPE_ROOT);
@@ -93,6 +114,40 @@ bool test_cm_node_literal (void)
 
 	if (! cm_sv_eq(node->value, cm_sv("lit"))) {
 		cm_test_error("failed to verify value is 'lit'\n");
+		return false;
+	}
+
+	return true;
+}
+
+
+bool test_cm_node_eq (void)
+{
+	CMTokenList seq1 = cm_tokenize("test1.cogm", cm_sv(" a  := <\"b\", c>\n"));
+	CMTokenList seq2 = cm_tokenize("test2.cogm", cm_sv("a := < \"b\" , c > \n"));
+	CMTokenList seq3 = cm_tokenize("test3.cogm", cm_sv("a := <\"b\", x>\n"));
+
+	CMNode *ast1 = cm_parse_file(&seq1);
+	CMNode *ast2 = cm_parse_file(&seq2);
+	CMNode *ast3 = cm_parse_file(&seq3);
+
+	if (! cm_node_eq(ast1, ast1)) {
+		cm_test_error("identical nodes should be equal\n");
+		return false;
+	}
+
+	if (! cm_node_eq(ast1, ast2)) {
+		cm_test_error("same nodes should be equal\n");
+		return false;
+	}
+
+	if (! cm_node_eq(ast2, ast1)) {
+		cm_test_error("same nodes reversed should be equal\n");
+		return false;
+	}
+
+	if (cm_node_eq(ast1, ast3)) {
+		cm_test_error("different nodes should not be equal\n");
 		return false;
 	}
 
@@ -189,6 +244,67 @@ bool test_cm_parse_composition (void)
 
 	if (composition->children[2]->children[0]->type != CM_NODE_TYPE_SYMBOL) {
 		cm_test_error("inner element of composition should be CM_NODE_TYPE_SYMBOL\n");
+		return false;
+	}
+
+	if (! cm_tokenlist_empty(list)) {
+		cm_test_error("list not empty\n");
+		return false;
+	}
+
+	return true;
+}
+
+
+bool test_cm_parse_extraction (void)
+{
+	CMTokenList list = cm_tokenlist();
+
+	CMToken tokens[] = {
+		cm_token(
+			"filename.cogm",
+			0,
+			0,
+			CM_TOKEN_TYPE_WORD
+		),
+		cm_token(
+			"filename.cogm",
+			0,
+			0,
+			CM_TOKEN_TYPE_SQ_BRACKET_IN
+		),
+		cm_token(
+			"filename.cogm",
+			0,
+			0,
+			CM_TOKEN_TYPE_QUOTED
+		),
+		cm_token(
+			"filename.cogm",
+			0,
+			0,
+			CM_TOKEN_TYPE_SQ_BRACKET_OUT
+		),
+	};
+
+	for (size_t i = 0; i < ARRAY_LEN(tokens); i++) {
+		cm_tokenlist_append(&list, tokens[i]);
+	}
+
+	CMNode *composition = cm_parse_extraction(&list);
+
+	if (composition->type != CM_NODE_TYPE_EXTRACT) {
+		cm_test_error("invalid extract expression\n");
+		return false;
+	}
+
+	if (composition->children[0]->type != CM_NODE_TYPE_SYMBOL) {
+		cm_test_error("first element of composition should be CM_NODE_TYPE_SYMBOL\n");
+		return false;
+	}
+
+	if (composition->children[1]->type != CM_NODE_TYPE_LITERAL) {
+		cm_test_error("second element of composition should be CM_NODE_TYPE_LITERAL\n");
 		return false;
 	}
 
@@ -485,11 +601,14 @@ void test_cm_parser (void)
 {
 	printf("Loading parser tests...\n");
 
+	cm_add_test(test_cm_node_type_has_value);
 	cm_add_test(test_cm_node_alloc_free);
 	cm_add_test(test_cm_node_symbol);
 	cm_add_test(test_cm_node_literal);
+	cm_add_test(test_cm_node_eq);
 	cm_add_test(test_cm_parse_expr);
 	cm_add_test(test_cm_parse_composition);
+	cm_add_test(test_cm_parse_extraction);
 	cm_add_test(test_cm_parse_symbol_def);
 	cm_add_test(test_cm_parse_print);
 	cm_add_test(test_cm_parse_file);

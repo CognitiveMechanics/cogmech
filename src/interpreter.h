@@ -64,6 +64,51 @@ void cm_context_def_symbol (CMContext *context, CMStringView name, CMNode *value
 }
 
 
+CMNode *cm_interpret_entity (CMContext *context, CMNode *node);
+
+
+CMNode *cm_interpret_compose (CMContext *context, CMNode *node)
+{
+	CMNode *def_value = cm_node(CM_NODE_TYPE_COMPOSITION);
+
+	for (size_t i = 0; i < node->n_children; i++) {
+		cm_node_append_child(
+			def_value,
+			cm_interpret_entity(context, node->children[i])
+		);
+	}
+
+	return def_value;
+}
+
+
+CMNode *cm_interpret_extract (CMContext *context, CMNode *node)
+{
+	assert(node->n_children == 2);
+	assert(node->type == CM_NODE_TYPE_EXTRACT);
+
+	CMNode *entity = cm_interpret_entity(context, node->children[0]);
+	CMNode *key = cm_interpret_entity(context, node->children[1]);
+
+	assert(entity->type == CM_NODE_TYPE_COMPOSITION);
+
+	for (size_t i = 0; i < entity->n_children; i++) {
+		CMNode *child = entity->children[i];
+
+		if (child->type == CM_NODE_TYPE_COMPOSITION && child->n_children == 2) {
+			if (cm_node_eq(child->children[0], key)) {
+				return cm_interpret_entity(context, child->children[1]);
+
+			} else if (cm_node_eq(child->children[1], key)) {
+				return cm_interpret_entity(context, child->children[0]);
+			}
+		}
+	}
+
+	return cm_node_null();
+}
+
+
 CMNode *cm_interpret_entity (CMContext *context, CMNode *node)
 {
 	switch (node->type) {
@@ -76,16 +121,11 @@ CMNode *cm_interpret_entity (CMContext *context, CMNode *node)
 		}
 
 		case CM_NODE_TYPE_COMPOSITION: {
-			CMNode *def_value = cm_node(CM_NODE_TYPE_COMPOSITION);
+			return cm_interpret_compose(context, node);
+		}
 
-			for (size_t i = 0; i < node->n_children; i++) {
-				cm_node_append_child(
-					def_value,
-					cm_interpret_entity(context, node->children[i])
-				);
-			}
-
-			return def_value;
+		case CM_NODE_TYPE_EXTRACT: {
+			return cm_interpret_extract(context, node);
 		}
 
 		default: {
@@ -143,6 +183,16 @@ bool _cm_print_entity_should_indent (CMNode *node)
 void _cm_print_entity (CMNode *node, int indent_level, int num_spaces, bool with_comma)
 {
 	switch (node->type) {
+		case CM_NODE_TYPE_NULL: {
+			printf(
+				"%*s∅\n",
+				indent_level * num_spaces,
+				""
+			);
+
+			break;
+		}
+
 		case CM_NODE_TYPE_LITERAL: {
 			printf(
 				"%*s\"%.*s\"\n",
@@ -177,16 +227,24 @@ void _cm_print_entity (CMNode *node, int indent_level, int num_spaces, bool with
 				printf("%*s<", indent_level * num_spaces, "");
 
 				for (size_t i = 0; i < node->n_children; i++) {
-					assert(node->children[i]->type == CM_NODE_TYPE_LITERAL);
+					CMNode *child = node->children[i];
 
-					printf(
-						"\"%.*s\"",
-						(int) node->children[i]->value.len,
-						node->children[i]->value.data
-					);
+					if (child->type == CM_NODE_TYPE_LITERAL) {
+						printf(
+							"\"%.*s\"",
+							(int) child->value.len,
+							child->value.data
+						);
 
-					if (i < node->n_children - 1) {
-						printf(", ");
+						if (i < node->n_children - 1) {
+							printf(", ");
+						}
+
+					} else if (child->type == CM_NODE_TYPE_LITERAL) {
+						printf("Ø");
+
+					} else {
+						assert(false && "Invalid node to print");
 					}
 				}
 

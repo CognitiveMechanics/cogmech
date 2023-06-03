@@ -113,6 +113,42 @@ bool test_cm_interpret_symbol_def (void)
 }
 
 
+bool test_cm_interpret_extract (void)
+{
+	CMContext context = cm_context();
+
+	CMStringView name = cm_sv("symbol_name");
+	CMNode *symbol_node = cm_node_symbol(name);
+
+	CMStringView tag = cm_sv("tag");
+	CMNode *tag_node = cm_node_literal(tag);
+
+	CMStringView value = cm_sv("value");
+	CMNode *value_node = cm_node_literal(value);
+
+	CMNode *outer = cm_node(CM_NODE_TYPE_COMPOSITION);
+	CMNode *inner = cm_node(CM_NODE_TYPE_COMPOSITION);
+	cm_node_append_child(inner, tag_node);
+	cm_node_append_child(inner, value_node);
+	cm_node_append_child(outer, inner);
+
+	cm_context_def_symbol(&context, name, outer);
+
+	CMNode *extraction = cm_node(CM_NODE_TYPE_EXTRACT);
+	cm_node_append_child(extraction, symbol_node);
+	cm_node_append_child(extraction, tag_node);
+
+	CMNode *result = cm_interpret_extract(&context, extraction);
+
+	if (! cm_node_eq(result, value_node)) {
+		cm_test_error("invalid extracted value");
+		return false;
+	}
+
+	return true;
+}
+
+
 bool test_cm_interpret_print (void)
 {
 	CMContext context = cm_context();
@@ -129,11 +165,16 @@ bool test_cm_interpret_print (void)
 
 bool test_cm_interpret (void)
 {
-	CMTokenList list = cm_tokenize_file("../tests/cogm/00-hello.cogm");
-	CMNode *ast = cm_parse_file(&list);
-	CMContext context = cm_context();
+	CMTokenList lists[] = {
+		cm_tokenize_file("../tests/cogm/00-hello.cogm"),
+		cm_tokenize_file("../tests/cogm/02-extract.cogm"),
+	};
 
-	cm_interpret(&context, ast);
+	for (size_t i = 0; i < ARRAY_LEN(lists); i++) {
+		CMNode *ast = cm_parse_file(&lists[i]);
+		CMContext context = cm_context();
+		cm_interpret(&context, ast);
+	}
 
 	return true;
 }
@@ -146,6 +187,7 @@ void test_cm_interpreter (void)
 	cm_add_test(test_cm_context);
 	cm_add_test(test_cm_context_def_get_symbol);
 	cm_add_test(test_cm_interpret_entity);
+	cm_add_test(test_cm_interpret_extract);
 	cm_add_test(test_cm_interpret_symbol_def);
 	cm_add_test(test_cm_interpret_print);
 	cm_add_test(test_cm_interpret);

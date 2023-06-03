@@ -16,7 +16,9 @@ typedef enum CMNodeType {
 	CM_NODE_TYPE_LITERAL,
 	CM_NODE_TYPE_SYMBOL,
 	CM_NODE_TYPE_COMPOSITION,
+	CM_NODE_TYPE_EXTRACT,
 	CM_NODE_TYPE_PRINT,
+	CM_NODE_TYPE_NULL,
 	CM_NODE_TYPE_COUNT
 } CMNodeType;
 
@@ -26,7 +28,9 @@ const char *CM_NODE_TYPES_READABLE[CM_NODE_TYPE_COUNT] = {
 	"CM_NODE_TYPE_LITERAL",
 	"CM_NODE_TYPE_SYMBOL",
 	"CM_NODE_TYPE_COMPOSITION",
+	"CM_NODE_TYPE_EXTRACT",
 	"CM_NODE_TYPE_PRINT",
+	"CM_NODE_TYPE_NULL",
 };
 
 
@@ -42,6 +46,21 @@ typedef struct CMNode {
 const char *cm_readable_node_type (CMNodeType type)
 {
 	return CM_NODE_TYPES_READABLE[type];
+}
+
+
+bool cm_node_type_has_value (CMNodeType type)
+{
+	switch (type) {
+		case CM_NODE_TYPE_LITERAL:
+		case CM_NODE_TYPE_SYMBOL: {
+			return true;
+		}
+
+		default: {
+			return false;
+		}
+	}
 }
 
 
@@ -108,6 +127,12 @@ CMNode *cm_node_literal (CMStringView name)
 }
 
 
+CMNode *cm_node_null (void)
+{
+	return cm_node(CM_NODE_TYPE_NULL);
+}
+
+
 void cm_node_free (CMNode *node)
 {
 	assert(node->children != NULL);
@@ -125,6 +150,32 @@ void cm_node_free (CMNode *node)
 
 	free(node);
 	node = NULL;
+}
+
+
+bool cm_node_eq (const CMNode *node1, const CMNode *node2)
+{
+	if (node1->type != node2->type) {
+		return false;
+	}
+
+	if (node1->n_children != node2->n_children) {
+		return false;
+	}
+
+	if (cm_node_type_has_value(node1->type)) {
+		if (!cm_sv_eq(node1->value, node2->value)) {
+			return false;
+		}
+	}
+
+	for (size_t i = 0; i < node1->n_children; i++) {
+		if (! cm_node_eq(node1->children[i], node2->children[i])) {
+			return false;
+		}
+	}
+
+	return true;
 }
 
 
@@ -181,6 +232,30 @@ void cm_print_node (CMNode *node)
 
 
 CMNode *cm_parse_composition (CMTokenList *list);
+CMNode *cm_parse_expr (CMTokenList *list);
+
+
+CMNode *cm_parse_extraction (CMTokenList *list)
+{
+	CMToken token = cm_tokenlist_shift(list); // shift word
+	CMNode *symbol = cm_node_symbol(token.value);
+
+	CMNode *extraction = cm_node(CM_NODE_TYPE_EXTRACT);
+	cm_node_append_child(extraction, symbol);
+
+	cm_tokenlist_shift(list); // shift [
+
+	CMNode *expr = cm_parse_expr(list);
+	cm_node_append_child(extraction, expr);
+
+	CMToken closing_bracket = cm_tokenlist_shift(list); // shift ]
+
+	if (closing_bracket.type != CM_TOKEN_TYPE_SQ_BRACKET_OUT) {
+		cm_syntax_error(token, "Expected end of extraction CM_TOKEN_TYPE_SQ_BRACKET_OUT");
+	}
+
+	return extraction;
+}
 
 
 CMNode *cm_parse_expr (CMTokenList *list)
@@ -189,7 +264,15 @@ CMNode *cm_parse_expr (CMTokenList *list)
 
 	switch (token.type) {
 		case CM_TOKEN_TYPE_WORD: {
-			cm_tokenlist_shift(list);
+			if (list->len > 1) {
+				CMToken next_token = cm_tokenlist_get(*list, 1);
+
+				if (next_token.type == CM_TOKEN_TYPE_SQ_BRACKET_IN) {
+					return cm_parse_extraction(list);
+				}
+			}
+
+			cm_tokenlist_shift(list); // shift word
 			return cm_node_symbol(token.value);
 		}
 
@@ -203,7 +286,7 @@ CMNode *cm_parse_expr (CMTokenList *list)
 		}
 
 		default: {
-			cm_syntax_error(token, "Expected expression\n");
+			cm_syntax_error(token, "Expected expression");
 		}
 	}
 
@@ -236,7 +319,7 @@ CMNode *cm_parse_composition (CMTokenList *list)
 	} while (! cm_tokenlist_empty(*list));
 
 	if (! terminated) {
-		cm_syntax_error(initial, "Unterminated composition\n");
+		cm_syntax_error(initial, "Unterminated composition");
 	}
 
 	return node;

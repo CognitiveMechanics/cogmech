@@ -36,6 +36,8 @@ typedef enum CMTokenType
 	CM_TOKEN_TYPE_COMMA,
 	CM_TOKEN_TYPE_COLON_EQ,
 	CM_TOKEN_TYPE_COLON,
+	CM_TOKEN_TYPE_SQ_BRACKET_IN,
+	CM_TOKEN_TYPE_SQ_BRACKET_OUT,
 	CM_TOKEN_TYPE_COUNT,
 } CMTokenType;
 
@@ -50,6 +52,8 @@ const char *CM_TOKEN_TYPES_READABLE[CM_TOKEN_TYPE_COUNT] = {
 	"CM_TOKEN_TYPE_COMMA",
 	"CM_TOKEN_TYPE_COLON_EQ",
 	"CM_TOKEN_TYPE_COLON",
+	"CM_TOKEN_TYPE_SQ_BRACKET_IN",
+	"CM_TOKEN_TYPE_SQ_BRACKET_OUT",
 };
 
 
@@ -63,6 +67,8 @@ const char *CM_TOKEN_TYPE_SYMBOLS[CM_TOKEN_TYPE_COUNT] = {
 	",",
 	":=",
 	":",
+	"[",
+	"]",
 };
 
 
@@ -292,11 +298,12 @@ void cm_syntax_error (CMToken token, const char *message)
 
 CMTokenList cm_tokenize (const char *filename, CMStringView sv)
 {
+	assert(CM_TOKEN_TYPE_COUNT == 11);
+
 	size_t row = 0;
 	size_t col = 0;
 
 	CMTokenList list = cm_tokenlist();
-	assert(CM_TOKEN_TYPE_COUNT == 9);
 
 	while (! cm_sv_empty(sv)) {
 		size_t trimmed = cm_trim_left(&sv, " \t");
