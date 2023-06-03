@@ -32,14 +32,14 @@ typedef struct CMTestSvSv {
 } CMTestSvSv;
 
 
-bool test_cm_sv ()
+bool test_cm_sv (void)
 {
 	const char *cstr = "test";
 	CMStringView sv = cm_sv(cstr);
 
-	for (int i = 0; i < sv.len; i += 1) {
+	for (size_t i = 0; i < sv.len; i += 1) {
 		if (sv.data[i] != cstr[i]) {
-			cm_test_error("test_cm_sv character %c does not match %c in position %d\n", sv.data[i], cstr[i], i);
+			cm_test_error("test_cm_sv character %c does not match %c in position %zu\n", sv.data[i], cstr[i], i);
 			return false;
 		}
 	}
@@ -53,7 +53,7 @@ bool test_cm_sv ()
 }
 
 
-bool test_cm_cv_cmp_cstr ()
+bool test_cm_cv_cmp_cstr (void)
 {
 	CMTestSvCstr tests[] = {
 		{cm_sv("abc"), "abc", true},
@@ -74,7 +74,7 @@ bool test_cm_cv_cmp_cstr ()
 }
 
 
-bool test_cm_sv_eq ()
+bool test_cm_sv_eq (void)
 {
 	CMTestSvSv tests[] = {
 		{cm_sv("abc"), cm_sv("abc"), true},
@@ -95,7 +95,7 @@ bool test_cm_sv_eq ()
 }
 
 
-bool test_cm_sv_to_cstr ()
+bool test_cm_sv_to_cstr (void)
 {
 	CMStringView sv = cm_sv("test");
 	char *cstr = cm_sv_to_cstr(sv);
@@ -111,7 +111,7 @@ bool test_cm_sv_to_cstr ()
 }
 
 
-bool test_cm_in_chars ()
+bool test_cm_in_chars (void)
 {
 	CMTestInChars tests[] = {
 		{'c', "abc", true},
@@ -130,7 +130,7 @@ bool test_cm_in_chars ()
 }
 
 
-bool test_cm_trim_left ()
+bool test_cm_trim_left (void)
 {
 	CMTestSvSv tests[] = {
 		{cm_sv("abc"), cm_sv("  \t\nabc"), true},
@@ -170,7 +170,7 @@ bool test_cm_trim_left ()
 }
 
 
-bool test_cm_trim_left_ws ()
+bool test_cm_trim_left_ws (void)
 {
 	CMTestSvSv tests[] = {
 		{cm_sv("abc"), cm_sv("  \t\nabc"), true},
@@ -210,7 +210,7 @@ bool test_cm_trim_left_ws ()
 }
 
 
-bool test_cm_starts_with ()
+bool test_cm_starts_with (void)
 {
 	CMTestSvSv tests[] = {
 		{cm_sv("abc"), cm_sv("abc"), true},
@@ -240,7 +240,7 @@ bool test_cm_char_isspace (char c)
 }
 
 
-bool test_cm_chop_left_while ()
+bool test_cm_chop_left_while (void)
 {
 	CMStringView sv1 = cm_sv("   abc");
 	CMStringView sv2 = cm_sv("abc");
@@ -260,7 +260,7 @@ bool test_cm_chop_left_while ()
 }
 
 
-bool test_cm_chop_left_delim ()
+bool test_cm_chop_left_delim (void)
 {
 	CMStringView sv = cm_sv("abc--def");
 	CMStringView delim = cm_sv("--");
@@ -280,7 +280,7 @@ bool test_cm_chop_left_delim ()
 }
 
 
-bool test_cm_chop_left_len ()
+bool test_cm_chop_left_len (void)
 {
 	CMStringView sv = cm_sv("abc--def");
 	CMStringView chopped = cm_chop_left_len(&sv, 5);
@@ -299,7 +299,7 @@ bool test_cm_chop_left_len ()
 }
 
 
-bool test_cm_sv_empty ()
+bool test_cm_sv_empty (void)
 {
 	if (! cm_sv_empty(cm_sv(""))) {
 		cm_test_error("test_cm_sv_empty failed on empty string\n");
@@ -317,7 +317,7 @@ bool test_cm_sv_empty ()
 }
 
 
-void test_cm_stringview ()
+void test_cm_stringview (void)
 {
 	printf("Loading stringview tests...\n");
 

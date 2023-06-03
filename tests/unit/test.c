@@ -7,7 +7,7 @@
 #include "test_interpreter.h"
 
 
-int main ()
+int main (void)
 {
 	test_cm_file();
 	test_cm_stringview();

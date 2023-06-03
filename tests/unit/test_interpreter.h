@@ -9,7 +9,7 @@
 #include "../../src/interpreter.h"
 
 
-bool test_cm_context ()
+bool test_cm_context (void)
 {
 	CMContext context = cm_context();
 
@@ -22,7 +22,7 @@ bool test_cm_context ()
 }
 
 
-bool test_cm_context_def_get_symbol ()
+bool test_cm_context_def_get_symbol (void)
 {
 	CMContext context = cm_context();
 	CMStringView name = cm_sv("symbol_name");
@@ -51,7 +51,7 @@ bool test_cm_context_def_get_symbol ()
 }
 
 
-bool test_cm_interpret_entity ()
+bool test_cm_interpret_entity (void)
 {
 	CMContext context = cm_context();
 
@@ -87,7 +87,7 @@ bool test_cm_interpret_entity ()
 }
 
 
-bool test_cm_interpret_symbol_def ()
+bool test_cm_interpret_symbol_def (void)
 {
 	CMContext context = cm_context();
 
@@ -113,7 +113,7 @@ bool test_cm_interpret_symbol_def ()
 }
 
 
-bool test_cm_interpret_print ()
+bool test_cm_interpret_print (void)
 {
 	CMContext context = cm_context();
 	CMNode *op = cm_node(CM_NODE_TYPE_PRINT);
@@ -127,7 +127,7 @@ bool test_cm_interpret_print ()
 }
 
 
-bool test_cm_interpret ()
+bool test_cm_interpret (void)
 {
 	CMTokenList list = cm_tokenize_file("../tests/cogm/00-hello.cogm");
 	CMNode *ast = cm_parse_file(&list);
@@ -139,7 +139,7 @@ bool test_cm_interpret ()
 }
 
 
-void test_cm_interpreter ()
+void test_cm_interpreter (void)
 {
 	printf("Loading interpreter tests...\n");
 

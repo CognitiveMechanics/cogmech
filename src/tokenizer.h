@@ -174,7 +174,7 @@ void cm_print_token (CMToken token)
 }
 
 
-CMTokenList cm_tokenlist ()
+CMTokenList cm_tokenlist (void)
 {
 	CMTokenList list;
 
@@ -335,8 +335,6 @@ CMTokenList cm_tokenize (const char *filename, CMStringView sv)
 	size_t col = 0;
 
 	CMTokenList list = cm_tokenlist();
-	bool in_quotes = false;
-
 	assert(CM_TOKEN_TYPE_COUNT == 22);
 
 	while (! cm_sv_empty(sv)) {

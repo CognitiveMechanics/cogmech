@@ -11,7 +11,7 @@
 #include "../../src/util.h"
 
 
-bool test_cm_read_file_to_cstr ()
+bool test_cm_read_file_to_cstr (void)
 {
 	const char *contents = "test";
 	const char *path = "/tmp/cm_test_file";
@@ -31,7 +31,7 @@ bool test_cm_read_file_to_cstr ()
 }
 
 
-void test_cm_file ()
+void test_cm_file (void)
 {
 	printf("Loading file tests...\n");
 

@@ -9,7 +9,7 @@
 
 typedef struct CMUnitTest {
 	const char *name;
-	bool (*test)();
+	bool (*test)(void);
 } CMUnitTest;
 
 
@@ -28,7 +28,7 @@ bool _cm_run_tests (CMUnitTest tests[], size_t n)
 	int success_count = 0;
 	int failure_count = 0;
 
-	for (int i = 0; i < n; i += 1) {
+	for (size_t i = 0; i < n; i += 1) {
 		printf("Executing %s...\n", tests[i].name);
 		bool result = (* (tests[i].test))();
 
@@ -49,7 +49,7 @@ bool _cm_run_tests (CMUnitTest tests[], size_t n)
 	return true;
 }
 
-bool cm_run_tests ()
+bool cm_run_tests (void)
 {
 	return _cm_run_tests(_cm_tests, _cm_test_count);
 }

@@ -20,7 +20,7 @@ typedef struct CMContext {
 } CMContext;
 
 
-CMContext cm_context ()
+CMContext cm_context (void)
 {
 	return (CMContext) {0};
 }
@@ -228,7 +228,7 @@ void cm_interpret (CMContext *context, CMNode *ast)
 {
 	assert(ast->type == CM_NODE_TYPE_ROOT);
 
-	for (int i = 0; i < ast->n_children; i++) {
+	for (size_t i = 0; i < ast->n_children; i++) {
 		CMNode *stmt = ast->children[i];
 
 		switch (stmt->type) {

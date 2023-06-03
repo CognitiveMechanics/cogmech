@@ -5,7 +5,7 @@
 #include "../../src/parser.h"
 
 
-bool test_cm_node_alloc_free ()
+bool test_cm_node_alloc_free (void)
 {
 	CMNode *parent = cm_node(CM_NODE_TYPE_ROOT);
 
@@ -62,7 +62,7 @@ bool test_cm_node_alloc_free ()
 }
 
 
-bool test_cm_node_symbol ()
+bool test_cm_node_symbol (void)
 {
 	CMStringView sv = cm_sv("sym");
 	CMNode *node = cm_node_symbol(sv);
@@ -81,7 +81,7 @@ bool test_cm_node_symbol ()
 }
 
 
-bool test_cm_node_literal ()
+bool test_cm_node_literal (void)
 {
 	CMStringView sv = cm_sv("lit");
 	CMNode *node = cm_node_symbol(sv);
@@ -100,7 +100,7 @@ bool test_cm_node_literal ()
 }
 
 
-bool test_cm_parse_composition ()
+bool test_cm_parse_composition (void)
 {
 	CMTokenList list = cm_tokenlist();
 
@@ -161,7 +161,7 @@ bool test_cm_parse_composition ()
 		),
 	};
 
-	for (int i = 0; i < ARRAY_LEN(tokens); i++) {
+	for (size_t i = 0; i < ARRAY_LEN(tokens); i++) {
 		cm_tokenlist_append(&list, tokens[i]);
 	}
 
@@ -201,7 +201,7 @@ bool test_cm_parse_composition ()
 }
 
 
-bool test_cm_parse_expr ()
+bool test_cm_parse_expr (void)
 {
 	CMTokenList list = cm_tokenlist();
 
@@ -238,7 +238,7 @@ bool test_cm_parse_expr ()
 		),
 	};
 
-	for (int i = 0; i < ARRAY_LEN(tokens); i++) {
+	for (size_t i = 0; i < ARRAY_LEN(tokens); i++) {
 		cm_tokenlist_append(&list, tokens[i]);
 	}
 
@@ -270,7 +270,7 @@ bool test_cm_parse_expr ()
 }
 
 
-bool test_cm_parse_symbol_def ()
+bool test_cm_parse_symbol_def (void)
 {
 	CMToken symbol = cm_token(
 		"filename.cogm",
@@ -333,7 +333,7 @@ bool test_cm_parse_symbol_def ()
 }
 
 
-bool test_cm_parse_print ()
+bool test_cm_parse_print (void)
 {
 	CMToken op = cm_token(
 		"filename.cogm",
@@ -376,7 +376,7 @@ bool test_cm_parse_print ()
 }
 
 
-bool test_cm_parse_file ()
+bool test_cm_parse_file (void)
 {
 	CMTokenList list = cm_tokenize_file("../tests/cogm/00-hello.cogm");
 	CMNode *parsed = cm_parse_file(&list);
@@ -481,7 +481,7 @@ bool test_cm_parse_file ()
 }
 
 
-void test_cm_parser ()
+void test_cm_parser (void)
 {
 	printf("Loading parser tests...\n");
 

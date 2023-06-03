@@ -8,7 +8,7 @@
 #include "../../src/tokenizer.h"
 
 
-bool test_cm_token ()
+bool test_cm_token (void)
 {
 	CMToken token = cm_token(
 		"filename.cogm",
@@ -48,7 +48,7 @@ bool test_cm_token ()
 }
 
 
-bool test_cm_tokenlist ()
+bool test_cm_tokenlist (void)
 {
 	CMTokenList list = cm_tokenlist();
 
@@ -64,7 +64,7 @@ bool test_cm_tokenlist ()
 }
 
 
-bool test_cm_tokenlist_append_clear ()
+bool test_cm_tokenlist_append_clear (void)
 {
 	CMTokenList list = cm_tokenlist();
 
@@ -117,7 +117,7 @@ bool test_cm_tokenlist_append_clear ()
 }
 
 
-bool test_cm_token_eq ()
+bool test_cm_token_eq (void)
 {
 	CMToken token1 = cm_token(
 		"filename.cogm",
@@ -170,7 +170,7 @@ bool test_cm_token_eq ()
 }
 
 
-bool test_cm_tokenlist_get ()
+bool test_cm_tokenlist_get (void)
 {
 	CMTokenList list = cm_tokenlist();
 
@@ -228,7 +228,7 @@ bool test_cm_tokenlist_get ()
 }
 
 
-bool test_cm_tokenlist_like ()
+bool test_cm_tokenlist_like (void)
 {
 	CMTokenList list = cm_tokenlist();
 
@@ -280,7 +280,7 @@ bool test_cm_tokenlist_like ()
 	return true;
 }
 
-bool test_cm_tokenlist_shift ()
+bool test_cm_tokenlist_shift (void)
 {
 	CMTokenList list = cm_tokenlist();
 
@@ -341,7 +341,7 @@ bool test_cm_tokenlist_shift ()
 	return true;
 }
 
-bool test_cm_tokenlist_empty ()
+bool test_cm_tokenlist_empty (void)
 {
 	CMTokenList list = cm_tokenlist();
 
@@ -371,7 +371,7 @@ bool test_cm_tokenlist_empty ()
 }
 
 
-bool test_cm_tokenize_file ()
+bool test_cm_tokenize_file (void)
 {
 	CMTokenList list = cm_tokenize_file("../tests/cogm/00-hello.cogm");
 
@@ -393,7 +393,7 @@ bool test_cm_tokenize_file ()
 }
 
 
-void test_cm_tokenizer ()
+void test_cm_tokenizer (void)
 {
 	printf("Loading tokenizer tests...\n");
 

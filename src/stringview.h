@@ -77,7 +77,7 @@ bool cm_sv_eq (CMStringView sv1, CMStringView sv2)
 
 bool cm_in_chars (char c, const char *chars)
 {
-	int i = 0;
+	size_t i = 0;
 
 	while (i < strlen(chars)) {
 		if (chars[i] == c) {

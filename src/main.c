@@ -11,7 +11,7 @@
 #define CM_EXIT_USAGE 1
 
 
-const char* cm_get_usage ()
+const char* cm_get_usage (void)
 {
 	return
 		"\n"
@@ -26,7 +26,7 @@ const char* cm_get_usage ()
 }
 
 
-void cm_print_usage ()
+void cm_print_usage (void)
 {
 	const char *usage = cm_get_usage();
 	printf("%s\n", usage);
@@ -36,7 +36,7 @@ void cm_print_usage ()
 
 const char *cm_shift_arg (int *argc, const char ***argv)
 {
-	assert(argc > 0);
+	assert((*argc) > 0);
 
 	const char *value = (*argv)[0];
 
@@ -49,7 +49,7 @@ const char *cm_shift_arg (int *argc, const char ***argv)
 
 int main (int argc, const char **argv)
 {
-	const char *program = cm_shift_arg(&argc, &argv);
+	cm_shift_arg(&argc, &argv);
 
 	if (argc < 1) {
 		cm_print_usage();
