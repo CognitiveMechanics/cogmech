@@ -189,7 +189,7 @@ CMStringView cm_chop_left_delim (CMStringView *sv, CMStringView delim)
 
 CMStringView cm_chop_left_len (CMStringView *sv, size_t chop_len)
 {
-	assert(chop_len < sv->len);
+	assert(chop_len <= sv->len);
 
 	CMStringView chopped = {
 		.data = sv->data,

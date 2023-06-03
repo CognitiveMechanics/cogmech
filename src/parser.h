@@ -128,7 +128,7 @@ void cm_node_free (CMNode *node)
 }
 
 
-char *_cm_print_node (CMNode *node, int indent_level, int num_spaces)
+void _cm_print_node (CMNode *node, int indent_level, int num_spaces)
 {
 	printf(
 		"%*sNode {\n"
@@ -142,7 +142,7 @@ char *_cm_print_node (CMNode *node, int indent_level, int num_spaces)
 		cm_readable_node_type(node->type),
 		indent_level * num_spaces,
 		"",
-		node->value.len,
+		(int) node->value.len,
 		node->value.data,
 		indent_level * num_spaces,
 		""
@@ -171,7 +171,6 @@ char *_cm_print_node (CMNode *node, int indent_level, int num_spaces)
 			""
 		);
 	}
-
 }
 
 
