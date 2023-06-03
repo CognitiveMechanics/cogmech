@@ -43,6 +43,8 @@ typedef enum CMTokenType
 	CM_TOKEN_TYPE_PAREN_IN,
 	CM_TOKEN_TYPE_PAREN_OUT,
 	CM_TOKEN_TYPE_PERCENT,
+	CM_TOKEN_TYPE_TRUE,
+	CM_TOKEN_TYPE_NULL,
 	CM_TOKEN_TYPE_COUNT,
 } CMTokenType;
 
@@ -64,6 +66,8 @@ const char *CM_TOKEN_TYPES_READABLE[CM_TOKEN_TYPE_COUNT] = {
 	"CM_TOKEN_TYPE_PAREN_IN",
 	"CM_TOKEN_TYPE_PAREN_OUT",
 	"CM_TOKEN_TYPE_PERCENT",
+	"CM_TOKEN_TYPE_TRUE",
+	"CM_TOKEN_TYPE_NULL",
 };
 
 
@@ -84,6 +88,8 @@ const char *CM_TOKEN_TYPE_SYMBOLS[CM_TOKEN_TYPE_COUNT] = {
 	"(",
 	")",
 	"%",
+	"true",
+	"null",
 };
 
 
@@ -333,7 +339,7 @@ bool cm_is_word (char c)
 
 CMTokenList cm_tokenize (const char *filename, CMStringView sv)
 {
-	assert(CM_TOKEN_TYPE_COUNT == 16);
+	assert(CM_TOKEN_TYPE_COUNT == 18);
 
 	size_t row = 0;
 	size_t col = 0;

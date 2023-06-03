@@ -415,6 +415,16 @@ CMNode *cm_parse_expr (CMTokenList *list)
 			return cm_node(CM_NODE_TYPE_DOT_PROXY);
 		}
 
+		case CM_TOKEN_TYPE_TRUE: {
+			cm_tokenlist_shift(list);
+			return cm_node(CM_NODE_TYPE_TRUE);
+		}
+
+		case CM_TOKEN_TYPE_NULL: {
+			cm_tokenlist_shift(list);
+			return cm_node_null();
+		}
+
 		case CM_TOKEN_TYPE_PERCENT: {
 			return cm_parse_match(list);
 		}
@@ -504,7 +514,7 @@ CMNode *cm_parse_print (CMTokenList *list)
 CMNode *cm_parse (CMTokenList *list)
 {
 	assert(CM_NODE_TYPE_COUNT == 13);
-	assert(CM_TOKEN_TYPE_COUNT == 16);
+	assert(CM_TOKEN_TYPE_COUNT == 18);
 
 	CMNode *root = cm_node(CM_NODE_TYPE_ROOT);
 

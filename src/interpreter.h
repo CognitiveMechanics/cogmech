@@ -94,7 +94,7 @@ void _cm_print_entity (CMNode *node, int indent_level, int num_spaces, bool with
 	switch (node->type) {
 		case CM_NODE_TYPE_NULL: {
 			printf(
-				"%*s∅\n",
+				"%*snull\n",
 				indent_level * num_spaces,
 				""
 			);
@@ -103,7 +103,7 @@ void _cm_print_entity (CMNode *node, int indent_level, int num_spaces, bool with
 		}
 		case CM_NODE_TYPE_TRUE: {
 			printf(
-				"%*s+\n",
+				"%*strue\n",
 				indent_level * num_spaces,
 				""
 			);
@@ -179,10 +179,10 @@ void _cm_print_entity (CMNode *node, int indent_level, int num_spaces, bool with
 						}
 
 					} else if (child->type == CM_NODE_TYPE_NULL) {
-						printf("Ø");
+						printf("null");
 
 					} else if (child->type == CM_NODE_TYPE_TRUE) {
-						printf("+");
+						printf("true");
 
 					} else if (child->type == CM_NODE_TYPE_PROXY) {
 						printf("[]");
@@ -401,7 +401,9 @@ CMNode *cm_interpret_entity (CMContext *context, CMNode *node)
 		}
 
 		case CM_NODE_TYPE_PROXY:
-		case CM_NODE_TYPE_DOT_PROXY: {
+		case CM_NODE_TYPE_DOT_PROXY:
+		case CM_NODE_TYPE_TRUE:
+		case CM_NODE_TYPE_NULL: {
 			return node;
 		}
 
@@ -448,7 +450,7 @@ void cm_interpret_print (CMContext *context, CMNode *node)
 void cm_interpret (CMContext *context, CMNode *ast)
 {
 	assert(CM_NODE_TYPE_COUNT == 13);
-	assert(CM_TOKEN_TYPE_COUNT == 16);
+	assert(CM_TOKEN_TYPE_COUNT == 18);
 
 	assert(ast->type == CM_NODE_TYPE_ROOT);
 
