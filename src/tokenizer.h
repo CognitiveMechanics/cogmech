@@ -128,7 +128,7 @@ const char *cm_token_type_symbol (CMTokenType type)
 
 void cm_syntax_error (CMToken token, const char *message)
 {
-	fprintf(stderr, "FAILURE %s:%zu:%zu: %s: %s",
+	fprintf(stderr, "FAILURE %s:%zu:%zu: %s: got %s",
 		token.loc.filename, token.loc.row + 1, token.loc.col + 1,
 		message, cm_readable_token_type(token.type));
 

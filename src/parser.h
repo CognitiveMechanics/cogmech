@@ -438,6 +438,14 @@ CMNode *cm_parse_expr (CMTokenList *list)
 }
 
 
+void cm_tokenlist_skip_endl (CMTokenList *list)
+{
+	while (! cm_tokenlist_empty(*list) && cm_tokenlist_first(*list).type == CM_TOKEN_TYPE_ENDL) {
+		cm_tokenlist_shift(list);
+	}
+}
+
+
 CMNode *cm_parse_compose (CMTokenList *list)
 {
 	CMNode *node = cm_node(CM_NODE_TYPE_COMPOSE);
@@ -445,10 +453,14 @@ CMNode *cm_parse_compose (CMTokenList *list)
 	bool terminated = false;
 
 	do {
+		cm_tokenlist_skip_endl(list);
+
 		cm_node_append_child(
 			node,
 			cm_parse_expr(list)
 		);
+
+		cm_tokenlist_skip_endl(list);
 
 		CMToken next_token = cm_tokenlist_first(*list);
 
@@ -459,6 +471,8 @@ CMNode *cm_parse_compose (CMTokenList *list)
 			terminated = true;
 			cm_tokenlist_shift(list);
 			break;
+		} else {
+			cm_syntax_error(initial, "Invalid composition list");
 		}
 	} while (! cm_tokenlist_empty(*list));
 

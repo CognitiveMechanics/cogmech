@@ -1,4 +1,7 @@
-walking := <<"walker", []>>
+walking := <
+  <"walker", []>
+>
+
 bob_walking := T(walking, "walker", "Bob")
 
 : %(bob_walking, walking)
