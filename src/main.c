@@ -80,6 +80,9 @@ int main (int argc, const char **argv)
 		CMContext context = cm_context();
 
 		cm_interpret(&context, ast);
+
+	} else {
+		cm_print_usage();
 	}
 
 	return 0;
