@@ -47,6 +47,7 @@ typedef enum CMTokenType
 	CM_TOKEN_TYPE_NULL,
 	CM_TOKEN_TYPE_DOT,
 	CM_TOKEN_TYPE_HASH,
+	CM_TOKEN_TYPE_D_ARROW,
 	CM_TOKEN_TYPE_COUNT,
 } CMTokenType;
 
@@ -72,6 +73,7 @@ const char *CM_TOKEN_TYPES_READABLE[CM_TOKEN_TYPE_COUNT] = {
 	"CM_TOKEN_TYPE_NULL",
 	"CM_TOKEN_TYPE_DOT",
 	"CM_TOKEN_TYPE_HASH",
+	"CM_TOKEN_TYPE_D_ARROW",
 };
 
 
@@ -96,6 +98,7 @@ const char *CM_TOKEN_TYPE_SYMBOLS[CM_TOKEN_TYPE_COUNT] = {
 	"null",
 	".",
 	"#",
+	"=>",
 };
 
 
@@ -182,7 +185,7 @@ CMTokenList cm_tokenlist (void)
 {
 	CMTokenList list;
 
-	list.tokens = malloc(CM_TOKEN_LIST_BLOCK_SIZE);
+	list.tokens = calloc(CM_TOKEN_LIST_BLOCK_SIZE, sizeof(CMToken));
 	list.len = 0;
 	list.cap = CM_TOKEN_LIST_BLOCK_SIZE;
 	list.cur = 0;
@@ -237,14 +240,30 @@ CMToken cm_tokenlist_last (CMTokenList list)
 
 #define cm_tokenlist_like(list, types) _cm_tokenlist_like(list, types, ARRAY_LEN(types))
 
-bool _cm_tokenlist_like (CMTokenList list, CMTokenType types[], size_t types_len)
+bool _cm_tokenlist_like (CMTokenList list, const CMTokenType types[], size_t types_len)
 {
 	if (list.len < types_len) {
 		return false;
 	}
 
+	size_t token_i = 0;
+
 	for (size_t i = 0; i < types_len; i += 1) {
-		if (cm_tokenlist_get(list, i).type != types[i]) {
+		while (cm_tokenlist_get(list, token_i).type == CM_TOKEN_TYPE_ENDL) {
+			token_i += 1;
+
+			if (token_i >= list.len) {
+				return false;
+			}
+		}
+
+		if (cm_tokenlist_get(list, token_i).type != types[i]) {
+			return false;
+		}
+
+		token_i += 1;
+
+		if (token_i >= list.len) {
 			return false;
 		}
 	}
@@ -305,6 +324,14 @@ bool cm_tokenlist_empty (CMTokenList list)
 }
 
 
+void cm_tokenlist_skip_endl (CMTokenList *list)
+{
+	while (! cm_tokenlist_empty(*list) && cm_tokenlist_first(*list).type == CM_TOKEN_TYPE_ENDL) {
+		cm_tokenlist_shift(list);
+	}
+}
+
+
 void cm_print_tokenlist (CMTokenList list)
 {
 	for (size_t i = 0; i < list.len; i++) {
@@ -356,7 +383,7 @@ bool cm_is_word (char c)
 
 CMTokenList cm_tokenize (const char *filename, CMStringView sv)
 {
-	assert(CM_TOKEN_TYPE_COUNT == 20);
+	assert(CM_TOKEN_TYPE_COUNT == 21);
 
 	size_t row = 0;
 	size_t col = 0;

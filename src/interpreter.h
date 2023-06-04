@@ -6,6 +6,7 @@
 #include "parser.h"
 
 #define CM_MAX_SYMBOLS 2048
+#define CM_MAX_RELATIONS 2048
 
 
 typedef struct CMSymbolDef {
@@ -14,15 +15,99 @@ typedef struct CMSymbolDef {
 } CMSymbolDef;
 
 
+typedef struct CMRelationDef {
+	CMStringView bind;
+	CMNode *state;
+	CMNode *body;
+} CMRelationDef;
+
+
 typedef struct CMContext {
 	CMSymbolDef symbol_defs[CM_MAX_SYMBOLS];
 	size_t n_symbol_defs;
+
+	CMRelationDef relation_defs[CM_MAX_RELATIONS];
+	size_t n_relation_defs;
 } CMContext;
+
+
+bool cm_match (CMNode *match, CMNode *against)
+{
+	assert(match);
+	assert(against);
+
+	bool is_equal = cm_node_eq(match, against);
+	bool against_is_proxy = (against->type == CM_NODE_TYPE_PROXY);
+	bool proxy_against_dot_proxy = (match->type == CM_NODE_TYPE_PROXY && against->type == CM_NODE_TYPE_DOT_PROXY);
+
+	if (is_equal || against_is_proxy || proxy_against_dot_proxy) {
+		return true;
+	}
+
+	if (match->type != against->type) {
+		return false;
+	}
+
+	if (cm_node_type_has_value(against->type)) {
+		if (! cm_sv_eq(match->value, against->value)) {
+			return false;
+		}
+	}
+
+	for (size_t i = 0; i < against->n_children; i++) {
+		bool matched = false;
+
+		for (size_t j = 0; j < match->n_children; j++) {
+			bool result = cm_match(match->children[j], against->children[i]);
+
+			if (result) {
+				matched = true;
+				break;
+			}
+		}
+
+		if (! matched) {
+			return false;
+		}
+	}
+
+	return true;
+}
 
 
 CMContext cm_context (void)
 {
 	return (CMContext) {0};
+}
+
+
+CMContext cm_context_clone (const CMContext context)
+{
+	CMContext new_context = (CMContext) {
+		.n_symbol_defs = context.n_symbol_defs,
+		.n_relation_defs = context.n_relation_defs,
+	};
+
+	for (size_t i = 0; i < context.n_symbol_defs; i++) {
+		CMSymbolDef def = context.symbol_defs[i];
+
+		new_context.symbol_defs[i] = (CMSymbolDef) {
+			.name = def.name,
+			.value = cm_node_clone(def.value),
+		};
+	}
+
+	for (size_t i = 0; i < context.n_relation_defs; i++) {
+		CMRelationDef def = context.relation_defs[i];
+
+		new_context.relation_defs[i] = (CMRelationDef) {
+			.bind = def.bind,
+			.state = cm_node_clone(def.state),
+			.body = cm_node_clone(def.body),
+		};
+	}
+
+	return new_context;
 }
 
 
@@ -62,6 +147,51 @@ void cm_context_def_symbol (CMContext *context, CMStringView name, CMNode *value
 
 	context->symbol_defs[context->n_symbol_defs] = (CMSymbolDef) {name, value};
 	context->n_symbol_defs += 1;
+}
+
+
+void cm_context_redef_symbol (CMContext *context, CMStringView name, CMNode *value)
+{
+	for (size_t i = 0; i < context->n_symbol_defs; i++) {
+		if (cm_sv_eq(context->symbol_defs[i].name, name)) {
+			context->symbol_defs[i].value = value;
+			return;
+		}
+	}
+
+	assert(false && "Tried overwriting undefined symbol");
+}
+
+
+void cm_context_force_def_symbol (CMContext *context, CMStringView name, CMNode *value)
+{
+	if (cm_context_has_symbol(context, name)) {
+		cm_context_redef_symbol(context, name, value);
+	} else {
+		cm_context_def_symbol(context, name, value);
+	}
+}
+
+
+// TODO: test
+CMRelationDef *cm_context_get_matching_relation (CMContext *context, CMNode *query)
+{
+	for (size_t i = 0; i < context->n_relation_defs; i++) {
+		if (cm_match(query, context->relation_defs[i].state)) {
+			return &context->relation_defs[i];
+		}
+	}
+
+	return NULL;
+}
+
+
+void cm_context_def_relation (CMContext *context, CMStringView bind, CMNode *state, CMNode *body)
+{
+	assert(context->n_relation_defs < CM_MAX_RELATIONS);
+
+	context->relation_defs[context->n_relation_defs] = (CMRelationDef) {bind, state, body};
+	context->n_relation_defs += 1;
 }
 
 
@@ -244,50 +374,6 @@ CMNode *cm_create_key_value (CMNode *key, CMNode *value)
 }
 
 
-bool cm_match (CMNode *match, CMNode *against)
-{
-	assert(match);
-	assert(against);
-
-	bool is_equal = cm_node_eq(match, against);
-	bool against_is_proxy = (against->type == CM_NODE_TYPE_PROXY);
-	bool proxy_against_dot_proxy = (match->type == CM_NODE_TYPE_PROXY && against->type == CM_NODE_TYPE_DOT_PROXY);
-
-	if (is_equal || against_is_proxy || proxy_against_dot_proxy) {
-		return true;
-	}
-
-	if (match->type != against->type) {
-		return false;
-	}
-
-	if (cm_node_type_has_value(against->type)) {
-		if (! cm_sv_eq(match->value, against->value)) {
-			return false;
-		}
-	}
-
-	for (size_t i = 0; i < against->n_children; i++) {
-		bool matched = false;
-
-		for (size_t j = 0; j < match->n_children; j++) {
-			bool result = cm_match(match->children[j], against->children[i]);
-
-			if (result) {
-				matched = true;
-				break;
-			}
-		}
-
-		if (! matched) {
-			return false;
-		}
-	}
-
-	return true;
-}
-
-
 CMNode *cm_interpret_entity (CMContext *context, CMNode *node);
 
 
@@ -412,6 +498,37 @@ CMNode *cm_interpret_dot (CMContext *context, CMNode *node)
 }
 
 
+// TODO: test
+CMNode *cm_interpret_eval (CMContext *context, CMNode *node)
+{
+	assert(node->n_children == 1);
+	assert(node->type == CM_NODE_TYPE_EVAL);
+
+	CMNode *entity = cm_interpret_entity(context, node->children[0]);
+	CMContext scope_context = cm_context_clone(*context);
+
+	CMRelationDef *def = NULL;
+	CMNode *new_entity = NULL;
+
+	do {
+		def = cm_context_get_matching_relation(context, entity);
+
+		if (def != NULL) {
+			cm_context_force_def_symbol(&scope_context, def->bind, entity);
+			new_entity = cm_interpret_entity(&scope_context, def->body);
+		}
+
+		if (cm_node_eq(entity, new_entity)) {
+			return entity;
+		} else {
+			entity = new_entity;
+		}
+	} while(def != NULL);
+
+	return entity;
+}
+
+
 CMNode *cm_interpret_entity (CMContext *context, CMNode *node)
 {
 	switch (node->type) {
@@ -439,6 +556,10 @@ CMNode *cm_interpret_entity (CMContext *context, CMNode *node)
 			return cm_interpret_match(context, node);
 		}
 
+		case CM_NODE_TYPE_EVAL: {
+			return cm_interpret_eval(context, node);
+		}
+
 		case CM_NODE_TYPE_DOT: {
 			return cm_interpret_dot(context, node);
 		}
@@ -458,6 +579,7 @@ CMNode *cm_interpret_entity (CMContext *context, CMNode *node)
 }
 
 
+// TODO: test context updated
 void cm_interpret_symbol_def (CMContext *context, CMNode *node)
 {
 	assert(node->type == CM_NODE_TYPE_SYMBOL_DEF);
@@ -480,6 +602,38 @@ void cm_interpret_symbol_def (CMContext *context, CMNode *node)
 }
 
 
+// TODO: test context updated
+void cm_interpret_relation_def (CMContext *context, CMNode *node)
+{
+	assert(node->type == CM_NODE_TYPE_RELATION_DEF);
+	assert(node->n_children == 3);
+	assert(node->children[0] != NULL);
+	assert(node->children[2] != NULL);
+
+	CMNode *symbol = node->children[0];
+	CMNode *format = node->children[1];
+	CMNode *body = node->children[2];
+
+	assert(symbol->type == CM_NODE_TYPE_SYMBOL && "Relation state muct be a symbol");
+	CMStringView alias_name = symbol->value;;
+
+	bool format_is_null = cm_node_eq(format, cm_node_null());
+
+	if (format_is_null) {
+		format = cm_interpret_entity(context, symbol);
+	} else {
+		format = cm_interpret_entity(context, format);
+	}
+
+	cm_context_def_relation(
+		context,
+		alias_name,
+		cm_interpret_entity(context, format),
+		body
+	);
+}
+
+
 void cm_interpret_print (CMContext *context, CMNode *node)
 {
 	assert(node->type == CM_NODE_TYPE_PRINT);
@@ -493,7 +647,7 @@ void cm_interpret_print (CMContext *context, CMNode *node)
 
 void cm_interpret (CMContext *context, CMNode *ast)
 {
-	assert(CM_NODE_TYPE_COUNT == 15);
+	assert(CM_NODE_TYPE_COUNT == 17);
 
 	assert(ast->type == CM_NODE_TYPE_ROOT);
 
@@ -503,6 +657,11 @@ void cm_interpret (CMContext *context, CMNode *ast)
 		switch (stmt->type) {
 			case CM_NODE_TYPE_SYMBOL_DEF: {
 				cm_interpret_symbol_def(context, stmt);
+				break;
+			}
+
+			case CM_NODE_TYPE_RELATION_DEF: {
+				cm_interpret_relation_def(context, stmt);
 				break;
 			}
 

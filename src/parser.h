@@ -26,6 +26,8 @@ typedef enum CMNodeType {
 	CM_NODE_TYPE_DOT_PROXY,
 	CM_NODE_TYPE_DOT,
 	CM_NODE_TYPE_KEY,
+	CM_NODE_TYPE_RELATION_DEF,
+	CM_NODE_TYPE_EVAL,
 	CM_NODE_TYPE_COUNT
 } CMNodeType;
 
@@ -55,6 +57,8 @@ const char *CM_NODE_TYPES_READABLE[CM_NODE_TYPE_COUNT] = {
 	"CM_NODE_TYPE_DOT_PROXY",
 	"CM_NODE_TYPE_DOT",
 	"CM_NODE_TYPE_KEY",
+	"CM_NODE_TYPE_RELATION_DEF",
+	"CM_NODE_TYPE_EVAL",
 };
 
 
@@ -74,6 +78,26 @@ const char* CM_NODE_TYPE_WORDS[CM_NODE_TYPE_COUNT] = {
 	NULL,
 	NULL,
 	"key",
+	NULL,
+	"R",
+};
+
+
+static const CMTokenType CM_FMT_ASSIGNMENT[] = {
+	CM_TOKEN_TYPE_WORD,
+	CM_TOKEN_TYPE_COLON_EQ,
+};
+
+static const CMTokenType CM_FMT_RELATION[] = {
+	CM_TOKEN_TYPE_WORD,
+	CM_TOKEN_TYPE_D_ARROW,
+};
+
+static const CMTokenType CM_FMT_RELATION_ALIASED[] = {
+	CM_TOKEN_TYPE_WORD,
+	CM_TOKEN_TYPE_COLON,
+	CM_TOKEN_TYPE_WORD,
+	CM_TOKEN_TYPE_D_ARROW,
 };
 
 
@@ -111,7 +135,7 @@ void cm_node_alloc_children (CMNode *node, size_t cap)
 
 CMNode *cm_node (CMNodeType type)
 {
-	CMNode* node = malloc(sizeof(CMNode));
+	CMNode* node = calloc(1, sizeof(CMNode));
 
 	node->type = type;
 	node->n_children = 0;
@@ -310,16 +334,15 @@ CMNode *cm_parse_extract (CMTokenList *list)
 	CMNode *extraction = cm_node(CM_NODE_TYPE_EXTRACT);
 	cm_node_append_child(extraction, symbol);
 
-	cm_tokenlist_shift(list); // shift [
+	cm_tokenlist_expect(list, CM_TOKEN_TYPE_SQ_BRACKET_IN); // shift [
+	cm_tokenlist_skip_endl(list);
 
 	CMNode *expr = cm_parse_expr(list);
+	cm_tokenlist_skip_endl(list);
+
 	cm_node_append_child(extraction, expr);
 
-	CMToken closing_bracket = cm_tokenlist_shift(list); // shift ]
-
-	if (closing_bracket.type != CM_TOKEN_TYPE_SQ_BRACKET_OUT) {
-		cm_syntax_error(token, "Expected end of extraction CM_TOKEN_TYPE_SQ_BRACKET_OUT");
-	}
+	CMToken closing_bracket = cm_tokenlist_expect(list, CM_TOKEN_TYPE_SQ_BRACKET_OUT); // shift ]
 
 	return extraction;
 }
@@ -334,12 +357,25 @@ CMNode *cm_parse_transclude (CMTokenList *list)
 	assert(list->len >= 4);
 
 	// arg list should be in the format (expr1, expr2, expr3)
+
 	cm_tokenlist_expect(list, CM_TOKEN_TYPE_PAREN_IN);   // (
+	cm_tokenlist_skip_endl(list);
+
 	CMNode *entity = cm_parse_expr(list);                     // expr1
+	cm_tokenlist_skip_endl(list);
+
 	cm_tokenlist_expect(list, CM_TOKEN_TYPE_COMMA);      // ,
+	cm_tokenlist_skip_endl(list);
+
 	CMNode *key = cm_parse_expr(list);                        // expr2
+	cm_tokenlist_skip_endl(list);
+
 	cm_tokenlist_expect(list, CM_TOKEN_TYPE_COMMA);     // ,
+	cm_tokenlist_skip_endl(list);
+
 	CMNode *value = cm_parse_expr(list);                      //expr3
+	cm_tokenlist_skip_endl(list);
+
 	cm_tokenlist_expect(list, CM_TOKEN_TYPE_PAREN_OUT); // )
 
 	// TODO: should be syntax error
@@ -363,9 +399,17 @@ CMNode *cm_parse_match (CMTokenList *list)
 
 	// arg list should be in the format (node, against)
 	cm_tokenlist_expect(list, CM_TOKEN_TYPE_PAREN_IN);   // (
+	cm_tokenlist_skip_endl(list);
+
 	CMNode *node = cm_parse_expr(list);                       // node
+	cm_tokenlist_skip_endl(list);
+
 	cm_tokenlist_expect(list, CM_TOKEN_TYPE_COMMA);      // ,
+	cm_tokenlist_skip_endl(list);
+
 	CMNode *against = cm_parse_expr(list);                    // expr2
+	cm_tokenlist_skip_endl(list);
+
 	cm_tokenlist_expect(list, CM_TOKEN_TYPE_PAREN_OUT); // )
 
 	CMNode *match = cm_node(CM_NODE_TYPE_MATCH);
@@ -373,6 +417,30 @@ CMNode *cm_parse_match (CMTokenList *list)
 	cm_node_append_child(match, against);
 
 	return match;
+}
+
+
+// TODO: test
+CMNode *cm_parse_eval (CMTokenList *list)
+{
+	CMToken word = cm_tokenlist_expect(list, CM_TOKEN_TYPE_WORD);
+
+	if (! cm_sv_eq(word.value, cm_sv(CM_NODE_TYPE_WORDS[CM_NODE_TYPE_EVAL]))) {
+		assert(false && "Invalid eval word");
+	}
+
+	cm_tokenlist_expect(list, CM_TOKEN_TYPE_PAREN_IN);
+	cm_tokenlist_skip_endl(list);
+
+	CMNode *expr = cm_parse_expr(list);
+	cm_tokenlist_skip_endl(list);
+
+	cm_tokenlist_expect(list, CM_TOKEN_TYPE_PAREN_OUT);
+
+	CMNode *eval = cm_node(CM_NODE_TYPE_EVAL);
+	cm_node_append_child(eval, expr);
+
+	return eval;
 }
 
 
@@ -386,6 +454,10 @@ CMNode *cm_parse_builtin (CMTokenList *list)
 	switch (builtin->type) {
 		case CM_NODE_TYPE_TRANSCLUDE: {
 			return cm_parse_transclude(list);
+		}
+
+		case CM_NODE_TYPE_EVAL: {
+			return cm_parse_eval(list);
 		}
 
 		default: {
@@ -449,6 +521,7 @@ CMNode *cm_parse_dot (CMTokenList *list)
 
 CMNode *cm_parse_expr (CMTokenList *list)
 {
+	cm_tokenlist_skip_endl(list);
 	CMToken token = cm_tokenlist_first(*list);
 
 	switch (token.type) {
@@ -525,14 +598,6 @@ CMNode *cm_parse_expr (CMTokenList *list)
 }
 
 
-void cm_tokenlist_skip_endl (CMTokenList *list)
-{
-	while (! cm_tokenlist_empty(*list) && cm_tokenlist_first(*list).type == CM_TOKEN_TYPE_ENDL) {
-		cm_tokenlist_shift(list);
-	}
-}
-
-
 CMNode *cm_parse_compose (CMTokenList *list)
 {
 	CMNode *node = cm_node(CM_NODE_TYPE_COMPOSE);
@@ -559,7 +624,7 @@ CMNode *cm_parse_compose (CMTokenList *list)
 			cm_tokenlist_shift(list);
 			break;
 		} else {
-			cm_syntax_error(initial, "Invalid composition list");
+			cm_syntax_error(next_token, "Invalid composition list");
 		}
 	} while (! cm_tokenlist_empty(*list));
 
@@ -575,12 +640,7 @@ CMNode *cm_parse_symbol_def (CMTokenList *list)
 {
 	CMNode *node = cm_node(CM_NODE_TYPE_SYMBOL_DEF);
 
-	CMTokenType fmt_assignment[] = {
-		CM_TOKEN_TYPE_WORD,
-		CM_TOKEN_TYPE_COLON_EQ,
-	};
-
-	if (! cm_tokenlist_like(*list, fmt_assignment)) {
+	if (! cm_tokenlist_like(*list, CM_FMT_ASSIGNMENT)) {
 		assert(false && "Invalid token list for symbol definition");
 	}
 
@@ -595,6 +655,36 @@ CMNode *cm_parse_symbol_def (CMTokenList *list)
 	cm_node_append_child(node, expr);
 
 	return node;
+}
+
+
+CMNode *cm_parse_relation_def (CMTokenList *list)
+{
+	bool is_relation = cm_tokenlist_like(*list, CM_FMT_RELATION);
+	bool is_aliased_relation = cm_tokenlist_like(*list, CM_FMT_RELATION_ALIASED);
+
+	assert(is_relation || is_aliased_relation);
+
+	CMNode *relation = cm_node(CM_NODE_TYPE_RELATION_DEF);
+
+	CMNode *state = cm_parse_expr(list);
+	cm_node_append_child(relation, state);
+
+	if (is_aliased_relation) {
+		cm_tokenlist_expect(list, CM_TOKEN_TYPE_COLON); // discard :
+		CMToken word = cm_tokenlist_expect(list, CM_TOKEN_TYPE_WORD);
+		CMNode *symbol = cm_node_symbol(word.value);
+		cm_node_append_child(relation, symbol);
+	} else {
+		cm_node_append_child(relation, cm_node_null());
+	}
+
+	cm_tokenlist_expect(list, CM_TOKEN_TYPE_D_ARROW); // discard =>
+
+	CMNode *expr = cm_parse_expr(list);
+	cm_node_append_child(relation, expr);
+
+	return relation;
 }
 
 
@@ -614,8 +704,8 @@ CMNode *cm_parse_print (CMTokenList *list)
 
 CMNode *cm_parse (CMTokenList *list)
 {
-	assert(CM_NODE_TYPE_COUNT == 15);
-	assert(CM_TOKEN_TYPE_COUNT == 20);
+	assert(CM_NODE_TYPE_COUNT == 17);
+	assert(CM_TOKEN_TYPE_COUNT == 21);
 
 	CMNode *root = cm_node(CM_NODE_TYPE_ROOT);
 
@@ -624,17 +714,25 @@ CMNode *cm_parse (CMTokenList *list)
 
 		switch (token.type) {
 			case CM_TOKEN_TYPE_WORD: {
-				CMTokenType fmt_assignment[] = {
-					CM_TOKEN_TYPE_WORD,
-					CM_TOKEN_TYPE_COLON_EQ,
-				};
 
-				bool is_assignment = cm_tokenlist_like(*list, fmt_assignment);
+				bool is_assignment = cm_tokenlist_like(*list, CM_FMT_ASSIGNMENT);
 
 				if (is_assignment) {
 					cm_node_append_child(
 						root,
 						cm_parse_symbol_def(list)
+					);
+
+					break;
+				}
+
+				bool is_relation = cm_tokenlist_like(*list, CM_FMT_RELATION);
+				bool is_aliased_relation = cm_tokenlist_like(*list, CM_FMT_RELATION_ALIASED);
+
+				if (is_relation || is_aliased_relation) {
+					cm_node_append_child(
+						root,
+						cm_parse_relation_def(list)
 					);
 
 					break;
@@ -654,7 +752,7 @@ CMNode *cm_parse (CMTokenList *list)
 			}
 
 			case CM_TOKEN_TYPE_ENDL: {
-				cm_tokenlist_shift(list);
+				cm_tokenlist_skip_endl(list);
 				break;
 			}
 

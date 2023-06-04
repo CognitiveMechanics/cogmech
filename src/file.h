@@ -19,7 +19,7 @@ char *cm_read_file_to_cstr (const char *filename)
 	length = ftell(f);
 	fseek(f, 0, SEEK_SET);
 
-	str = malloc(length + 1);
+	str = calloc(length + 1, sizeof(char));
 
 	assert(str && "String could not be allocated");
 

@@ -248,6 +248,13 @@ bool test_cm_tokenlist_like (void)
 		CM_TOKEN_TYPE_COLON_EQ
 	);
 
+	CMToken endl = cm_token(
+		"filename.cogm",
+		0,
+		2,
+		CM_TOKEN_TYPE_ENDL
+	);
+
 	CMToken token3 = cm_token(
 		"filename.cogm",
 		0,
@@ -257,8 +264,11 @@ bool test_cm_tokenlist_like (void)
 
 	token3.value = cm_sv("b");
 
+	cm_tokenlist_append(&list, endl);
 	cm_tokenlist_append(&list, token1);
+	cm_tokenlist_append(&list, endl);
 	cm_tokenlist_append(&list, token2);
+	cm_tokenlist_append(&list, endl);
 	cm_tokenlist_append(&list, token3);
 
 	CMTokenType type_list1[] = {CM_TOKEN_TYPE_WORD, CM_TOKEN_TYPE_COLON_EQ};
@@ -423,21 +433,35 @@ bool test_cm_tokenlist_empty (void)
 
 bool test_cm_tokenize_file (void)
 {
-	CMTokenList list = cm_tokenize_file("../tests/cogm/00-hello.cogm");
+	const char *files[] = {
+		"../tests/cogm/00-hello.cogm",
+		"../tests/cogm/01-silent.cogm",
+		"../tests/cogm/02-extract.cogm",
+		"../tests/cogm/03-transclude.cogm",
+		"../tests/cogm/04-match.cogm",
+		"../tests/cogm/05-classes.cogm",
+		"../tests/cogm/06-dot.cogm",
+		"../tests/cogm/07-keys.cogm",
+		"../tests/cogm/08-relations.cogm",
+	};
 
-	if (list.len == 0) {
+	for (size_t i = 0; i < ARRAY_LEN(files); i++) {
+		CMTokenList list = cm_tokenize_file(files[i]);
+
+		if (list.len == 0) {
+			cm_tokenlist_free(&list);
+			cm_test_error("No tokens read\n");
+			return false;
+		}
+
+		if (i == 0 && list.len != 15) {
+			cm_tokenlist_free(&list);
+			cm_test_error("Invalid number of tokens read\n");
+			return false;
+		}
+
 		cm_tokenlist_free(&list);
-		cm_test_error("No tokens read\n");
-		return false;
 	}
-
-	if (list.len != 15) {
-		cm_tokenlist_free(&list);
-		cm_test_error("Invalid number of tokens read\n");
-		return false;
-	}
-
-	cm_tokenlist_free(&list);
 
 	return true;
 }

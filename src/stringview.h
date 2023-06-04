@@ -31,7 +31,7 @@ CMStringView cm_sv (const char *cstr)
 
 char *cm_sv_to_cstr (CMStringView sv)
 {
-	char *cstr = (char *)malloc(sv.len + 1);  // +1 for null terminator
+	char *cstr = (char *) calloc(sv.len + 1, sizeof(char));  // +1 for null terminator
 
 	if (cstr == NULL) {
 		return NULL;
