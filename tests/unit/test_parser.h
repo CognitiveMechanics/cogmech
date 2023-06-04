@@ -596,6 +596,55 @@ bool test_cm_parse_class (void)
 }
 
 
+bool test_cm_parse_key (void)
+{
+	CMTokenList list = cm_tokenlist();
+
+	CMToken tokens[] = {
+		cm_token(
+			"filename.cogm",
+			0,
+			0,
+			CM_TOKEN_TYPE_HASH
+		),
+		cm_token(
+			"filename.cogm",
+			0,
+			0,
+			CM_TOKEN_TYPE_WORD
+		),
+	};
+
+	for (size_t i = 0; i < ARRAY_LEN(tokens); i++) {
+		cm_tokenlist_append(&list, tokens[i]);
+	}
+
+	CMNode *parsed = cm_parse_key(&list);
+
+	if (parsed->type != CM_NODE_TYPE_COMPOSE) {
+		cm_test_error("classes should be of type CM_NODE_TYPE_COMPOSE\n");
+		return false;
+	}
+
+	if (parsed->n_children != 2) {
+		cm_test_error("classes should have two children\n");
+		return false;
+	}
+
+	if (parsed->children[0]->type != CM_NODE_TYPE_KEY) {
+		cm_test_error("first child should be CM_NODE_TYPE_KEY\n");
+		return false;
+	}
+
+	if (parsed->children[1]->type != CM_NODE_TYPE_SYMBOL) {
+		cm_test_error("second child should be CM_NODE_TYPE_SYMBOL\n");
+		return false;
+	}
+
+	return true;
+}
+
+
 bool test_cm_parse_dot (void)
 {
 	CMTokenList list = cm_tokenlist();
@@ -938,6 +987,7 @@ void test_cm_parser (void)
 	cm_add_test(test_cm_parse_match);
 	cm_add_test(test_cm_parse_class);
 	cm_add_test(test_cm_parse_dot);
+	cm_add_test(test_cm_parse_key);
 	cm_add_test(test_cm_parse_symbol_def);
 	cm_add_test(test_cm_parse_print);
 	cm_add_test(test_cm_parse);

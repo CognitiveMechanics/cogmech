@@ -131,6 +131,16 @@ void _cm_print_entity (CMNode *node, int indent_level, int num_spaces, bool with
 			break;
 		}
 
+		case CM_NODE_TYPE_KEY: {
+			printf(
+				"%*skey\n",
+				indent_level * num_spaces,
+				""
+			);
+
+			break;
+		}
+
 		case CM_NODE_TYPE_LITERAL: {
 			printf(
 				"%*s\"%.*s\"\n",
@@ -174,10 +184,6 @@ void _cm_print_entity (CMNode *node, int indent_level, int num_spaces, bool with
 							child->value.data
 						);
 
-						if (i < node->n_children - 1) {
-							printf(", ");
-						}
-
 					} else if (child->type == CM_NODE_TYPE_NULL) {
 						printf("null");
 
@@ -190,8 +196,15 @@ void _cm_print_entity (CMNode *node, int indent_level, int num_spaces, bool with
 					} else if (child->type == CM_NODE_TYPE_DOT_PROXY) {
 						printf("[.]");
 
+					} else if (child->type == CM_NODE_TYPE_KEY) {
+						printf("key");
+
 					} else {
 						assert(false && "Invalid node to print");
+					}
+
+					if (i < node->n_children - 1) {
+						printf(", ");
 					}
 				}
 
@@ -433,7 +446,8 @@ CMNode *cm_interpret_entity (CMContext *context, CMNode *node)
 		case CM_NODE_TYPE_PROXY:
 		case CM_NODE_TYPE_DOT_PROXY:
 		case CM_NODE_TYPE_TRUE:
-		case CM_NODE_TYPE_NULL: {
+		case CM_NODE_TYPE_NULL:
+		case CM_NODE_TYPE_KEY: {
 			return node;
 		}
 
@@ -479,7 +493,7 @@ void cm_interpret_print (CMContext *context, CMNode *node)
 
 void cm_interpret (CMContext *context, CMNode *ast)
 {
-	assert(CM_NODE_TYPE_COUNT == 14);
+	assert(CM_NODE_TYPE_COUNT == 15);
 
 	assert(ast->type == CM_NODE_TYPE_ROOT);
 

@@ -375,6 +375,7 @@ bool test_cm_interpret (void)
 		cm_tokenize_file("../tests/cogm/04-match.cogm"),
 		cm_tokenize_file("../tests/cogm/05-classes.cogm"),
 		cm_tokenize_file("../tests/cogm/06-dot.cogm"),
+		cm_tokenize_file("../tests/cogm/07-keys.cogm"),
 	};
 
 	for (size_t i = 0; i < ARRAY_LEN(lists); i++) {

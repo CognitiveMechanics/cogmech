@@ -25,6 +25,7 @@ typedef enum CMNodeType {
 	CM_NODE_TYPE_PROXY,
 	CM_NODE_TYPE_DOT_PROXY,
 	CM_NODE_TYPE_DOT,
+	CM_NODE_TYPE_KEY,
 	CM_NODE_TYPE_COUNT
 } CMNodeType;
 
@@ -53,6 +54,7 @@ const char *CM_NODE_TYPES_READABLE[CM_NODE_TYPE_COUNT] = {
 	"CM_NODE_TYPE_PROXY",
 	"CM_NODE_TYPE_DOT_PROXY",
 	"CM_NODE_TYPE_DOT",
+	"CM_NODE_TYPE_KEY",
 };
 
 
@@ -70,6 +72,8 @@ const char* CM_NODE_TYPE_WORDS[CM_NODE_TYPE_COUNT] = {
 	NULL,
 	NULL,
 	NULL,
+	NULL,
+	"key",
 };
 
 
@@ -417,6 +421,20 @@ CMNode *cm_parse_class (CMTokenList *list)
 }
 
 
+CMNode *cm_parse_key (CMTokenList *list)
+{
+	cm_tokenlist_expect(list, CM_TOKEN_TYPE_HASH);
+	CMNode *expr = cm_parse_expr(list);
+
+	CMNode *composition = cm_node(CM_NODE_TYPE_COMPOSE);
+
+	cm_node_append_child(composition, cm_node(CM_NODE_TYPE_KEY));
+	cm_node_append_child(composition, expr);
+
+	return composition;
+}
+
+
 CMNode *cm_parse_dot (CMTokenList *list)
 {
 	cm_tokenlist_expect(list, CM_TOKEN_TYPE_DOT);
@@ -459,6 +477,10 @@ CMNode *cm_parse_expr (CMTokenList *list)
 
 		case CM_TOKEN_TYPE_SQ_BRACKET_IN: {
 			return cm_parse_class(list);
+		}
+
+		case CM_TOKEN_TYPE_HASH: {
+			return cm_parse_key(list);
 		}
 
 		case CM_TOKEN_TYPE_QUOTED: {
@@ -592,8 +614,8 @@ CMNode *cm_parse_print (CMTokenList *list)
 
 CMNode *cm_parse (CMTokenList *list)
 {
-	assert(CM_NODE_TYPE_COUNT == 14);
-	assert(CM_TOKEN_TYPE_COUNT == 19);
+	assert(CM_NODE_TYPE_COUNT == 15);
+	assert(CM_TOKEN_TYPE_COUNT == 20);
 
 	CMNode *root = cm_node(CM_NODE_TYPE_ROOT);
 

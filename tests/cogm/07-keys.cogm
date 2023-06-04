@@ -1,0 +1,16 @@
+k := "symbol"
+
+a := <
+  <#k, "keyed-symbol">,
+  <k, "symbol">,
+  <#"k", "keyed-literal">,
+  <"k", "literal">
+>
+
+: #k
+: #"k"
+
+: a[#k]
+: a[k]
+: a[#"k"]
+: a["k"]
