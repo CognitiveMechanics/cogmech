@@ -508,6 +508,67 @@ bool test_cm_parse_match (void)
 }
 
 
+bool test_cm_parse_class (void)
+{
+	CMTokenList list = cm_tokenlist();
+
+	CMToken tokens[] = {
+		cm_token(
+			"filename.cogm",
+			0,
+			0,
+			CM_TOKEN_TYPE_SQ_BRACKET_IN
+		),
+		cm_token(
+			"filename.cogm",
+			0,
+			0,
+			CM_TOKEN_TYPE_DOT
+		),
+		cm_token(
+			"filename.cogm",
+			0,
+			0,
+			CM_TOKEN_TYPE_WORD
+		),
+		cm_token(
+			"filename.cogm",
+			0,
+			0,
+			CM_TOKEN_TYPE_SQ_BRACKET_OUT
+		),
+	};
+
+	for (size_t i = 0; i < ARRAY_LEN(tokens); i++) {
+		cm_tokenlist_append(&list, tokens[i]);
+	}
+
+	CMNode *parsed = cm_parse_class(&list);
+
+	if (parsed->type != CM_NODE_TYPE_COMPOSE) {
+		cm_test_error("classes should be of type CM_NODE_TYPE_COMPOSE\n");
+		return false;
+	}
+
+	if (parsed->n_children != 2) {
+		cm_test_error("classes should have two children\n");
+		return false;
+	}
+
+	if (parsed->children[0]->type != CM_NODE_TYPE_LITERAL) {
+		cm_test_error("first child should be CM_NODE_TYPE_LITERAL\n");
+		return false;
+	}
+
+	if (parsed->children[1]->type != CM_NODE_TYPE_DOT_PROXY) {
+		cm_test_error("second child should be CM_NODE_TYPE_DOT_PROXY\n");
+		return false;
+	}
+
+	return true;
+}
+
+
 bool test_cm_parse_expr (void)
 {
 	CMTokenList list = cm_tokenlist();
@@ -803,6 +864,7 @@ void test_cm_parser (void)
 	cm_add_test(test_cm_parse_extract);
 	cm_add_test(test_cm_parse_transclude);
 	cm_add_test(test_cm_parse_match);
+	cm_add_test(test_cm_parse_class);
 	cm_add_test(test_cm_parse_symbol_def);
 	cm_add_test(test_cm_parse_print);
 	cm_add_test(test_cm_parse);

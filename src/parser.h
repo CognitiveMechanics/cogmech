@@ -372,6 +372,32 @@ CMNode *cm_parse_builtin (CMTokenList *list)
 }
 
 
+CMNode *cm_parse_class (CMTokenList *list)
+{
+	cm_tokenlist_expect(list, CM_TOKEN_TYPE_SQ_BRACKET_IN);
+	bool is_dot = false;
+
+	if (cm_tokenlist_first_like(*list, CM_TOKEN_TYPE_DOT)) {
+		cm_tokenlist_shift(list);
+		is_dot = true;
+	}
+
+	CMToken word = cm_tokenlist_expect(list, CM_TOKEN_TYPE_WORD);
+	cm_tokenlist_expect(list, CM_TOKEN_TYPE_SQ_BRACKET_OUT);
+
+	CMNode *composition = cm_node(CM_NODE_TYPE_COMPOSE);
+	cm_node_append_child(composition, cm_node_literal(word.value));
+
+	if (is_dot) {
+		cm_node_append_child(composition, cm_node(CM_NODE_TYPE_DOT_PROXY));
+	} else {
+		cm_node_append_child(composition, cm_node(CM_NODE_TYPE_PROXY));
+	}
+
+	return composition;
+}
+
+
 CMNode *cm_parse_expr (CMTokenList *list)
 {
 	CMToken token = cm_tokenlist_first(*list);
@@ -394,6 +420,10 @@ CMNode *cm_parse_expr (CMTokenList *list)
 
 			cm_tokenlist_shift(list); // shift word
 			return cm_node_symbol(token.value);
+		}
+
+		case CM_TOKEN_TYPE_SQ_BRACKET_IN: {
+			return cm_parse_class(list);
 		}
 
 		case CM_TOKEN_TYPE_QUOTED: {
@@ -528,7 +558,7 @@ CMNode *cm_parse_print (CMTokenList *list)
 CMNode *cm_parse (CMTokenList *list)
 {
 	assert(CM_NODE_TYPE_COUNT == 13);
-	assert(CM_TOKEN_TYPE_COUNT == 18);
+	assert(CM_TOKEN_TYPE_COUNT == 19);
 
 	CMNode *root = cm_node(CM_NODE_TYPE_ROOT);
 

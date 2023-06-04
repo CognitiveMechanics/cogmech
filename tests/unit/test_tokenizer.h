@@ -280,6 +280,56 @@ bool test_cm_tokenlist_like (void)
 	return true;
 }
 
+
+bool test_cm_tokenlist_first_like (void)
+{
+	CMTokenList list = cm_tokenlist();
+
+	CMToken token1 = cm_token(
+		"filename.cogm",
+		0,
+		0,
+		CM_TOKEN_TYPE_WORD
+	);
+
+	token1.value = cm_sv("a");
+
+	CMToken token2 = cm_token(
+		"filename.cogm",
+		0,
+		2,
+		CM_TOKEN_TYPE_COLON_EQ
+	);
+
+	CMToken token3 = cm_token(
+		"filename.cogm",
+		0,
+		0,
+		CM_TOKEN_TYPE_WORD
+	);
+
+	token3.value = cm_sv("b");
+
+	cm_tokenlist_append(&list, token1);
+	cm_tokenlist_append(&list, token2);
+	cm_tokenlist_append(&list, token3);
+
+	if (! cm_tokenlist_first_like(list, CM_TOKEN_TYPE_WORD)) {
+		cm_tokenlist_free(&list);
+		cm_test_error("should be CM_TOKEN_TYPE_WORD");
+		return false;
+	}
+
+	if (cm_tokenlist_first_like(list, CM_TOKEN_TYPE_COLON_EQ)) {
+		cm_tokenlist_free(&list);
+		cm_test_error("should not be CM_TOKEN_TYPE_COLON_EQ");
+		return false;
+	}
+
+	return true;
+}
+
+
 bool test_cm_tokenlist_shift_expect (void)
 {
 	CMTokenList list = cm_tokenlist();
@@ -401,6 +451,7 @@ void test_cm_tokenizer (void)
 	cm_add_test(test_cm_tokenlist);
 	cm_add_test(test_cm_token_eq);
 	cm_add_test(test_cm_tokenlist_like);
+	cm_add_test(test_cm_tokenlist_first_like);
 	cm_add_test(test_cm_tokenlist_get);
 	cm_add_test(test_cm_tokenlist_append_clear);
 	cm_add_test(test_cm_tokenlist_shift_expect);

@@ -450,7 +450,6 @@ void cm_interpret_print (CMContext *context, CMNode *node)
 void cm_interpret (CMContext *context, CMNode *ast)
 {
 	assert(CM_NODE_TYPE_COUNT == 13);
-	assert(CM_TOKEN_TYPE_COUNT == 18);
 
 	assert(ast->type == CM_NODE_TYPE_ROOT);
 

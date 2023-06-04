@@ -339,6 +339,7 @@ bool test_cm_interpret (void)
 		cm_tokenize_file("../tests/cogm/02-extract.cogm"),
 		cm_tokenize_file("../tests/cogm/03-transclude.cogm"),
 		cm_tokenize_file("../tests/cogm/04-match.cogm"),
+		cm_tokenize_file("../tests/cogm/05-classes.cogm"),
 	};
 
 	for (size_t i = 0; i < ARRAY_LEN(lists); i++) {
