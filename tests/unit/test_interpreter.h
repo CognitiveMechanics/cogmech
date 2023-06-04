@@ -278,6 +278,40 @@ bool test_cm_interpret_match (void)
 }
 
 
+bool test_cm_interpret_dot (void)
+{
+	CMContext context = cm_context();
+
+	CMStringView tag = cm_sv("tag");
+	CMNode *tag_node = cm_node_literal(tag);
+
+	CMNode *proxy_node = cm_node(CM_NODE_TYPE_PROXY);
+
+	CMNode *outer = cm_node(CM_NODE_TYPE_COMPOSE);
+	CMNode *inner = cm_node(CM_NODE_TYPE_COMPOSE);
+	cm_node_append_child(inner, tag_node);
+	cm_node_append_child(inner, proxy_node);
+	cm_node_append_child(outer, inner);
+	
+	CMNode *dot = cm_node(CM_NODE_TYPE_DOT);
+	cm_node_append_child(dot, outer);
+	
+	CMNode *result = cm_interpret_dot(&context, dot);
+
+	if (outer->children[0]->children[1]->type != CM_NODE_TYPE_PROXY) {
+		cm_test_error("original should still have CM_NODE_TYPE_PROXY, check that it cloned correctly");
+		return false;
+	}
+
+	if (result->children[0]->children[1]->type != CM_NODE_TYPE_DOT_PROXY) {
+		cm_test_error("new entity should have CM_NODE_TYPE_DOT_PROXYy");
+		return false;
+	}
+
+	return true;
+}
+
+
 bool test_cm_match (void)
 {
 	CMStringView tag = cm_sv("tag");
@@ -340,6 +374,7 @@ bool test_cm_interpret (void)
 		cm_tokenize_file("../tests/cogm/03-transclude.cogm"),
 		cm_tokenize_file("../tests/cogm/04-match.cogm"),
 		cm_tokenize_file("../tests/cogm/05-classes.cogm"),
+		cm_tokenize_file("../tests/cogm/06-dot.cogm"),
 	};
 
 	for (size_t i = 0; i < ARRAY_LEN(lists); i++) {
@@ -363,6 +398,7 @@ void test_cm_interpreter (void)
 	cm_add_test(test_cm_interpret_extract);
 	cm_add_test(test_cm_interpret_transclude);
 	cm_add_test(test_cm_interpret_match);
+	cm_add_test(test_cm_interpret_dot);
 	cm_add_test(test_cm_match);
 	cm_add_test(test_cm_interpret_symbol_def);
 	cm_add_test(test_cm_interpret_print);

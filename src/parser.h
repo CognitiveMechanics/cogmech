@@ -24,6 +24,7 @@ typedef enum CMNodeType {
 	CM_NODE_TYPE_TRUE,
 	CM_NODE_TYPE_PROXY,
 	CM_NODE_TYPE_DOT_PROXY,
+	CM_NODE_TYPE_DOT,
 	CM_NODE_TYPE_COUNT
 } CMNodeType;
 
@@ -51,6 +52,7 @@ const char *CM_NODE_TYPES_READABLE[CM_NODE_TYPE_COUNT] = {
 	"CM_NODE_TYPE_TRUE",
 	"CM_NODE_TYPE_PROXY",
 	"CM_NODE_TYPE_DOT_PROXY",
+	"CM_NODE_TYPE_DOT",
 };
 
 
@@ -92,14 +94,14 @@ bool cm_node_type_has_value (CMNodeType type)
 }
 
 
-void cm_node_alloc_children (CMNode *node)
+void cm_node_alloc_children (CMNode *node, size_t cap)
 {
-	node->children = calloc(CM_NODE_CHILDREN_BLOCK_SIZE, sizeof(CMNode *));
+	node->children = calloc(cap, sizeof(CMNode *));
 
 	assert(node->children != NULL);
 	assert(node->children[0] == NULL);
 
-	node->cap = CM_NODE_CHILDREN_BLOCK_SIZE;
+	node->cap = cap;
 }
 
 
@@ -111,7 +113,7 @@ CMNode *cm_node (CMNodeType type)
 	node->n_children = 0;
 	node->value = CM_SV_NULL;
 
-	cm_node_alloc_children(node);
+	cm_node_alloc_children(node, CM_NODE_CHILDREN_BLOCK_SIZE);
 
 	return node;
 }
@@ -178,6 +180,23 @@ void cm_node_free (CMNode *node)
 
 	free(node);
 	node = NULL;
+}
+
+
+CMNode *cm_node_clone (CMNode *node)
+{
+	CMNode *clone = cm_node(node->type);
+
+	clone->n_children = 0;
+	clone->value = node->value;
+
+	cm_node_alloc_children(clone, node->cap);
+
+	for (size_t i = 0; i < node->n_children; i++) {
+		cm_node_append_child(clone, cm_node_clone(node->children[i]));
+	}
+
+	return clone;
 }
 
 
@@ -398,6 +417,18 @@ CMNode *cm_parse_class (CMTokenList *list)
 }
 
 
+CMNode *cm_parse_dot (CMTokenList *list)
+{
+	cm_tokenlist_expect(list, CM_TOKEN_TYPE_DOT);
+	CMToken word = cm_tokenlist_expect(list, CM_TOKEN_TYPE_WORD);
+
+	CMNode *dot = cm_node(CM_NODE_TYPE_DOT);
+	cm_node_append_child(dot, cm_node_symbol(word.value));
+
+	return dot;
+}
+
+
 CMNode *cm_parse_expr (CMTokenList *list)
 {
 	CMToken token = cm_tokenlist_first(*list);
@@ -420,6 +451,10 @@ CMNode *cm_parse_expr (CMTokenList *list)
 
 			cm_tokenlist_shift(list); // shift word
 			return cm_node_symbol(token.value);
+		}
+
+		case CM_TOKEN_TYPE_DOT: {
+			return cm_parse_dot(list);
 		}
 
 		case CM_TOKEN_TYPE_SQ_BRACKET_IN: {
@@ -557,7 +592,7 @@ CMNode *cm_parse_print (CMTokenList *list)
 
 CMNode *cm_parse (CMTokenList *list)
 {
-	assert(CM_NODE_TYPE_COUNT == 13);
+	assert(CM_NODE_TYPE_COUNT == 14);
 	assert(CM_TOKEN_TYPE_COUNT == 19);
 
 	CMNode *root = cm_node(CM_NODE_TYPE_ROOT);

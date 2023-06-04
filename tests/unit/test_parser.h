@@ -180,6 +180,33 @@ bool test_cm_node_from_word (void)
 }
 
 
+bool test_cm_node_clone (void)
+{
+	CMTokenList seq1 = cm_tokenize("test1.cogm", cm_sv(" a  := <\"b\", c>\n"));
+	CMTokenList seq2 = seq1;
+
+	CMNode *node1 = cm_parse(&seq1);
+	CMNode *node2 = node1;
+	CMNode *node3 = cm_node_clone(node1);
+
+	node2->children[0]->children[0]->value = cm_sv("d");
+	node3->children[0]->children[0]->value = cm_sv("e");
+
+	if (! cm_node_eq(node1, node2)) {
+		cm_test_error("expected copies to be the same");
+		return false;
+	}
+
+	if (cm_node_eq(node1, node3)) {
+		cm_print_node(node1);
+		cm_test_error("expected clones to be the different");
+		return false;
+	}
+
+	return true;
+}
+
+
 bool test_cm_parse_compose (void)
 {
 	CMTokenList list = cm_tokenlist();
@@ -569,6 +596,50 @@ bool test_cm_parse_class (void)
 }
 
 
+bool test_cm_parse_dot (void)
+{
+	CMTokenList list = cm_tokenlist();
+
+	CMToken tokens[] = {
+		cm_token(
+			"filename.cogm",
+			0,
+			0,
+			CM_TOKEN_TYPE_DOT
+		),
+		cm_token(
+			"filename.cogm",
+			0,
+			0,
+			CM_TOKEN_TYPE_WORD
+		),
+	};
+
+	for (size_t i = 0; i < ARRAY_LEN(tokens); i++) {
+		cm_tokenlist_append(&list, tokens[i]);
+	}
+
+	CMNode *parsed = cm_parse_dot(&list);
+
+	if (parsed->type != CM_NODE_TYPE_DOT) {
+		cm_test_error("should be of type CM_NODE_TYPE_DOT\n");
+		return false;
+	}
+
+	if (parsed->n_children != 1) {
+		cm_test_error("dot should have one child\n");
+		return false;
+	}
+
+	if (parsed->children[0]->type != CM_NODE_TYPE_SYMBOL) {
+		cm_test_error("child should be CM_NODE_TYPE_SYMBOL\n");
+		return false;
+	}
+
+	return true;
+}
+
+
 bool test_cm_parse_expr (void)
 {
 	CMTokenList list = cm_tokenlist();
@@ -859,12 +930,14 @@ void test_cm_parser (void)
 	cm_add_test(test_cm_node_literal);
 	cm_add_test(test_cm_node_eq);
 	cm_add_test(test_cm_node_from_word);
+	cm_add_test(test_cm_node_clone);
 	cm_add_test(test_cm_parse_expr);
 	cm_add_test(test_cm_parse_compose);
 	cm_add_test(test_cm_parse_extract);
 	cm_add_test(test_cm_parse_transclude);
 	cm_add_test(test_cm_parse_match);
 	cm_add_test(test_cm_parse_class);
+	cm_add_test(test_cm_parse_dot);
 	cm_add_test(test_cm_parse_symbol_def);
 	cm_add_test(test_cm_parse_print);
 	cm_add_test(test_cm_parse);

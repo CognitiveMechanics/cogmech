@@ -373,6 +373,32 @@ CMNode *cm_interpret_match (CMContext *context, CMNode *node)
 }
 
 
+CMNode *_cm_interpret_dot (CMContext *context, CMNode *node)
+{
+	if (node->type == CM_NODE_TYPE_PROXY) {
+		node->type = CM_NODE_TYPE_DOT_PROXY;
+	} else {
+		for (size_t i = 0; i < node->n_children; i++) {
+			_cm_interpret_dot(context, node->children[i]);
+		}
+	}
+
+	return node;
+}
+
+
+CMNode *cm_interpret_dot (CMContext *context, CMNode *node)
+{
+	assert(node->n_children == 1);
+	assert(node->type == CM_NODE_TYPE_DOT);
+
+	CMNode *entity = cm_interpret_entity(context, node->children[0]);
+	CMNode *clone = cm_node_clone(entity);
+
+	return _cm_interpret_dot(context, clone);
+}
+
+
 CMNode *cm_interpret_entity (CMContext *context, CMNode *node)
 {
 	switch (node->type) {
@@ -398,6 +424,10 @@ CMNode *cm_interpret_entity (CMContext *context, CMNode *node)
 
 		case CM_NODE_TYPE_MATCH: {
 			return cm_interpret_match(context, node);
+		}
+
+		case CM_NODE_TYPE_DOT: {
+			return cm_interpret_dot(context, node);
 		}
 
 		case CM_NODE_TYPE_PROXY:
@@ -449,7 +479,7 @@ void cm_interpret_print (CMContext *context, CMNode *node)
 
 void cm_interpret (CMContext *context, CMNode *ast)
 {
-	assert(CM_NODE_TYPE_COUNT == 13);
+	assert(CM_NODE_TYPE_COUNT == 14);
 
 	assert(ast->type == CM_NODE_TYPE_ROOT);
 
