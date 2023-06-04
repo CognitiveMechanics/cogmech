@@ -7,12 +7,20 @@
 
 #define CM_MAX_SYMBOLS 2048
 #define CM_MAX_RELATIONS 2048
+#define CM_MAX_OPS 2048
 
 
 typedef struct CMSymbolDef {
 	CMStringView name;
 	CMNode *value;
 } CMSymbolDef;
+
+
+typedef struct CMOpDef {
+	CMStringView name;
+	CMNode *arglist;
+	CMNode *body;
+} CMOpDef;
 
 
 typedef struct CMRelationDef {
@@ -25,6 +33,9 @@ typedef struct CMRelationDef {
 typedef struct CMContext {
 	CMSymbolDef symbol_defs[CM_MAX_SYMBOLS];
 	size_t n_symbol_defs;
+
+	CMOpDef op_defs[CM_MAX_OPS];
+	size_t n_op_defs;
 
 	CMRelationDef relation_defs[CM_MAX_RELATIONS];
 	size_t n_relation_defs;
@@ -94,6 +105,16 @@ CMContext cm_context_clone (const CMContext context)
 		new_context.symbol_defs[i] = (CMSymbolDef) {
 			.name = def.name,
 			.value = cm_node_clone(def.value),
+		};
+	}
+
+	for (size_t i = 0; i < context.n_op_defs; i++) {
+		CMOpDef def = context.op_defs[i];
+
+		new_context.op_defs[i] = (CMOpDef) {
+			.name = def.name,
+			.arglist = cm_node_clone(def.arglist),
+			.body = cm_node_clone(def.body),
 		};
 	}
 
@@ -174,6 +195,47 @@ void cm_context_force_def_symbol (CMContext *context, CMStringView name, CMNode 
 
 
 // TODO: test
+bool cm_context_has_op (CMContext *context, CMStringView name)
+{
+	for (size_t i = 0; i < context->n_op_defs; i++) {
+		CMOpDef def = context->op_defs[i];
+
+		if (cm_sv_eq(def.name, name)) {
+			return true;
+		}
+	}
+
+	return false;
+}
+
+
+// TODO: test
+CMOpDef cm_context_get_op (CMContext *context, CMStringView name)
+{
+	for (size_t i = 0; i < context->n_op_defs; i++) {
+		CMOpDef def = context->op_defs[i];
+
+		if (cm_sv_eq(def.name, name)) {
+			return def;
+		}
+	}
+
+	// TODO: should be syntax error
+	assert(false && "invalid op definition lookup");
+}
+
+
+// TODO: test
+void cm_context_def_op (CMContext *context, CMStringView name, CMNode *arglist, CMNode *body)
+{
+	assert(context->n_op_defs < CM_MAX_OPS);
+	assert(! cm_context_has_op(context, name));
+
+	context->op_defs[context->n_op_defs] = (CMOpDef) {name, arglist, body};
+	context->n_op_defs += 1;
+}
+
+
 CMRelationDef *cm_context_get_matching_relation (CMContext *context, CMNode *query)
 {
 	for (size_t i = 0; i < context->n_relation_defs; i++) {
@@ -529,6 +591,40 @@ CMNode *cm_interpret_eval (CMContext *context, CMNode *node)
 }
 
 
+// TODO: test
+CMNode *cm_interpret_op_invoke (CMContext *context, CMNode *node)
+{
+	assert(node->type == CM_NODE_TYPE_OP_INVOKE);
+
+	if (! cm_context_has_op(context, node->value)) {
+		// TODO: should be syntax error
+		assert(false && "Undefined op");
+	}
+
+	CMOpDef def = cm_context_get_op(context, node->value);
+
+	if (def.arglist->n_children != node->n_children) {
+		// TODO: should be syntax error
+		assert(false && "Number of arguments do not match op definition");
+	}
+
+	CMContext scope = cm_context_clone(*context);
+
+	for (size_t i = 0; i < def.arglist->n_children; i++) {
+		CMNode *arg = def.arglist->children[i];
+		assert(arg->type == CM_NODE_TYPE_SYMBOL);
+
+		cm_context_force_def_symbol(
+			&scope,
+			arg->value,
+			cm_interpret_entity(context, node->children[i])
+		);
+	}
+
+	return cm_interpret_entity(&scope, def.body);
+}
+
+
 CMNode *cm_interpret_entity (CMContext *context, CMNode *node)
 {
 	switch (node->type) {
@@ -558,6 +654,10 @@ CMNode *cm_interpret_entity (CMContext *context, CMNode *node)
 
 		case CM_NODE_TYPE_EVAL: {
 			return cm_interpret_eval(context, node);
+		}
+
+		case CM_NODE_TYPE_OP_INVOKE: {
+			return cm_interpret_op_invoke(context, node);
 		}
 
 		case CM_NODE_TYPE_DOT: {
@@ -599,6 +699,27 @@ void cm_interpret_symbol_def (CMContext *context, CMNode *node)
 
 	CMNode *interpreted = cm_interpret_entity(context, value);
 	cm_context_def_symbol(context, symbol->value, interpreted);
+}
+
+
+void cm_interpret_op_def (CMContext *context, CMNode *node)
+{
+	assert(node->type == CM_NODE_TYPE_OP_DEF);
+	assert(node->n_children == 2);
+	assert(node->children[0]->type == CM_NODE_TYPE_OP_ARGLIST);
+	assert(node->children[1] != NULL);
+
+	CMNode *arglist = node->children[0];
+	CMNode *body = node->children[1];
+
+	assert(arglist->type == CM_NODE_TYPE_OP_ARGLIST);
+
+	if (cm_context_has_op(context, node->value)) {
+		// TODO: update to syntax error
+		assert(false && "Op redefined");
+	}
+
+	cm_context_def_op(context, node->value, arglist, body);
 }
 
 
@@ -647,7 +768,7 @@ void cm_interpret_print (CMContext *context, CMNode *node)
 
 void cm_interpret (CMContext *context, CMNode *ast)
 {
-	assert(CM_NODE_TYPE_COUNT == 17);
+	assert(CM_NODE_TYPE_COUNT == 20);
 
 	assert(ast->type == CM_NODE_TYPE_ROOT);
 
@@ -657,6 +778,11 @@ void cm_interpret (CMContext *context, CMNode *ast)
 		switch (stmt->type) {
 			case CM_NODE_TYPE_SYMBOL_DEF: {
 				cm_interpret_symbol_def(context, stmt);
+				break;
+			}
+
+			case CM_NODE_TYPE_OP_DEF: {
+				cm_interpret_op_def(context, stmt);
 				break;
 			}
 

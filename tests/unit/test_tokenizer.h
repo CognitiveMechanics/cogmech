@@ -295,6 +295,13 @@ bool test_cm_tokenlist_first_like (void)
 {
 	CMTokenList list = cm_tokenlist();
 
+	CMToken endl = cm_token(
+		"filename.cogm",
+		0,
+		0,
+		CM_TOKEN_TYPE_ENDL
+	);
+
 	CMToken token1 = cm_token(
 		"filename.cogm",
 		0,
@@ -320,6 +327,7 @@ bool test_cm_tokenlist_first_like (void)
 
 	token3.value = cm_sv("b");
 
+	cm_tokenlist_append(&list, endl);
 	cm_tokenlist_append(&list, token1);
 	cm_tokenlist_append(&list, token2);
 	cm_tokenlist_append(&list, token3);
@@ -401,6 +409,7 @@ bool test_cm_tokenlist_shift_expect (void)
 	return true;
 }
 
+
 bool test_cm_tokenlist_empty (void)
 {
 	CMTokenList list = cm_tokenlist();
@@ -443,6 +452,7 @@ bool test_cm_tokenize_file (void)
 		"../tests/cogm/06-dot.cogm",
 		"../tests/cogm/07-keys.cogm",
 		"../tests/cogm/08-relations.cogm",
+		"../tests/cogm/09-operations.cogm",
 	};
 
 	for (size_t i = 0; i < ARRAY_LEN(files); i++) {

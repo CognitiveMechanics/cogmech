@@ -506,6 +506,7 @@ bool test_cm_interpret (void)
 		cm_tokenize_file("../tests/cogm/06-dot.cogm"),
 		cm_tokenize_file("../tests/cogm/07-keys.cogm"),
 		cm_tokenize_file("../tests/cogm/08-relations.cogm"),
+		cm_tokenize_file("../tests/cogm/09-operations.cogm"),
 	};
 
 	for (size_t i = 0; i < ARRAY_LEN(lists); i++) {

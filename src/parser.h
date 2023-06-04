@@ -28,6 +28,9 @@ typedef enum CMNodeType {
 	CM_NODE_TYPE_KEY,
 	CM_NODE_TYPE_RELATION_DEF,
 	CM_NODE_TYPE_EVAL,
+	CM_NODE_TYPE_OP_DEF,
+	CM_NODE_TYPE_OP_ARGLIST,
+	CM_NODE_TYPE_OP_INVOKE,
 	CM_NODE_TYPE_COUNT
 } CMNodeType;
 
@@ -59,6 +62,9 @@ const char *CM_NODE_TYPES_READABLE[CM_NODE_TYPE_COUNT] = {
 	"CM_NODE_TYPE_KEY",
 	"CM_NODE_TYPE_RELATION_DEF",
 	"CM_NODE_TYPE_EVAL",
+	"CM_NODE_TYPE_OP_DEF",
+	"CM_NODE_TYPE_OP_ARGLIST",
+	"CM_NODE_TYPE_OP_INVOKE",
 };
 
 
@@ -80,6 +86,9 @@ const char* CM_NODE_TYPE_WORDS[CM_NODE_TYPE_COUNT] = {
 	"key",
 	NULL,
 	"R",
+	NULL,
+	NULL,
+	NULL,
 };
 
 
@@ -98,6 +107,11 @@ static const CMTokenType CM_FMT_RELATION_ALIASED[] = {
 	CM_TOKEN_TYPE_COLON,
 	CM_TOKEN_TYPE_WORD,
 	CM_TOKEN_TYPE_D_ARROW,
+};
+
+static const CMTokenType CM_FMT_OP_START[] = {
+	CM_TOKEN_TYPE_WORD,
+	CM_TOKEN_TYPE_PAREN_IN,
 };
 
 
@@ -342,9 +356,42 @@ CMNode *cm_parse_extract (CMTokenList *list)
 
 	cm_node_append_child(extraction, expr);
 
-	CMToken closing_bracket = cm_tokenlist_expect(list, CM_TOKEN_TYPE_SQ_BRACKET_OUT); // shift ]
+	cm_tokenlist_expect(list, CM_TOKEN_TYPE_SQ_BRACKET_OUT); // shift ]
 
 	return extraction;
+}
+
+
+// TODO: test
+CMNode *cm_parse_expr_list (CMTokenList *list, CMNodeType node_type, CMTokenType start_token_type, CMTokenType end_token_type)
+{
+	CMNode *node = cm_node(node_type);
+	cm_tokenlist_expect(list, start_token_type);
+
+	do {
+		cm_tokenlist_skip_endl(list);
+
+		cm_node_append_child(
+			node,
+			cm_parse_expr(list)
+		);
+
+		cm_tokenlist_skip_endl(list);
+
+		CMToken next_token = cm_tokenlist_first(*list);
+
+		if (next_token.type == CM_TOKEN_TYPE_COMMA) {
+			cm_tokenlist_shift(list);
+			continue;
+		} else {
+			break;
+		}
+	} while (! cm_tokenlist_empty(*list));
+
+	cm_tokenlist_skip_endl(list);
+	cm_tokenlist_expect(list, end_token_type);
+
+	return node;
 }
 
 
@@ -356,38 +403,19 @@ CMNode *cm_parse_transclude (CMTokenList *list)
 	assert(cm_sv_eq(op.value, cm_sv(CM_NODE_TYPE_WORDS[CM_NODE_TYPE_TRANSCLUDE])));
 	assert(list->len >= 4);
 
-	// arg list should be in the format (expr1, expr2, expr3)
+	CMNode *new_node = cm_parse_expr_list(list, CM_NODE_TYPE_TRANSCLUDE, CM_TOKEN_TYPE_PAREN_IN, CM_TOKEN_TYPE_PAREN_OUT);
 
-	cm_tokenlist_expect(list, CM_TOKEN_TYPE_PAREN_IN);   // (
-	cm_tokenlist_skip_endl(list);
+	if (new_node->n_children != 3) {
+		cm_syntax_error(op, "Transclude accepts exactly 3 arguments");
+	}
 
-	CMNode *entity = cm_parse_expr(list);                     // expr1
-	cm_tokenlist_skip_endl(list);
-
-	cm_tokenlist_expect(list, CM_TOKEN_TYPE_COMMA);      // ,
-	cm_tokenlist_skip_endl(list);
-
-	CMNode *key = cm_parse_expr(list);                        // expr2
-	cm_tokenlist_skip_endl(list);
-
-	cm_tokenlist_expect(list, CM_TOKEN_TYPE_COMMA);     // ,
-	cm_tokenlist_skip_endl(list);
-
-	CMNode *value = cm_parse_expr(list);                      //expr3
-	cm_tokenlist_skip_endl(list);
-
-	cm_tokenlist_expect(list, CM_TOKEN_TYPE_PAREN_OUT); // )
+	CMNode *entity = new_node->children[0];
 
 	// TODO: should be syntax error
 	assert(
 		(entity->type == CM_NODE_TYPE_COMPOSE || entity->type == CM_NODE_TYPE_SYMBOL)
 		&& "Transcluded nodes must be composed entities or symbols"
 	);
-
-	CMNode *new_node = cm_node(CM_NODE_TYPE_TRANSCLUDE);
-	cm_node_append_child(new_node, entity);
-	cm_node_append_child(new_node, key);
-	cm_node_append_child(new_node, value);
 
 	return new_node;
 }
@@ -396,31 +424,18 @@ CMNode *cm_parse_transclude (CMTokenList *list)
 CMNode *cm_parse_match (CMTokenList *list)
 {
 	cm_tokenlist_shift(list); // shift %
+	CMToken first_token = cm_tokenlist_first(*list);
 
-	// arg list should be in the format (node, against)
-	cm_tokenlist_expect(list, CM_TOKEN_TYPE_PAREN_IN);   // (
-	cm_tokenlist_skip_endl(list);
+	CMNode *match = cm_parse_expr_list(list, CM_NODE_TYPE_MATCH, CM_TOKEN_TYPE_PAREN_IN, CM_TOKEN_TYPE_PAREN_OUT);
 
-	CMNode *node = cm_parse_expr(list);                       // node
-	cm_tokenlist_skip_endl(list);
-
-	cm_tokenlist_expect(list, CM_TOKEN_TYPE_COMMA);      // ,
-	cm_tokenlist_skip_endl(list);
-
-	CMNode *against = cm_parse_expr(list);                    // expr2
-	cm_tokenlist_skip_endl(list);
-
-	cm_tokenlist_expect(list, CM_TOKEN_TYPE_PAREN_OUT); // )
-
-	CMNode *match = cm_node(CM_NODE_TYPE_MATCH);
-	cm_node_append_child(match, node);
-	cm_node_append_child(match, against);
+	if (match->n_children != 2) {
+		cm_syntax_error(first_token, "match accepts exactly two arguments");
+	}
 
 	return match;
 }
 
 
-// TODO: test
 CMNode *cm_parse_eval (CMTokenList *list)
 {
 	CMToken word = cm_tokenlist_expect(list, CM_TOKEN_TYPE_WORD);
@@ -441,6 +456,28 @@ CMNode *cm_parse_eval (CMTokenList *list)
 	cm_node_append_child(eval, expr);
 
 	return eval;
+}
+
+
+// TODO: test
+CMNode *cm_parse_op_invoke (CMTokenList *list)
+{
+	if (! cm_tokenlist_like(*list, CM_FMT_OP_START)) {
+		assert(false && "Invalid token list for op definition");
+	}
+
+	CMToken symbol_token = cm_tokenlist_shift(list);
+
+	CMNode *def = cm_parse_expr_list(
+		list,
+		CM_NODE_TYPE_OP_INVOKE,
+		CM_TOKEN_TYPE_PAREN_IN,
+		CM_TOKEN_TYPE_PAREN_OUT
+	);
+
+	def->value = symbol_token.value;
+
+	return def;
 }
 
 
@@ -540,6 +577,10 @@ CMNode *cm_parse_expr (CMTokenList *list)
 				}
 			}
 
+			if (cm_tokenlist_like(*list, CM_FMT_OP_START)) {
+				return cm_parse_op_invoke(list);
+			}
+
 			cm_tokenlist_shift(list); // shift word
 			return cm_node_symbol(token.value);
 		}
@@ -600,39 +641,7 @@ CMNode *cm_parse_expr (CMTokenList *list)
 
 CMNode *cm_parse_compose (CMTokenList *list)
 {
-	CMNode *node = cm_node(CM_NODE_TYPE_COMPOSE);
-	CMToken initial = cm_tokenlist_shift(list);
-	bool terminated = false;
-
-	do {
-		cm_tokenlist_skip_endl(list);
-
-		cm_node_append_child(
-			node,
-			cm_parse_expr(list)
-		);
-
-		cm_tokenlist_skip_endl(list);
-
-		CMToken next_token = cm_tokenlist_first(*list);
-
-		if (next_token.type == CM_TOKEN_TYPE_COMMA) {
-			cm_tokenlist_shift(list);
-			continue;
-		} else if (next_token.type == CM_TOKEN_TYPE_GT) {
-			terminated = true;
-			cm_tokenlist_shift(list);
-			break;
-		} else {
-			cm_syntax_error(next_token, "Invalid composition list");
-		}
-	} while (! cm_tokenlist_empty(*list));
-
-	if (! terminated) {
-		cm_syntax_error(initial, "Unterminated composition");
-	}
-
-	return node;
+	return cm_parse_expr_list(list, CM_NODE_TYPE_COMPOSE, CM_TOKEN_TYPE_LT, CM_TOKEN_TYPE_GT);
 }
 
 
@@ -655,6 +664,40 @@ CMNode *cm_parse_symbol_def (CMTokenList *list)
 	cm_node_append_child(node, expr);
 
 	return node;
+}
+
+
+// TODO: test
+CMNode *cm_parse_op_def (CMTokenList *list)
+{
+	if (! cm_tokenlist_like(*list, CM_FMT_OP_START)) {
+		assert(false && "Invalid token list for op definition");
+	}
+
+	CMToken symbol_token = cm_tokenlist_shift(list);
+
+	CMNode *def = cm_node(CM_NODE_TYPE_OP_DEF);
+	def->value = symbol_token.value;
+
+	CMNode *arglist = cm_parse_expr_list(
+		list,
+		CM_NODE_TYPE_OP_ARGLIST,
+		CM_TOKEN_TYPE_PAREN_IN,
+		CM_TOKEN_TYPE_PAREN_OUT
+	);
+
+	for (size_t i = 0; i < def->n_children; i++) {
+		if (def->children[i]->type != CM_NODE_TYPE_SYMBOL) {
+			cm_syntax_error(symbol_token, "All arguments in op definition must be symbols");
+		}
+	}
+
+	cm_node_append_child(def, arglist);
+
+	cm_tokenlist_expect(list, CM_TOKEN_TYPE_S_ARROW);
+	cm_node_append_child(def, cm_parse_expr(list));
+
+	return def;
 }
 
 
@@ -704,8 +747,8 @@ CMNode *cm_parse_print (CMTokenList *list)
 
 CMNode *cm_parse (CMTokenList *list)
 {
-	assert(CM_NODE_TYPE_COUNT == 17);
-	assert(CM_TOKEN_TYPE_COUNT == 21);
+	assert(CM_NODE_TYPE_COUNT == 20);
+	assert(CM_TOKEN_TYPE_COUNT == 22);
 
 	CMNode *root = cm_node(CM_NODE_TYPE_ROOT);
 
@@ -714,7 +757,6 @@ CMNode *cm_parse (CMTokenList *list)
 
 		switch (token.type) {
 			case CM_TOKEN_TYPE_WORD: {
-
 				bool is_assignment = cm_tokenlist_like(*list, CM_FMT_ASSIGNMENT);
 
 				if (is_assignment) {
@@ -733,6 +775,17 @@ CMNode *cm_parse (CMTokenList *list)
 					cm_node_append_child(
 						root,
 						cm_parse_relation_def(list)
+					);
+
+					break;
+				}
+
+				bool is_op = cm_tokenlist_like(*list, CM_FMT_OP_START);
+
+				if (is_op) {
+					cm_node_append_child(
+						root,
+						cm_parse_op_def(list)
 					);
 
 					break;

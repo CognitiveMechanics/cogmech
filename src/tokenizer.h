@@ -47,6 +47,7 @@ typedef enum CMTokenType
 	CM_TOKEN_TYPE_NULL,
 	CM_TOKEN_TYPE_DOT,
 	CM_TOKEN_TYPE_HASH,
+	CM_TOKEN_TYPE_S_ARROW,
 	CM_TOKEN_TYPE_D_ARROW,
 	CM_TOKEN_TYPE_COUNT,
 } CMTokenType;
@@ -73,6 +74,7 @@ const char *CM_TOKEN_TYPES_READABLE[CM_TOKEN_TYPE_COUNT] = {
 	"CM_TOKEN_TYPE_NULL",
 	"CM_TOKEN_TYPE_DOT",
 	"CM_TOKEN_TYPE_HASH",
+	"CM_TOKEN_TYPE_S_ARROW",
 	"CM_TOKEN_TYPE_D_ARROW",
 };
 
@@ -98,6 +100,7 @@ const char *CM_TOKEN_TYPE_SYMBOLS[CM_TOKEN_TYPE_COUNT] = {
 	"null",
 	".",
 	"#",
+	"->",
 	"=>",
 };
 
@@ -194,6 +197,22 @@ CMTokenList cm_tokenlist (void)
 }
 
 
+// TODO: test
+CMTokenList cm_tokenlist_clone (CMTokenList list)
+{
+	CMTokenList clone;
+
+	clone.len = list.len;
+	clone.cap = list.cap;
+	clone.cur = list.cur;
+
+	clone.tokens = calloc(list.cap, sizeof(CMToken));
+	memcpy(clone.tokens, list.tokens, list.len * sizeof(CMToken));
+
+	return clone;
+}
+
+
 bool cm_token_eq (CMToken token1, CMToken token2)
 {
 	if (token1.type != token2.type) {
@@ -278,6 +297,12 @@ bool cm_tokenlist_first_like (CMTokenList list, CMTokenType type)
 	}
 
 	CMToken next = cm_tokenlist_first(list);
+	size_t i = 0;
+
+	while (next.type == CM_TOKEN_TYPE_ENDL) {
+		i += 1;
+		next = cm_tokenlist_get(list, i);
+	}
 
 	return next.type == type;
 }
@@ -383,7 +408,7 @@ bool cm_is_word (char c)
 
 CMTokenList cm_tokenize (const char *filename, CMStringView sv)
 {
-	assert(CM_TOKEN_TYPE_COUNT == 21);
+	assert(CM_TOKEN_TYPE_COUNT == 22);
 
 	size_t row = 0;
 	size_t col = 0;
