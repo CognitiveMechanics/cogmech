@@ -11,6 +11,16 @@
 #define CM_EXIT_USAGE 1
 
 
+// TODO: classes
+// TODO: dot
+// TODO: keys
+// TODO: relations
+// TODO: operations
+// TODO: integers
+// TODO: improve error handling
+// TODO: execution test suite
+
+
 const char* cm_get_usage (void)
 {
 	return
