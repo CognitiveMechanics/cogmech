@@ -11,7 +11,6 @@
 #define CM_EXIT_USAGE 1
 
 
-// TODO: dot
 // TODO: keys
 // TODO: relations
 // TODO: operations
