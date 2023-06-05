@@ -183,7 +183,6 @@ bool test_cm_node_from_word (void)
 bool test_cm_node_clone (void)
 {
 	CMTokenList seq1 = cm_tokenize("test1.cogm", cm_sv(" a  := <\"b\", c>\n"));
-	CMTokenList seq2 = seq1;
 
 	CMNode *node1 = cm_parse(&seq1);
 	CMNode *node2 = node1;
@@ -432,6 +431,279 @@ bool test_cm_parse_transclude (void)
 	}
 
 	CMNode *composition = cm_parse_transclude(&list);
+
+	if (composition->type != CM_NODE_TYPE_TRANSCLUDE) {
+		cm_test_error("invalid transclude expression\n");
+		return false;
+	}
+
+	if (composition->children[0]->type != CM_NODE_TYPE_SYMBOL) {
+		cm_test_error("first element of transclusion should be CM_NODE_TYPE_SYMBOL\n");
+		return false;
+	}
+
+	if (composition->children[1]->type != CM_NODE_TYPE_LITERAL) {
+		cm_test_error("second element of transclusion should be CM_NODE_TYPE_LITERAL\n");
+		return false;
+	}
+
+	if (composition->children[2]->type != CM_NODE_TYPE_SYMBOL) {
+		cm_test_error("third element of transclusion should be CM_NODE_TYPE_SYMBOL\n");
+		return false;
+	}
+
+	if (! cm_tokenlist_empty(list)) {
+		cm_test_error("list not empty\n");
+		return false;
+	}
+
+	return true;
+}
+
+
+bool test_cm_parse_op_def (void)
+{
+	CMTokenList list = cm_tokenlist();
+
+	CMToken name = cm_token(
+		"filename.cogm",
+		0,
+		0,
+		CM_TOKEN_TYPE_WORD
+	);
+	name.value = cm_sv("O");
+
+	CMToken tokens[] = {
+		name,
+		cm_token(
+			"filename.cogm",
+			0,
+			0,
+			CM_TOKEN_TYPE_PAREN_IN
+		),
+		cm_token(
+			"filename.cogm",
+			0,
+			0,
+			CM_TOKEN_TYPE_WORD
+		),
+		cm_token(
+			"filename.cogm",
+			0,
+			0,
+			CM_TOKEN_TYPE_PAREN_OUT
+		),
+		cm_token(
+			"filename.cogm",
+			0,
+			0,
+			CM_TOKEN_TYPE_S_ARROW
+		),
+		cm_token(
+			"filename.cogm",
+			0,
+			0,
+			CM_TOKEN_TYPE_WORD
+		),
+	};
+
+	for (size_t i = 0; i < ARRAY_LEN(tokens); i++) {
+		cm_tokenlist_append(&list, tokens[i]);
+	}
+
+	CMNode *op = cm_parse_op_def(&list);
+
+	if (op->type != CM_NODE_TYPE_OP_DEF) {
+		cm_test_error("invalid transclude expression\n");
+		return false;
+	}
+
+	if (! cm_sv_eq(op->value, cm_sv("O"))) {
+		cm_test_error("invalid transclude expression\n");
+		return false;
+	}
+
+	if (op->children[0]->type != CM_NODE_TYPE_OP_ARGLIST) {
+		cm_test_error("first element of op should be CM_NODE_TYPE_OP_ARGLIST\n");
+		return false;
+	}
+
+	if (op->children[0]->children[0]->type != CM_NODE_TYPE_SYMBOL) {
+		cm_test_error("arguments should be of type CM_NODE_TYPE_SYMBOL\n");
+		return false;
+	}
+
+	if (op->children[1]->type != CM_NODE_TYPE_SYMBOL) {
+		cm_test_error("body of op should be CM_TOKEN_TYPE_WORD\n");
+		return false;
+	}
+
+	if (! cm_tokenlist_empty(list)) {
+		cm_test_error("list not empty\n");
+		return false;
+	}
+
+	return true;
+}
+
+
+bool test_cm_parse_op_invoke (void)
+{
+	CMTokenList list = cm_tokenlist();
+
+	CMToken name = cm_token(
+		"filename.cogm",
+		0,
+		0,
+		CM_TOKEN_TYPE_WORD
+	);
+	name.value = cm_sv("O");
+
+	CMToken tokens[] = {
+		name,
+		cm_token(
+			"filename.cogm",
+			0,
+			0,
+			CM_TOKEN_TYPE_PAREN_IN
+		),
+		cm_token(
+			"filename.cogm",
+			0,
+			0,
+			CM_TOKEN_TYPE_WORD
+		),
+		cm_token(
+			"filename.cogm",
+			0,
+			0,
+			CM_TOKEN_TYPE_COMMA
+		),
+		cm_token(
+			"filename.cogm",
+			0,
+			0,
+			CM_TOKEN_TYPE_QUOTED
+		),
+		cm_token(
+			"filename.cogm",
+			0,
+			0,
+			CM_TOKEN_TYPE_COMMA
+		),
+		cm_token(
+			"filename.cogm",
+			0,
+			0,
+			CM_TOKEN_TYPE_WORD
+		),
+		cm_token(
+			"filename.cogm",
+			0,
+			0,
+			CM_TOKEN_TYPE_PAREN_OUT
+		),
+	};
+
+	for (size_t i = 0; i < ARRAY_LEN(tokens); i++) {
+		cm_tokenlist_append(&list, tokens[i]);
+	}
+
+	CMNode *op = cm_parse_op_invoke(&list);
+
+	if (op->type != CM_NODE_TYPE_OP_INVOKE) {
+		cm_test_error("invalid transclude expression\n");
+		return false;
+	}
+
+	if (! cm_sv_eq(op->value, cm_sv("O"))) {
+		cm_test_error("invalid transclude expression\n");
+		return false;
+	}
+
+	if (op->children[0]->type != CM_NODE_TYPE_SYMBOL) {
+		cm_test_error("first element of op should be CM_NODE_TYPE_SYMBOL\n");
+		return false;
+	}
+
+	if (op->children[1]->type != CM_NODE_TYPE_LITERAL) {
+		cm_test_error("second element of op should be CM_NODE_TYPE_LITERAL\n");
+		return false;
+	}
+
+	if (op->children[2]->type != CM_NODE_TYPE_SYMBOL) {
+		cm_test_error("third element of op should be CM_NODE_TYPE_SYMBOL\n");
+		return false;
+	}
+
+	if (! cm_tokenlist_empty(list)) {
+		cm_test_error("list not empty\n");
+		return false;
+	}
+
+	return true;
+}
+
+
+bool test_cm_parse_expr_list(void)
+{
+	CMTokenList list = cm_tokenlist();
+
+	CMToken tokens[] = {
+		cm_token(
+			"filename.cogm",
+			0,
+			0,
+			CM_TOKEN_TYPE_PAREN_IN
+		),
+		cm_token(
+			"filename.cogm",
+			0,
+			0,
+			CM_TOKEN_TYPE_WORD
+		),
+		cm_token(
+			"filename.cogm",
+			0,
+			0,
+			CM_TOKEN_TYPE_COMMA
+		),
+		cm_token(
+			"filename.cogm",
+			0,
+			0,
+			CM_TOKEN_TYPE_QUOTED
+		),
+		cm_token(
+			"filename.cogm",
+			0,
+			0,
+			CM_TOKEN_TYPE_COMMA
+		),
+		cm_token(
+			"filename.cogm",
+			0,
+			0,
+			CM_TOKEN_TYPE_WORD
+		),
+		cm_token(
+			"filename.cogm",
+			0,
+			0,
+			CM_TOKEN_TYPE_PAREN_OUT
+		),
+	};
+
+	for (size_t i = 0; i < ARRAY_LEN(tokens); i++) {
+		cm_tokenlist_append(&list, tokens[i]);
+	}
+
+	CMNode *composition = cm_parse_expr_list(
+		&list,
+		CM_NODE_TYPE_TRANSCLUDE,
+		CM_TOKEN_TYPE_PAREN_IN,
+		CM_TOKEN_TYPE_PAREN_OUT
+	);
 
 	if (composition->type != CM_NODE_TYPE_TRANSCLUDE) {
 		cm_test_error("invalid transclude expression\n");
@@ -1134,6 +1406,9 @@ void test_cm_parser (void)
 	cm_add_test(test_cm_parse_compose);
 	cm_add_test(test_cm_parse_extract);
 	cm_add_test(test_cm_parse_transclude);
+	cm_add_test(test_cm_parse_op_invoke);
+	cm_add_test(test_cm_parse_op_def);
+	cm_add_test(test_cm_parse_expr_list);
 	cm_add_test(test_cm_parse_match);
 	cm_add_test(test_cm_parse_class);
 	cm_add_test(test_cm_parse_dot);

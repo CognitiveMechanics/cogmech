@@ -78,7 +78,7 @@ bool test_cm_context_def_get_symbol (void)
 }
 
 
-bool test_cm_context_redef_symbol ()
+bool test_cm_context_redef_symbol (void)
 {
 	CMContext context = cm_context();
 	CMStringView name = cm_sv("symbol_name");
@@ -135,6 +135,36 @@ bool test_cm_context_force_def_symbol (void)
 
 	if (node2 != retrieved2) {
 		cm_test_error("Retrieved different symbol than defined");
+		return false;
+	}
+
+	return true;
+}
+
+
+bool test_cm_context_def_get_op (void)
+{
+	CMContext context = cm_context();
+	CMStringView name = cm_sv("O");
+	CMNode *arglist = cm_node(CM_NODE_TYPE_OP_ARGLIST);
+	CMNode *body = cm_node(CM_NODE_TYPE_SYMBOL);
+
+	if (cm_context_has_op(&context, name)) {
+		cm_test_error("Empty context has op defined");
+		return false;
+	}
+
+	cm_context_def_op(&context, name, arglist, body);
+
+	if (! cm_context_has_op(&context, name)) {
+		cm_test_error("Could not fine defined op");
+		return false;
+	}
+
+	CMOpDef def = cm_context_get_op(&context, name);
+
+	if (def.arglist != arglist || def.body != body || ! cm_sv_eq(def.name, name)) {
+		cm_test_error("Retrieved different op than defined");
 		return false;
 	}
 
@@ -480,6 +510,127 @@ bool test_cm_match (void)
 }
 
 
+bool test_cm_interpret_op_def (void)
+{
+	CMContext context = cm_context();
+	CMStringView name = cm_sv("O");
+
+	CMNode *a = cm_node_symbol(cm_sv("a"));
+	CMNode *end = cm_node_literal(cm_sv("end"));
+
+	CMNode *arglist = cm_node(CM_NODE_TYPE_OP_ARGLIST);
+	cm_node_append_child(arglist, a);
+
+	CMNode *body = cm_node(CM_NODE_TYPE_COMPOSE);
+	cm_node_append_child(body, a);
+	cm_node_append_child(body, end);
+
+	CMNode *def_node = cm_node(CM_NODE_TYPE_OP_DEF);
+	def_node->value = name;
+	cm_node_append_child(def_node, arglist);
+	cm_node_append_child(def_node, body);
+
+	cm_interpret_op_def(&context, def_node);
+	CMOpDef def = cm_context_get_op(&context, name);
+
+	if (! cm_context_has_op(&context, name)) {
+		cm_test_error("Could not find defined op");
+		return false;
+	}
+
+	if (def.arglist != arglist || def.body != body || ! cm_sv_eq(def.name, name)) {
+		cm_test_error("Retrieved different op than defined");
+		return false;
+	}
+
+	return true;
+}
+
+
+bool test_cm_interpret_relation_def (void)
+{
+	CMContext context = cm_context();
+	CMStringView name = cm_sv("a");
+	CMNode *value = cm_node_literal(cm_sv("value"));
+
+	cm_context_def_symbol(&context, name, value);
+
+	CMNode *state = cm_node(CM_NODE_TYPE_SYMBOL);
+	state->value = name;
+
+	CMNode *body = cm_node(CM_NODE_TYPE_COMPOSE);
+
+	CMNode *def_node = cm_node(CM_NODE_TYPE_RELATION_DEF);
+	cm_node_append_child(def_node, state);
+	cm_node_append_child(def_node, cm_node_null());
+	cm_node_append_child(def_node, body);
+
+	cm_interpret_relation_def(&context, def_node);
+
+	CMRelationDef *def = cm_context_get_matching_relation(&context, value);
+
+	if (! def) {
+		cm_test_error("failed to retrieve matching relation");
+		return false;
+	}
+
+	return true;
+}
+
+
+bool test_cm_interpret_op_invoke (void)
+{
+	CMContext context = cm_context();
+	CMStringView name = cm_sv("O");
+
+	CMNode *a = cm_node_symbol(cm_sv("a"));
+	CMNode *start = cm_node_literal(cm_sv("start"));
+	CMNode *end = cm_node_literal(cm_sv("end"));
+
+	CMNode *arglist = cm_node(CM_NODE_TYPE_OP_ARGLIST);
+	cm_node_append_child(arglist, a);
+
+	CMNode *body = cm_node(CM_NODE_TYPE_COMPOSE);
+	cm_node_append_child(body, a);
+	cm_node_append_child(body, end);
+
+	cm_context_def_op(&context, name, arglist, body);
+
+	CMNode *invoke = cm_node(CM_NODE_TYPE_OP_INVOKE);
+	invoke->value = name;
+	cm_node_append_child(invoke, start);
+
+	CMNode *result = cm_interpret_op_invoke(&context, invoke);
+
+	if (result->type != CM_NODE_TYPE_COMPOSE) {
+		cm_test_error("Invalid op result type");
+		return false;
+	}
+
+	if (result->children[0]->type != CM_NODE_TYPE_LITERAL) {
+		cm_test_error("Invalid first child type");
+		return false;
+	}
+
+	if (! cm_sv_eq(result->children[0]->value, cm_sv("start"))) {
+		cm_test_error("Invalid first child value");
+		return false;
+	}
+
+	if (result->children[1]->type != CM_NODE_TYPE_LITERAL) {
+		cm_test_error("Invalid second child type");
+		return false;
+	}
+
+	if (! cm_sv_eq(result->children[1]->value, cm_sv("end"))) {
+		cm_test_error("Invalid second child value");
+		return false;
+	}
+
+	return true;
+}
+
+
 bool test_cm_interpret_print (void)
 {
 	CMContext context = cm_context();
@@ -489,6 +640,60 @@ bool test_cm_interpret_print (void)
 
 	cm_node_append_child(op, value_node);
 	cm_interpret_print(&context, op);
+
+	return true;
+}
+
+
+bool test_cm_interpret_eval (void)
+{
+	CMContext context = cm_context();
+	CMStringView bind = cm_sv("a");
+
+	CMNode *state = cm_node(CM_NODE_TYPE_LITERAL);
+	state->value = cm_sv("start");
+
+	CMNode *body = cm_node(CM_NODE_TYPE_COMPOSE);
+
+	CMNode *elem1 = cm_node(CM_NODE_TYPE_SYMBOL);
+	elem1->value = cm_sv("a");
+	cm_node_append_child(body, elem1);
+
+	CMNode *elem2 = cm_node(CM_NODE_TYPE_LITERAL);
+	elem2->value = cm_sv("end");
+	cm_node_append_child(body, elem2);
+
+	cm_context_def_relation(&context, bind, state, body);
+
+	CMNode *eval = cm_node(CM_NODE_TYPE_EVAL);
+	cm_node_append_child(eval, state);
+
+	CMNode *result = cm_interpret_eval(&context, eval);
+
+	if (result->type != CM_NODE_TYPE_COMPOSE) {
+		cm_test_error("eval returned incorrect type");
+		return false;
+	}
+
+	if (result->children[0]->type != CM_NODE_TYPE_LITERAL) {
+		cm_test_error("eval returned incorrect first child type");
+		return false;
+	}
+
+	if (! cm_sv_eq(result->children[0]->value, cm_sv("start"))) {
+		cm_test_error("eval returned incorrect first child value");
+		return false;
+	}
+
+	if (result->children[1]->type != CM_NODE_TYPE_LITERAL) {
+		cm_test_error("eval returned incorrect second child type");
+		return false;
+	}
+
+	if (! cm_sv_eq(result->children[1]->value, cm_sv("end"))) {
+		cm_test_error("eval returned incorrect second child");
+		return false;
+	}
 
 	return true;
 }
@@ -528,15 +733,20 @@ void test_cm_interpreter (void)
 	cm_add_test(test_cm_context_def_get_symbol);
 	cm_add_test(test_cm_context_redef_symbol);
 	cm_add_test(test_cm_context_force_def_symbol);
+	cm_add_test(test_cm_context_def_get_op);
 	cm_add_test(test_cm_context_def_get_relation);
 	cm_add_test(test_cm_create_key_value);
 	cm_add_test(test_cm_interpret_entity);
 	cm_add_test(test_cm_interpret_extract);
 	cm_add_test(test_cm_interpret_transclude);
+	cm_add_test(test_cm_interpret_eval);
 	cm_add_test(test_cm_interpret_match);
 	cm_add_test(test_cm_interpret_dot);
 	cm_add_test(test_cm_match);
 	cm_add_test(test_cm_interpret_symbol_def);
+	cm_add_test(test_cm_interpret_relation_def);
+	cm_add_test(test_cm_interpret_op_def);
+	cm_add_test(test_cm_interpret_op_invoke);
 	cm_add_test(test_cm_interpret_print);
 	cm_add_test(test_cm_interpret);
 }

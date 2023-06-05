@@ -228,6 +228,77 @@ bool test_cm_tokenlist_get (void)
 }
 
 
+bool test_cm_tokenlist_clone (void)
+{
+	CMTokenList list = cm_tokenlist();
+
+	CMToken token1 = cm_token(
+		"filename.cogm",
+		0,
+		1,
+		CM_TOKEN_TYPE_COLON
+	);
+
+	CMToken token2 = cm_token(
+		"filename.cogm",
+		2,
+		3,
+		CM_TOKEN_TYPE_COMMA
+	);
+
+	cm_tokenlist_append(&list, token1);
+	cm_tokenlist_append(&list, token2);
+
+	CMTokenList clone = cm_tokenlist_clone(list);
+
+	if (clone.len != list.len) {
+		cm_tokenlist_free(&list);
+		cm_tokenlist_free(&clone);
+		cm_test_error("List lengths are not equal\n");
+		return false;
+	}
+
+	if (clone.cur != list.cur) {
+		cm_tokenlist_free(&list);
+		cm_tokenlist_free(&clone);
+		cm_test_error("List cursors are not equal\n");
+		return false;
+	}
+
+	if (clone.cap != list.cap) {
+		cm_tokenlist_free(&list);
+		cm_tokenlist_free(&clone);
+		cm_test_error("List capacities are not equal\n");
+		return false;
+	}
+
+	if (! cm_token_eq(cm_tokenlist_get(list, 0), cm_tokenlist_get(clone, 0))) {
+		cm_tokenlist_free(&list);
+		cm_tokenlist_free(&clone);
+		cm_test_error("First elements not equal\n");
+		return false;
+	}
+
+	if (! cm_token_eq(cm_tokenlist_get(list, 1), cm_tokenlist_get(clone, 1))) {
+		cm_tokenlist_free(&list);
+		cm_tokenlist_free(&clone);
+		cm_test_error("Second elements not equal\n");
+		return false;
+	}
+
+	if (list.tokens == clone.tokens) {
+		cm_tokenlist_free(&list);
+		cm_tokenlist_free(&clone);
+		cm_test_error("Tokens pointers are the same\n");
+		return false;
+	}
+
+	cm_tokenlist_free(&list);
+	cm_tokenlist_free(&clone);
+	return true;
+}
+
+
 bool test_cm_tokenlist_like (void)
 {
 	CMTokenList list = cm_tokenlist();
@@ -483,6 +554,7 @@ void test_cm_tokenizer (void)
 
 	cm_add_test(test_cm_token);
 	cm_add_test(test_cm_tokenlist);
+	cm_add_test(test_cm_tokenlist_clone);
 	cm_add_test(test_cm_token_eq);
 	cm_add_test(test_cm_tokenlist_like);
 	cm_add_test(test_cm_tokenlist_first_like);

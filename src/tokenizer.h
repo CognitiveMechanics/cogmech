@@ -197,7 +197,6 @@ CMTokenList cm_tokenlist (void)
 }
 
 
-// TODO: test
 CMTokenList cm_tokenlist_clone (CMTokenList list)
 {
 	CMTokenList clone;

@@ -362,7 +362,6 @@ CMNode *cm_parse_extract (CMTokenList *list)
 }
 
 
-// TODO: test
 CMNode *cm_parse_expr_list (CMTokenList *list, CMNodeType node_type, CMTokenType start_token_type, CMTokenType end_token_type)
 {
 	CMNode *node = cm_node(node_type);
@@ -459,7 +458,6 @@ CMNode *cm_parse_eval (CMTokenList *list)
 }
 
 
-// TODO: test
 CMNode *cm_parse_op_invoke (CMTokenList *list)
 {
 	if (! cm_tokenlist_like(*list, CM_FMT_OP_START)) {
@@ -667,7 +665,6 @@ CMNode *cm_parse_symbol_def (CMTokenList *list)
 }
 
 
-// TODO: test
 CMNode *cm_parse_op_def (CMTokenList *list)
 {
 	if (! cm_tokenlist_like(*list, CM_FMT_OP_START)) {

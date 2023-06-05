@@ -194,7 +194,6 @@ void cm_context_force_def_symbol (CMContext *context, CMStringView name, CMNode 
 }
 
 
-// TODO: test
 bool cm_context_has_op (CMContext *context, CMStringView name)
 {
 	for (size_t i = 0; i < context->n_op_defs; i++) {
@@ -209,7 +208,6 @@ bool cm_context_has_op (CMContext *context, CMStringView name)
 }
 
 
-// TODO: test
 CMOpDef cm_context_get_op (CMContext *context, CMStringView name)
 {
 	for (size_t i = 0; i < context->n_op_defs; i++) {
@@ -225,7 +223,6 @@ CMOpDef cm_context_get_op (CMContext *context, CMStringView name)
 }
 
 
-// TODO: test
 void cm_context_def_op (CMContext *context, CMStringView name, CMNode *arglist, CMNode *body)
 {
 	assert(context->n_op_defs < CM_MAX_OPS);
@@ -560,7 +557,6 @@ CMNode *cm_interpret_dot (CMContext *context, CMNode *node)
 }
 
 
-// TODO: test
 CMNode *cm_interpret_eval (CMContext *context, CMNode *node)
 {
 	assert(node->n_children == 1);
@@ -591,7 +587,6 @@ CMNode *cm_interpret_eval (CMContext *context, CMNode *node)
 }
 
 
-// TODO: test
 CMNode *cm_interpret_op_invoke (CMContext *context, CMNode *node)
 {
 	assert(node->type == CM_NODE_TYPE_OP_INVOKE);
@@ -679,7 +674,6 @@ CMNode *cm_interpret_entity (CMContext *context, CMNode *node)
 }
 
 
-// TODO: test context updated
 void cm_interpret_symbol_def (CMContext *context, CMNode *node)
 {
 	assert(node->type == CM_NODE_TYPE_SYMBOL_DEF);
@@ -723,7 +717,6 @@ void cm_interpret_op_def (CMContext *context, CMNode *node)
 }
 
 
-// TODO: test context updated
 void cm_interpret_relation_def (CMContext *context, CMNode *node)
 {
 	assert(node->type == CM_NODE_TYPE_RELATION_DEF);
