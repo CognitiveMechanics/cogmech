@@ -14,7 +14,6 @@
 // TODO: integers
 // TODO: improve error handling
 // TODO: execution test suite
-// TODO: split out implementation files
 
 
 const char* cm_get_usage (void)
