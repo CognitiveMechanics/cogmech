@@ -30,6 +30,8 @@ static const char *CM_NODE_TYPES_READABLE[CM_NODE_TYPE_COUNT] = {
 	"CM_NODE_TYPE_OP_DEF",
 	"CM_NODE_TYPE_OP_ARGLIST",
 	"CM_NODE_TYPE_OP_INVOKE",
+	"CM_NODE_TYPE_INCREMENT",
+	"CM_NODE_TYPE_DECREMENT",
 };
 
 
@@ -53,6 +55,8 @@ static const char* CM_NODE_TYPE_WORDS[CM_NODE_TYPE_COUNT] = {
 	"key",
 	NULL,
 	"R",
+	NULL,
+	NULL,
 	NULL,
 	NULL,
 	NULL,
@@ -206,6 +210,24 @@ CMNode *cm_node_int_exact (CMStringView value)
 }
 
 
+CMNode *cm_node_int_from_int (cm_int value)
+{
+	char *buffer = calloc(16, sizeof(char));
+	snprintf(buffer, 16, "%ld", value);
+
+	return cm_node_int(cm_sv(buffer));
+}
+
+
+CMNode *cm_node_int_exact_from_int (cm_int value)
+{
+	CMNode *node = cm_node_int_from_int(value);
+	node->type = CM_NODE_TYPE_INT_EXACT;
+
+	return node;
+}
+
+
 CMNode *cm_node_null (void)
 {
 	return cm_node(CM_NODE_TYPE_NULL);
@@ -249,7 +271,7 @@ CMNode *cm_node_clone (CMNode *node)
 }
 
 
-cm_int cm_node_int_value (CMNode *node)
+cm_int cm_node_int_value (const CMNode *node)
 {
 	assert(node->type == CM_NODE_TYPE_INT || node->type == CM_NODE_TYPE_INT_EXACT);
 
@@ -475,6 +497,42 @@ CMNode *cm_parse_eval (CMTokenList *list)
 }
 
 
+CMNode *cm_parse_increment (CMTokenList *list)
+{
+	cm_tokenlist_expect(list, CM_TOKEN_TYPE_PLUS);
+	cm_tokenlist_expect(list, CM_TOKEN_TYPE_PAREN_IN);
+	cm_tokenlist_skip_endl(list);
+
+	CMNode *expr = cm_parse_expr(list);
+	cm_tokenlist_skip_endl(list);
+
+	cm_tokenlist_expect(list, CM_TOKEN_TYPE_PAREN_OUT);
+
+	CMNode *op = cm_node(CM_NODE_TYPE_INCREMENT);
+	cm_node_append_child(op, expr);
+
+	return op;
+}
+
+
+CMNode *cm_parse_decrement (CMTokenList *list)
+{
+	cm_tokenlist_expect(list, CM_TOKEN_TYPE_MINUS);
+	cm_tokenlist_expect(list, CM_TOKEN_TYPE_PAREN_IN);
+	cm_tokenlist_skip_endl(list);
+
+	CMNode *expr = cm_parse_expr(list);
+	cm_tokenlist_skip_endl(list);
+
+	cm_tokenlist_expect(list, CM_TOKEN_TYPE_PAREN_OUT);
+
+	CMNode *op = cm_node(CM_NODE_TYPE_DECREMENT);
+	cm_node_append_child(op, expr);
+
+	return op;
+}
+
+
 CMNode *cm_parse_op_invoke (CMTokenList *list)
 {
 	if (! cm_tokenlist_like(*list, CM_FMT_OP_START)) {
@@ -684,6 +742,14 @@ CMNode *cm_parse_expr (CMTokenList *list)
 			return cm_parse_match(list);
 		}
 
+		case CM_TOKEN_TYPE_PLUS: {
+			return cm_parse_increment(list);
+		}
+
+		case CM_TOKEN_TYPE_MINUS: {
+			return cm_parse_decrement(list);
+		}
+
 		default: {
 			cm_syntax_error(token, "Expected expression");
 		}
@@ -800,8 +866,8 @@ CMNode *cm_parse_print (CMTokenList *list)
 
 CMNode *cm_parse (CMTokenList *list)
 {
-	assert(CM_NODE_TYPE_COUNT == 22);
-	assert(CM_TOKEN_TYPE_COUNT == 23);
+	assert(CM_NODE_TYPE_COUNT == 24);
+	assert(CM_TOKEN_TYPE_COUNT == 25);
 
 	CMNode *root = cm_node(CM_NODE_TYPE_ROOT);
 

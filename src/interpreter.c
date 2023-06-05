@@ -565,6 +565,48 @@ CMNode *cm_interpret_match (CMContext *context, CMNode *node)
 }
 
 
+CMNode *cm_interpret_increment (CMContext *context, CMNode *node)
+{
+	assert(node->n_children == 1);
+	assert(node->type == CM_NODE_TYPE_INCREMENT);
+
+	CMNode *entity = cm_interpret_entity(context, node->children[0]);
+
+	assert(cm_node_type_has_int_value(entity->type));
+	cm_int value = cm_node_int_value(entity);
+
+	value += 1;
+
+	CMNode *result = cm_node_int_from_int(value);
+	result->type = entity->type;
+
+	return result;
+}
+
+
+CMNode *cm_interpret_decrement (CMContext *context, CMNode *node)
+{
+	assert(node->n_children == 1);
+	assert(node->type == CM_NODE_TYPE_DECREMENT);
+
+	CMNode *entity = cm_interpret_entity(context, node->children[0]);
+
+	assert(cm_node_type_has_int_value(entity->type));
+	cm_int value = cm_node_int_value(entity);
+
+	value -= 1;
+
+	if (value < 0) {
+		return cm_node_null();
+	}
+
+	CMNode *result = cm_node_int_from_int(value);
+	result->type = entity->type;
+
+	return result;
+}
+
+
 CMNode *_cm_interpret_dot (CMContext *context, CMNode *node)
 {
 	if (node->type == CM_NODE_TYPE_PROXY) {
@@ -689,6 +731,14 @@ CMNode *cm_interpret_entity (CMContext *context, CMNode *node)
 			return cm_interpret_op_invoke(context, node);
 		}
 
+		case CM_NODE_TYPE_INCREMENT: {
+			return cm_interpret_increment(context, node);
+		}
+
+		case CM_NODE_TYPE_DECREMENT: {
+			return cm_interpret_decrement(context, node);
+		}
+
 		case CM_NODE_TYPE_DOT: {
 			return cm_interpret_dot(context, node);
 		}
@@ -797,7 +847,7 @@ void cm_interpret_print (CMContext *context, CMNode *node)
 
 void cm_interpret (CMContext *context, CMNode *ast)
 {
-	assert(CM_NODE_TYPE_COUNT == 22);
+	assert(CM_NODE_TYPE_COUNT == 24);
 
 	assert(ast->type == CM_NODE_TYPE_ROOT);
 

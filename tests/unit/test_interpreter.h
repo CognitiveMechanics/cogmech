@@ -451,10 +451,10 @@ bool test_cm_interpret_dot (void)
 	cm_node_append_child(inner, tag_node);
 	cm_node_append_child(inner, proxy_node);
 	cm_node_append_child(outer, inner);
-	
+
 	CMNode *dot = cm_node(CM_NODE_TYPE_DOT);
 	cm_node_append_child(dot, outer);
-	
+
 	CMNode *result = cm_interpret_dot(&context, dot);
 
 	if (outer->children[0]->children[1]->type != CM_NODE_TYPE_PROXY) {
@@ -464,6 +464,86 @@ bool test_cm_interpret_dot (void)
 
 	if (result->children[0]->children[1]->type != CM_NODE_TYPE_DOT_PROXY) {
 		cm_test_error("new entity should have CM_NODE_TYPE_DOT_PROXYy");
+		return false;
+	}
+
+	return true;
+}
+
+
+bool test_cm_interpret_increment (void)
+{
+	CMContext context = cm_context();
+
+	CMNode *node1 = cm_node(CM_NODE_TYPE_INCREMENT);
+	CMNode *value_node1 = cm_node_int_from_int(1);
+	cm_node_append_child(node1, value_node1);
+
+	CMNode *result1 = cm_interpret_increment(&context, node1);
+
+	if (result1->type != CM_NODE_TYPE_INT) {
+		cm_test_error("result should be type CM_NODE_TYPE_INT");
+		return false;
+	}
+
+	if (cm_node_int_value(result1) != 2) {
+		cm_test_error("value should be 2");
+		return false;
+	}
+
+	CMNode *node2 = cm_node(CM_NODE_TYPE_INCREMENT);
+	CMNode *value_node2 = cm_node_int_exact_from_int(2);
+	cm_node_append_child(node2, value_node2);
+
+	CMNode *result2 = cm_interpret_increment(&context, node2);
+
+	if (result2->type != CM_NODE_TYPE_INT_EXACT) {
+		cm_test_error("result should be type CM_NODE_TYPE_INT_EXACT");
+		return false;
+	}
+
+	if (cm_node_int_value(result2) != 3) {
+		cm_test_error("value should be 3");
+		return false;
+	}
+
+	return true;
+}
+
+
+bool test_cm_interpret_decrement (void)
+{
+	CMContext context = cm_context();
+
+	CMNode *node1 = cm_node(CM_NODE_TYPE_DECREMENT);
+	CMNode *value_node1 = cm_node_int_from_int(1);
+	cm_node_append_child(node1, value_node1);
+
+	CMNode *result1 = cm_interpret_decrement(&context, node1);
+
+	if (result1->type != CM_NODE_TYPE_INT) {
+		cm_test_error("result should be type CM_NODE_TYPE_INT");
+		return false;
+	}
+
+	if (cm_node_int_value(result1) != 0) {
+		cm_test_error("value should be 0");
+		return false;
+	}
+
+	CMNode *node2 = cm_node(CM_NODE_TYPE_DECREMENT);
+	CMNode *value_node2 = cm_node_int_exact_from_int(2);
+	cm_node_append_child(node2, value_node2);
+
+	CMNode *result2 = cm_interpret_decrement(&context, node2);
+
+	if (result2->type != CM_NODE_TYPE_INT_EXACT) {
+		cm_test_error("result should be type CM_NODE_TYPE_INT_EXACT");
+		return false;
+	}
+
+	if (cm_node_int_value(result2) != 1) {
+		cm_test_error("value should be 1");
 		return false;
 	}
 
@@ -751,6 +831,7 @@ bool test_cm_interpret (void)
 		cm_tokenize_file("../tests/cogm/08-relations.cogm"),
 		cm_tokenize_file("../tests/cogm/09-operations.cogm"),
 		cm_tokenize_file("../tests/cogm/10-integers.cogm"),
+		cm_tokenize_file("../tests/cogm/11-increment-decrement.cogm"),
 	};
 
 	for (size_t i = 0; i < ARRAY_LEN(lists); i++) {
@@ -779,6 +860,8 @@ void test_cm_interpreter (void)
 	cm_add_test(test_cm_interpret_extract);
 	cm_add_test(test_cm_interpret_transclude);
 	cm_add_test(test_cm_interpret_eval);
+	cm_add_test(test_cm_interpret_increment);
+	cm_add_test(test_cm_interpret_decrement);
 	cm_add_test(test_cm_interpret_match);
 	cm_add_test(test_cm_interpret_dot);
 	cm_add_test(test_cm_match);

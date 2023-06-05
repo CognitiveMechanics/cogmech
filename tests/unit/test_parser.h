@@ -180,6 +180,42 @@ bool test_cm_node_int_exact (void)
 }
 
 
+bool test_cm_node_int_from_int (void)
+{
+	CMNode *node = cm_node_int_from_int(1);
+
+	if (node->type != CM_NODE_TYPE_INT) {
+		cm_test_error("invalid node type\n");
+		return false;
+	}
+
+	if (cm_node_int_value(node) != 1) {
+		cm_test_error("invalid node value\n");
+		return false;
+	}
+
+	return true;
+}
+
+
+bool test_cm_node_int_exact_from_int (void)
+{
+	CMNode *node = cm_node_int_exact_from_int(1);
+
+	if (node->type != CM_NODE_TYPE_INT_EXACT) {
+		cm_test_error("invalid node type\n");
+		return false;
+	}
+
+	if (cm_node_int_value(node) != 1) {
+		cm_test_error("invalid node value\n");
+		return false;
+	}
+
+	return true;
+}
+
+
 bool test_cm_node_int_value (void)
 {
 	CMNode *int_node = cm_node_int(cm_sv("123"));
@@ -1387,6 +1423,120 @@ bool test_cm_parse_eval (void)
 }
 
 
+bool test_cm_parse_increment (void)
+{
+	CMToken keyword = cm_token(
+		"filename.cogm",
+		0,
+		0,
+		CM_TOKEN_TYPE_PLUS
+	);
+
+	CMToken paren_in = cm_token(
+		"filename.cogm",
+		0,
+		0,
+		CM_TOKEN_TYPE_PAREN_IN
+	);
+
+	CMToken input = cm_token(
+		"filename.cogm",
+		0,
+		0,
+		CM_TOKEN_TYPE_WORD
+	);
+
+	CMToken paren_out = cm_token(
+		"filename.cogm",
+		0,
+		0,
+		CM_TOKEN_TYPE_PAREN_OUT
+	);
+
+	CMTokenList list = cm_tokenlist();
+	cm_tokenlist_append(&list, keyword);
+	cm_tokenlist_append(&list, paren_in);
+	cm_tokenlist_append(&list, input);
+	cm_tokenlist_append(&list, paren_out);
+
+	CMNode *parsed = cm_parse_increment(&list);
+
+	if (parsed->type != CM_NODE_TYPE_INCREMENT) {
+		cm_test_error("invalid node type\n");
+		return false;
+	}
+
+	if (parsed->n_children != 1) {
+		cm_test_error("node should only have one child\n");
+		return false;
+	}
+
+	if (parsed->children[0]->type != CM_NODE_TYPE_SYMBOL) {
+		cm_test_error("invalid symbol node type\n");
+		return false;
+	}
+
+	return true;
+}
+
+
+bool test_cm_parse_decrement (void)
+{
+	CMToken keyword = cm_token(
+		"filename.cogm",
+		0,
+		0,
+		CM_TOKEN_TYPE_MINUS
+	);
+
+	CMToken paren_in = cm_token(
+		"filename.cogm",
+		0,
+		0,
+		CM_TOKEN_TYPE_PAREN_IN
+	);
+
+	CMToken input = cm_token(
+		"filename.cogm",
+		0,
+		0,
+		CM_TOKEN_TYPE_WORD
+	);
+
+	CMToken paren_out = cm_token(
+		"filename.cogm",
+		0,
+		0,
+		CM_TOKEN_TYPE_PAREN_OUT
+	);
+
+	CMTokenList list = cm_tokenlist();
+	cm_tokenlist_append(&list, keyword);
+	cm_tokenlist_append(&list, paren_in);
+	cm_tokenlist_append(&list, input);
+	cm_tokenlist_append(&list, paren_out);
+
+	CMNode *parsed = cm_parse_decrement(&list);
+
+	if (parsed->type != CM_NODE_TYPE_DECREMENT) {
+		cm_test_error("invalid node type\n");
+		return false;
+	}
+
+	if (parsed->n_children != 1) {
+		cm_test_error("node should only have one child\n");
+		return false;
+	}
+
+	if (parsed->children[0]->type != CM_NODE_TYPE_SYMBOL) {
+		cm_test_error("invalid symbol node type\n");
+		return false;
+	}
+
+	return true;
+}
+
+
 bool test_cm_parse_print (void)
 {
 	CMToken op = cm_token(
@@ -1546,6 +1696,8 @@ void test_cm_parser (void)
 	cm_add_test(test_cm_node_literal);
 	cm_add_test(test_cm_node_int);
 	cm_add_test(test_cm_node_int_exact);
+	cm_add_test(test_cm_node_int_from_int);
+	cm_add_test(test_cm_node_int_exact_from_int);
 	cm_add_test(test_cm_node_int_value);
 	cm_add_test(test_cm_node_eq);
 	cm_add_test(test_cm_node_from_word);
@@ -1556,6 +1708,8 @@ void test_cm_parser (void)
 	cm_add_test(test_cm_parse_compose);
 	cm_add_test(test_cm_parse_extract);
 	cm_add_test(test_cm_parse_transclude);
+	cm_add_test(test_cm_parse_increment);
+	cm_add_test(test_cm_parse_decrement);
 	cm_add_test(test_cm_parse_op_invoke);
 	cm_add_test(test_cm_parse_op_def);
 	cm_add_test(test_cm_parse_expr_list);

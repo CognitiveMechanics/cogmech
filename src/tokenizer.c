@@ -33,6 +33,8 @@ const char *CM_TOKEN_TYPES_READABLE[CM_TOKEN_TYPE_COUNT] = {
 	"CM_TOKEN_TYPE_HASH",
 	"CM_TOKEN_TYPE_S_ARROW",
 	"CM_TOKEN_TYPE_D_ARROW",
+	"CM_TOKEN_TYPE_PLUS",
+	"CM_TOKEN_TYPE_MINUS",
 };
 
 
@@ -60,6 +62,8 @@ const char *CM_TOKEN_TYPE_SYMBOLS[CM_TOKEN_TYPE_COUNT] = {
 	"#",
 	"->",
 	"=>",
+	"+",
+	"-",
 };
 
 
@@ -350,7 +354,7 @@ bool cm_is_num (char c)
 
 CMTokenList cm_tokenize (const char *filename, CMStringView sv)
 {
-	assert(CM_TOKEN_TYPE_COUNT == 23);
+	assert(CM_TOKEN_TYPE_COUNT == 25);
 
 	size_t row = 0;
 	size_t col = 0;

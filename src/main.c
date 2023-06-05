@@ -11,11 +11,10 @@
 #define CM_EXIT_USAGE 1
 
 
-// TODO: integers (num, comparison & dot)
 // TODO: comments
-// TODO: enforce end lines
-// TODO: execution test suite
 // TODO: improve error handling
+// TODO: execution test suite
+// TODO: enforce end lines
 // TODO: implement universal machine
 
 

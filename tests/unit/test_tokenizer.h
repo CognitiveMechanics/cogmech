@@ -525,6 +525,7 @@ bool test_cm_tokenize_file (void)
 		"../tests/cogm/08-relations.cogm",
 		"../tests/cogm/09-operations.cogm",
 		"../tests/cogm/10-integers.cogm",
+		"../tests/cogm/11-increment-decrement.cogm",
 	};
 
 	for (size_t i = 0; i < ARRAY_LEN(files); i++) {

@@ -68,6 +68,8 @@ CMNode *cm_interpret_compose (CMContext *context, CMNode *node);
 CMNode *cm_interpret_extract (CMContext *context, CMNode *node);
 CMNode *cm_interpret_transclude (CMContext *context, CMNode *node);
 CMNode *cm_interpret_match (CMContext *context, CMNode *node);
+CMNode *cm_interpret_increment (CMContext *context, CMNode *node);
+CMNode *cm_interpret_decrement (CMContext *context, CMNode *node);
 CMNode *cm_interpret_dot (CMContext *context, CMNode *node);
 CMNode *cm_interpret_eval (CMContext *context, CMNode *node);
 CMNode *cm_interpret_op_invoke (CMContext *context, CMNode *node);
