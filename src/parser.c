@@ -12,6 +12,8 @@ static const char *CM_NODE_TYPES_READABLE[CM_NODE_TYPE_COUNT] = {
 	"CM_NODE_TYPE_SYMBOL_DEF",
 	"CM_NODE_TYPE_LITERAL",
 	"CM_NODE_TYPE_SYMBOL",
+	"CM_NODE_TYPE_INT",
+	"CM_NODE_TYPE_INT_EXACT",
 	"CM_NODE_TYPE_COMPOSE",
 	"CM_NODE_TYPE_EXTRACT",
 	"CM_NODE_TYPE_TRANSCLUDE",
@@ -32,6 +34,8 @@ static const char *CM_NODE_TYPES_READABLE[CM_NODE_TYPE_COUNT] = {
 
 
 static const char* CM_NODE_TYPE_WORDS[CM_NODE_TYPE_COUNT] = {
+	NULL,
+	NULL,
 	NULL,
 	NULL,
 	NULL,
@@ -105,6 +109,21 @@ bool cm_node_type_has_value (CMNodeType type)
 }
 
 
+bool cm_node_type_has_int_value (CMNodeType type)
+{
+	switch (type) {
+		case CM_NODE_TYPE_INT:
+		case CM_NODE_TYPE_INT_EXACT: {
+			return true;
+		}
+
+		default: {
+			return false;
+		}
+	}
+}
+
+
 void cm_node_alloc_children (CMNode *node, size_t cap)
 {
 	node->children = calloc(cap, sizeof(CMNode *));
@@ -168,6 +187,25 @@ CMNode *cm_node_literal (CMStringView name)
 }
 
 
+CMNode *cm_node_int (CMStringView value)
+{
+	CMNode *node = cm_node(CM_NODE_TYPE_INT_EXACT);
+	node->type = CM_NODE_TYPE_INT;
+	node->value = value;
+
+	return node;
+}
+
+
+CMNode *cm_node_int_exact (CMStringView value)
+{
+	CMNode *node = cm_node_int(value);
+	node->type = CM_NODE_TYPE_INT_EXACT;
+
+	return node;
+}
+
+
 CMNode *cm_node_null (void)
 {
 	return cm_node(CM_NODE_TYPE_NULL);
@@ -211,6 +249,14 @@ CMNode *cm_node_clone (CMNode *node)
 }
 
 
+cm_int cm_node_int_value (CMNode *node)
+{
+	assert(node->type == CM_NODE_TYPE_INT || node->type == CM_NODE_TYPE_INT_EXACT);
+
+	return strtol(cm_sv_to_cstr(node->value), NULL, 10);
+}
+
+
 bool cm_node_eq (const CMNode *node1, const CMNode *node2)
 {
 	if (node1->type != node2->type) {
@@ -222,7 +268,13 @@ bool cm_node_eq (const CMNode *node1, const CMNode *node2)
 	}
 
 	if (cm_node_type_has_value(node1->type)) {
-		if (!cm_sv_eq(node1->value, node2->value)) {
+		if (! cm_sv_eq(node1->value, node2->value)) {
+			return false;
+		}
+	}
+
+	if (cm_node_type_has_int_value(node1->type)) {
+		if (cm_node_int_value(node1) != cm_node_int_value(node2)) {
 			return false;
 		}
 	}
@@ -303,10 +355,6 @@ void cm_print_node (CMNode *node)
 {
 	_cm_print_node(node, 0, 4);
 }
-
-
-CMNode *cm_parse_compose (CMTokenList *list);
-CMNode *cm_parse_expr (CMTokenList *list);
 
 
 CMNode *cm_parse_extract (CMTokenList *list)
@@ -514,12 +562,66 @@ CMNode *cm_parse_key (CMTokenList *list)
 CMNode *cm_parse_dot (CMTokenList *list)
 {
 	cm_tokenlist_expect(list, CM_TOKEN_TYPE_DOT);
-	CMToken word = cm_tokenlist_expect(list, CM_TOKEN_TYPE_WORD);
+	CMToken next = cm_tokenlist_first(*list);
 
-	CMNode *dot = cm_node(CM_NODE_TYPE_DOT);
-	cm_node_append_child(dot, cm_node_symbol(word.value));
+	switch (next.type) {
+		case CM_TOKEN_TYPE_WORD: {
+			CMNode *dot = cm_node(CM_NODE_TYPE_DOT);
+			cm_node_append_child(dot, cm_parse_word(list));
 
-	return dot;
+			return dot;
+		}
+
+		case CM_TOKEN_TYPE_INT: {
+			CMNode *exact_int = cm_parse_int(list);
+			exact_int->type = CM_NODE_TYPE_INT_EXACT;
+
+			return exact_int;
+		}
+
+		default: {
+			cm_syntax_error(next, "Expected word or in after CM_TOKEN_TYPE_DOT");
+		}
+	}
+
+	assert(false && "Unreachable");
+}
+
+
+CMNode *cm_parse_word (CMTokenList *list)
+{
+	CMToken token = cm_tokenlist_first(*list);
+	assert(token.type == CM_TOKEN_TYPE_WORD);
+
+	CMNode *builtin = cm_node_from_word(token.value);
+
+	if (builtin) {
+		return cm_parse_builtin(list);
+	}
+
+	if (list->len > 1) {
+		CMToken next_token = cm_tokenlist_get(*list, 1);
+
+		if (next_token.type == CM_TOKEN_TYPE_SQ_BRACKET_IN) {
+			return cm_parse_extract(list);
+		}
+	}
+
+	if (cm_tokenlist_like(*list, CM_FMT_OP_START)) {
+		return cm_parse_op_invoke(list);
+	}
+
+	cm_tokenlist_shift(list); // shift word
+	return cm_node_symbol(token.value);
+}
+
+
+CMNode *cm_parse_int (CMTokenList *list)
+{
+	CMToken token = cm_tokenlist_shift(list);
+	assert(token.type == CM_TOKEN_TYPE_INT);
+
+	return cm_node_int(token.value);
 }
 
 
@@ -530,26 +632,11 @@ CMNode *cm_parse_expr (CMTokenList *list)
 
 	switch (token.type) {
 		case CM_TOKEN_TYPE_WORD: {
-			CMNode *builtin = cm_node_from_word(token.value);
+			return cm_parse_word(list);
+		}
 
-			if (builtin) {
-				return cm_parse_builtin(list);
-			}
-
-			if (list->len > 1) {
-				CMToken next_token = cm_tokenlist_get(*list, 1);
-
-				if (next_token.type == CM_TOKEN_TYPE_SQ_BRACKET_IN) {
-					return cm_parse_extract(list);
-				}
-			}
-
-			if (cm_tokenlist_like(*list, CM_FMT_OP_START)) {
-				return cm_parse_op_invoke(list);
-			}
-
-			cm_tokenlist_shift(list); // shift word
-			return cm_node_symbol(token.value);
+		case CM_TOKEN_TYPE_INT: {
+			return cm_parse_int(list);
 		}
 
 		case CM_TOKEN_TYPE_DOT: {
@@ -713,8 +800,8 @@ CMNode *cm_parse_print (CMTokenList *list)
 
 CMNode *cm_parse (CMTokenList *list)
 {
-	assert(CM_NODE_TYPE_COUNT == 20);
-	assert(CM_TOKEN_TYPE_COUNT == 22);
+	assert(CM_NODE_TYPE_COUNT == 22);
+	assert(CM_TOKEN_TYPE_COUNT == 23);
 
 	CMNode *root = cm_node(CM_NODE_TYPE_ROOT);
 

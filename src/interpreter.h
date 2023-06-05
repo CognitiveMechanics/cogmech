@@ -42,8 +42,6 @@ typedef struct CMContext {
 } CMContext;
 
 
-bool cm_match (CMNode *match, CMNode *against);
-
 CMContext cm_context (void);
 CMContext cm_context_clone (const CMContext context);
 
@@ -62,6 +60,8 @@ CMRelationDef *cm_context_get_matching_relation (CMContext *context, CMNode *que
 
 void cm_print_entity (CMNode *node);
 CMNode *cm_create_key_value (CMNode *key, CMNode *value);
+
+bool cm_match (CMNode *match, CMNode *against);
 
 CMNode *cm_interpret_entity (CMContext *context, CMNode *node);
 CMNode *cm_interpret_compose (CMContext *context, CMNode *node);

@@ -13,16 +13,15 @@ add_executable(cogmech
         src/tokenizer.c
         src/parser.c
         src/interpreter.c
-        src/main.c)
+        src/main.c src/parser.c)
 
 add_executable(test
         src/util.h
         src/file.c
         src/stringview.c
         src/tokenizer.c
-        src/parser.c
         src/interpreter.c
-        tests/unit/test.c)
+        tests/unit/test.c src/parser.c)
 
 target_compile_options(cogmech PUBLIC -Wall -Wextra -std=c++17 -pedantic)
 target_compile_options(test PUBLIC -Wall -Wextra -std=c++17 -pedantic)

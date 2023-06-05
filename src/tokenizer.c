@@ -12,6 +12,7 @@
 const char *CM_TOKEN_TYPES_READABLE[CM_TOKEN_TYPE_COUNT] = {
 	"CM_TOKEN_TYPE_UNKNOWN",
 	"CM_TOKEN_TYPE_WORD",
+	"CM_TOKEN_TYPE_INT",
 	"CM_TOKEN_TYPE_QUOTED",
 	"CM_TOKEN_TYPE_ENDL",
 	"CM_TOKEN_TYPE_LT",
@@ -40,13 +41,14 @@ const char *CM_TOKEN_TYPE_SYMBOLS[CM_TOKEN_TYPE_COUNT] = {
 	NULL,
 	NULL,
 	NULL,
+	NULL,
 	"<",
 	">",
 	",",
 	":=",
 	":",
 	"[]",
-	"[.]",
+	"[*]",
 	"[",
 	"]",
 	"(",
@@ -54,7 +56,7 @@ const char *CM_TOKEN_TYPE_SYMBOLS[CM_TOKEN_TYPE_COUNT] = {
 	"%",
 	"true",
 	"null",
-	".",
+	"*",
 	"#",
 	"->",
 	"=>",
@@ -340,9 +342,15 @@ bool cm_is_word (char c)
 }
 
 
+bool cm_is_num (char c)
+{
+	return (bool) isnumber(c) || c == '_';
+}
+
+
 CMTokenList cm_tokenize (const char *filename, CMStringView sv)
 {
-	assert(CM_TOKEN_TYPE_COUNT == 22);
+	assert(CM_TOKEN_TYPE_COUNT == 23);
 
 	size_t row = 0;
 	size_t col = 0;
@@ -408,6 +416,13 @@ CMTokenList cm_tokenize (const char *filename, CMStringView sv)
 		} else if (isalpha(sv.data[0])) {
 			CMToken word = cm_token(filename, row, col, CM_TOKEN_TYPE_WORD);
 			word.value = cm_chop_left_while(&sv, cm_is_word);
+
+			cm_tokenlist_append(&list, word);
+			col += word.value.len;
+
+		} else if (isnumber(sv.data[0])) {
+			CMToken word = cm_token(filename, row, col, CM_TOKEN_TYPE_INT);
+			word.value = cm_chop_left_while(&sv, cm_is_num);
 
 			cm_tokenlist_append(&list, word);
 			col += word.value.len;

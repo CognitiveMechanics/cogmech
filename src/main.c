@@ -11,9 +11,12 @@
 #define CM_EXIT_USAGE 1
 
 
-// TODO: integers
-// TODO: improve error handling
+// TODO: integers (num, comparison & dot)
+// TODO: comments
+// TODO: enforce end lines
 // TODO: execution test suite
+// TODO: improve error handling
+// TODO: implement universal machine
 
 
 const char* cm_get_usage (void)

@@ -1,6 +1,7 @@
 
 
 #include <stdbool.h>
+#include <stdlib.h>
 
 #include "stringview.h"
 #include "parser.h"
@@ -13,11 +14,29 @@ bool cm_match (CMNode *match, CMNode *against)
 	assert(against);
 
 	bool is_equal = cm_node_eq(match, against);
-	bool against_is_proxy = (against->type == CM_NODE_TYPE_PROXY);
+
+	bool against_is_proxy        = (against->type == CM_NODE_TYPE_PROXY);
 	bool proxy_against_dot_proxy = (match->type == CM_NODE_TYPE_PROXY && against->type == CM_NODE_TYPE_DOT_PROXY);
+
+	bool int_vs_int       = (match->type == CM_NODE_TYPE_INT && against->type == CM_NODE_TYPE_INT);
+	bool int_vs_exact_int = (match->type == CM_NODE_TYPE_INT && against->type == CM_NODE_TYPE_INT_EXACT);
 
 	if (is_equal || against_is_proxy || proxy_against_dot_proxy) {
 		return true;
+	}
+
+	if (int_vs_int) {
+		cm_int match_value = cm_node_int_value(match);
+		cm_int against_value = cm_node_int_value(against);
+
+		return match_value >= against_value;
+	}
+
+	if (int_vs_exact_int) {
+		cm_int match_value = cm_node_int_value(match);
+		cm_int against_value = cm_node_int_value(against);
+
+		return match_value == against_value;
 	}
 
 	if (match->type != against->type) {
@@ -26,6 +45,12 @@ bool cm_match (CMNode *match, CMNode *against)
 
 	if (cm_node_type_has_value(against->type)) {
 		if (! cm_sv_eq(match->value, against->value)) {
+			return false;
+		}
+	}
+
+	if (cm_node_type_has_int_value(against->type)) {
+		if (cm_node_int_value(match) != cm_node_int_value(against)) {
 			return false;
 		}
 	}
@@ -245,21 +270,32 @@ bool _cm_print_entity_should_indent (CMNode *node)
 
 void _cm_print_entity (CMNode *node, int indent_level, int num_spaces, bool with_comma)
 {
+	char *comma;
+
+	if (with_comma) {
+		comma = ",";
+	} else {
+		comma = "";
+	}
+
 	switch (node->type) {
 		case CM_NODE_TYPE_NULL: {
 			printf(
-				"%*snull\n",
+				"%*snull%s\n",
 				indent_level * num_spaces,
-				""
+				"",
+				comma
 			);
 
 			break;
 		}
+
 		case CM_NODE_TYPE_TRUE: {
 			printf(
-				"%*strue\n",
+				"%*strue%s\n",
 				indent_level * num_spaces,
-				""
+				"",
+				comma
 			);
 
 			break;
@@ -267,9 +303,10 @@ void _cm_print_entity (CMNode *node, int indent_level, int num_spaces, bool with
 
 		case CM_NODE_TYPE_PROXY: {
 			printf(
-				"%*s[]\n",
+				"%*s[]%s\n",
 				indent_level * num_spaces,
-				""
+				"",
+				comma
 			);
 
 			break;
@@ -277,9 +314,10 @@ void _cm_print_entity (CMNode *node, int indent_level, int num_spaces, bool with
 
 		case CM_NODE_TYPE_DOT_PROXY: {
 			printf(
-				"%*s[.]\n",
+				"%*s[.]%s\n",
 				indent_level * num_spaces,
-				""
+				"",
+				comma
 			);
 
 			break;
@@ -287,9 +325,10 @@ void _cm_print_entity (CMNode *node, int indent_level, int num_spaces, bool with
 
 		case CM_NODE_TYPE_KEY: {
 			printf(
-				"%*skey\n",
+				"%*skey%s\n",
 				indent_level * num_spaces,
-				""
+				"",
+				comma
 			);
 
 			break;
@@ -297,11 +336,38 @@ void _cm_print_entity (CMNode *node, int indent_level, int num_spaces, bool with
 
 		case CM_NODE_TYPE_LITERAL: {
 			printf(
-				"%*s\"%.*s\"\n",
+				"%*s\"%.*s\"%s\n",
 				indent_level * num_spaces,
 				"",
 				(int) node->value.len,
-				node->value.data
+				node->value.data,
+				comma
+			);
+
+			break;
+		}
+
+		case CM_NODE_TYPE_INT: {
+			printf(
+				"%*s%.*s%s\n",
+				indent_level * num_spaces,
+				"",
+				(int) node->value.len,
+				node->value.data,
+				comma
+			);
+
+			break;
+		}
+
+		case CM_NODE_TYPE_INT_EXACT: {
+			printf(
+				"%*s*%.*s%s\n",
+				indent_level * num_spaces,
+				"",
+				(int) node->value.len,
+				node->value.data,
+				comma
 			);
 
 			break;
@@ -320,11 +386,7 @@ void _cm_print_entity (CMNode *node, int indent_level, int num_spaces, bool with
 					);
 				}
 
-				if (with_comma) {
-					printf("%*s>,\n", indent_level * num_spaces, "");
-				} else {
-					printf("%*s>\n", indent_level * num_spaces, "");
-				}
+				printf("%*s>%s\n", indent_level * num_spaces, "", comma);
 			} else {
 				printf("%*s<", indent_level * num_spaces, "");
 
@@ -334,6 +396,20 @@ void _cm_print_entity (CMNode *node, int indent_level, int num_spaces, bool with
 					if (child->type == CM_NODE_TYPE_LITERAL) {
 						printf(
 							"\"%.*s\"",
+							(int) child->value.len,
+							child->value.data
+						);
+
+					} else if (child->type == CM_NODE_TYPE_INT) {
+						printf(
+							"%.*s",
+							(int) child->value.len,
+							child->value.data
+						);
+
+					} else if (child->type == CM_NODE_TYPE_INT_EXACT) {
+						printf(
+							"*%.*s",
 							(int) child->value.len,
 							child->value.data
 						);
@@ -348,7 +424,7 @@ void _cm_print_entity (CMNode *node, int indent_level, int num_spaces, bool with
 						printf("[]");
 
 					} else if (child->type == CM_NODE_TYPE_DOT_PROXY) {
-						printf("[.]");
+						printf("[*]");
 
 					} else if (child->type == CM_NODE_TYPE_KEY) {
 						printf("key");
@@ -362,11 +438,7 @@ void _cm_print_entity (CMNode *node, int indent_level, int num_spaces, bool with
 					}
 				}
 
-				if (with_comma) {
-					printf(">,\n");
-				} else {
-					printf(">\n");
-				}
+				printf(">%s\n", comma);
 			}
 
 			break;
@@ -396,9 +468,6 @@ CMNode *cm_create_key_value (CMNode *key, CMNode *value)
 
 	return pair;
 }
-
-
-CMNode *cm_interpret_entity (CMContext *context, CMNode *node);
 
 
 CMNode *cm_interpret_compose (CMContext *context, CMNode *node)
@@ -626,6 +695,8 @@ CMNode *cm_interpret_entity (CMContext *context, CMNode *node)
 
 		case CM_NODE_TYPE_PROXY:
 		case CM_NODE_TYPE_DOT_PROXY:
+		case CM_NODE_TYPE_INT:
+		case CM_NODE_TYPE_INT_EXACT:
 		case CM_NODE_TYPE_TRUE:
 		case CM_NODE_TYPE_NULL:
 		case CM_NODE_TYPE_KEY: {
@@ -726,7 +797,7 @@ void cm_interpret_print (CMContext *context, CMNode *node)
 
 void cm_interpret (CMContext *context, CMNode *ast)
 {
-	assert(CM_NODE_TYPE_COUNT == 20);
+	assert(CM_NODE_TYPE_COUNT == 22);
 
 	assert(ast->type == CM_NODE_TYPE_ROOT);
 

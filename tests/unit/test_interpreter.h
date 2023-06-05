@@ -506,6 +506,44 @@ bool test_cm_match (void)
 		return false;
 	}
 
+	CMNode *int_0 = cm_node_int(cm_sv("0"));
+	CMNode *int_1 = cm_node_int(cm_sv("1"));
+	CMNode *int_2 = cm_node_int(cm_sv("2"));
+
+	CMNode *int_e_0 = cm_node_int_exact(cm_sv("0"));
+	CMNode *int_e_1 = cm_node_int_exact(cm_sv("1"));
+	CMNode *int_e_2 = cm_node_int_exact(cm_sv("2"));
+
+	if (! cm_match(int_1, int_0)) {
+		cm_test_error("1 should match 0");
+		return false;
+	}
+
+	if (! cm_match(int_1, int_1)) {
+		cm_test_error("1 should match 1");
+		return false;
+	}
+
+	if (cm_match(int_1, int_2)) {
+		cm_test_error("1 should not match 2");
+		return false;
+	}
+
+	if (cm_match(int_1, int_e_0)) {
+		cm_test_error("1 should not match exactly 0");
+		return false;
+	}
+
+	if (! cm_match(int_1, int_e_1)) {
+		cm_test_error("1 should match exactly 1");
+		return false;
+	}
+
+	if (cm_match(int_1, int_e_2)) {
+		cm_test_error("1 should not match exactly 2");
+		return false;
+	}
+
 	return true;
 }
 
@@ -712,6 +750,7 @@ bool test_cm_interpret (void)
 		cm_tokenize_file("../tests/cogm/07-keys.cogm"),
 		cm_tokenize_file("../tests/cogm/08-relations.cogm"),
 		cm_tokenize_file("../tests/cogm/09-operations.cogm"),
+		cm_tokenize_file("../tests/cogm/10-integers.cogm"),
 	};
 
 	for (size_t i = 0; i < ARRAY_LEN(lists); i++) {

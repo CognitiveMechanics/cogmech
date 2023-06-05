@@ -26,6 +26,27 @@ bool test_cm_node_type_has_value (void)
 }
 
 
+bool test_cm_node_type_has_int_value (void)
+{
+	if (! cm_node_type_has_int_value(CM_NODE_TYPE_INT)) {
+		cm_test_error("CM_NODE_TYPE_INT should have value\n");
+		return false;
+	}
+
+	if (! cm_node_type_has_int_value(CM_NODE_TYPE_INT_EXACT)) {
+		cm_test_error("CM_NODE_TYPE_INT_EXACT should have value\n");
+		return false;
+	}
+
+	if (cm_node_type_has_int_value(CM_NODE_TYPE_SYMBOL)) {
+		cm_test_error("CM_NODE_TYPE_PRINT should not have value\n");
+		return false;
+	}
+
+	return true;
+}
+
+
 bool test_cm_node_alloc_free (void)
 {
 	CMNode *parent = cm_node(CM_NODE_TYPE_ROOT);
@@ -114,6 +135,63 @@ bool test_cm_node_literal (void)
 
 	if (! cm_sv_eq(node->value, cm_sv("lit"))) {
 		cm_test_error("failed to verify value is 'lit'\n");
+		return false;
+	}
+
+	return true;
+}
+
+
+bool test_cm_node_int (void)
+{
+	CMStringView sv = cm_sv("1");
+	CMNode *node = cm_node_int(sv);
+
+	if (node->type != CM_NODE_TYPE_INT) {
+		cm_test_error("invalid node type\n");
+		return false;
+	}
+
+	if (! cm_sv_eq(node->value, cm_sv("1"))) {
+		cm_test_error("failed to verify value is '1'\n");
+		return false;
+	}
+
+	return true;
+}
+
+
+bool test_cm_node_int_exact (void)
+{
+	CMStringView sv = cm_sv("1");
+	CMNode *node = cm_node_int_exact(sv);
+
+	if (node->type != CM_NODE_TYPE_INT_EXACT) {
+		cm_test_error("invalid node type\n");
+		return false;
+	}
+
+	if (! cm_sv_eq(node->value, cm_sv("1"))) {
+		cm_test_error("failed to verify value is '1'\n");
+		return false;
+	}
+
+	return true;
+}
+
+
+bool test_cm_node_int_value (void)
+{
+	CMNode *int_node = cm_node_int(cm_sv("123"));
+	CMNode *exact_node = cm_node_int_exact(cm_sv("456"));
+
+	if (cm_node_int_value(int_node) != 123) {
+		cm_test_error("invalid int value\n");
+		return false;
+	}
+
+	if (cm_node_int_value(exact_node) != 456) {
+		cm_test_error("invalid exact int value\n");
 		return false;
 	}
 
@@ -961,6 +1039,72 @@ bool test_cm_parse_dot (void)
 }
 
 
+bool test_cm_parse_int (void)
+{
+	CMTokenList list = cm_tokenlist();
+
+	CMToken token = cm_token(
+		"filename.cogm",
+		0,
+		0,
+		CM_TOKEN_TYPE_INT
+	);
+
+	token.value = cm_sv("1");
+
+	cm_tokenlist_append(&list, token);
+
+	CMNode *node = cm_parse_int(&list);
+
+	if (node->type != CM_NODE_TYPE_INT) {
+		cm_test_error("node should be CM_NODE_TYPE_INT\n");
+		return false;
+	}
+
+	if (cm_node_int_value(node) != 1) {
+		cm_test_error("node value should be 1\n");
+		return false;
+	}
+
+	return true;
+}
+
+
+bool test_cm_parse_word (void)
+{
+	CMTokenList list = cm_tokenlist();
+
+	CMToken token = cm_token(
+		"filename.cogm",
+		0,
+		0,
+		CM_TOKEN_TYPE_WORD
+	);
+
+	token.value = cm_sv("test_word");
+	cm_tokenlist_append(&list, token);
+
+	CMNode *word = cm_parse_word(&list);
+
+	if (word->type != CM_NODE_TYPE_SYMBOL) {
+		cm_test_error("invalid word type\n");
+		return false;
+	}
+
+	if (! cm_sv_eq(word->value, cm_sv("test_word"))) {
+		cm_test_error("invalid word value\n");
+		return false;
+	}
+
+	if (! cm_tokenlist_empty(list)) {
+		cm_test_error("list not empty\n");
+		return false;
+	}
+
+	return true;
+}
+
+
 bool test_cm_parse_expr (void)
 {
 	CMTokenList list = cm_tokenlist();
@@ -1396,12 +1540,18 @@ void test_cm_parser (void)
 	printf("Loading parser tests...\n");
 
 	cm_add_test(test_cm_node_type_has_value);
+	cm_add_test(test_cm_node_type_has_int_value);
 	cm_add_test(test_cm_node_alloc_free);
 	cm_add_test(test_cm_node_symbol);
 	cm_add_test(test_cm_node_literal);
+	cm_add_test(test_cm_node_int);
+	cm_add_test(test_cm_node_int_exact);
+	cm_add_test(test_cm_node_int_value);
 	cm_add_test(test_cm_node_eq);
 	cm_add_test(test_cm_node_from_word);
 	cm_add_test(test_cm_node_clone);
+	cm_add_test(test_cm_parse_word);
+	cm_add_test(test_cm_parse_int);
 	cm_add_test(test_cm_parse_expr);
 	cm_add_test(test_cm_parse_compose);
 	cm_add_test(test_cm_parse_extract);
