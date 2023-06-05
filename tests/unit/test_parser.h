@@ -159,7 +159,7 @@ bool test_cm_node_from_word (void)
 {
 	CMNode *null_node_1 = cm_node_from_word(cm_sv(":"));
 	CMNode *null_node_2 = cm_node_from_word(cm_sv("O"));
-	CMNode *transclude_node = cm_node_from_word(cm_sv(CM_NODE_TYPE_WORDS[CM_NODE_TYPE_TRANSCLUDE]));
+	CMNode *transclude_node = cm_node_from_word(cm_sv(cm_node_type_word(CM_NODE_TYPE_TRANSCLUDE)));
 
 	if (null_node_1 || null_node_2) {
 		cm_test_error("found node with unknown word\n");

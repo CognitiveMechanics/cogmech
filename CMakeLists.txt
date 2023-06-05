@@ -7,9 +7,21 @@ include_directories(src)
 include_directories(tests/unit)
 
 add_executable(cogmech
+        src/util.h
+        src/file.c
+        src/stringview.c
+        src/tokenizer.c
+        src/parser.c
+        src/interpreter.c
         src/main.c)
 
 add_executable(test
+        src/util.h
+        src/file.c
+        src/stringview.c
+        src/tokenizer.c
+        src/parser.c
+        src/interpreter.c
         tests/unit/test.c)
 
 target_compile_options(cogmech PUBLIC -Wall -Wextra -std=c++17 -pedantic)
