@@ -438,7 +438,7 @@ CMNode *cm_parse_transclude (CMTokenList *list)
 	CMToken op = cm_tokenlist_shift(list);
 
 	assert(op.type == CM_TOKEN_TYPE_WORD);
-	assert(cm_sv_eq(op.value, cm_sv(CM_NODE_TYPE_WORDS[CM_NODE_TYPE_TRANSCLUDE])));
+	assert(cm_sv_eq(op.value, cm_sv(cm_node_type_word(CM_NODE_TYPE_TRANSCLUDE))));
 	assert(list->len >= 4);
 
 	CMNode *new_node = cm_parse_expr_list(list, CM_NODE_TYPE_TRANSCLUDE, CM_TOKEN_TYPE_PAREN_IN, CM_TOKEN_TYPE_PAREN_OUT);
@@ -478,7 +478,7 @@ CMNode *cm_parse_eval (CMTokenList *list)
 {
 	CMToken word = cm_tokenlist_expect(list, CM_TOKEN_TYPE_WORD);
 
-	if (! cm_sv_eq(word.value, cm_sv(CM_NODE_TYPE_WORDS[CM_NODE_TYPE_EVAL]))) {
+	if (! cm_sv_eq(word.value, cm_sv(cm_node_type_word(CM_NODE_TYPE_EVAL)))) {
 		assert(false && "Invalid eval word");
 	}
 

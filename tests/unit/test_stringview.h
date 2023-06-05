@@ -3,6 +3,7 @@
 #define CM_TEST_STRINGVIEW_H
 
 #include <stdio.h>
+#include <assert.h>
 #include <stdbool.h>
 #include <string.h>
 #include <ctype.h>
