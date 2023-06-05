@@ -11,7 +11,6 @@
 #define CM_EXIT_USAGE 1
 
 
-// TODO: operations
 // TODO: integers
 // TODO: improve error handling
 // TODO: execution test suite
