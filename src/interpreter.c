@@ -138,6 +138,8 @@ bool cm_context_has_symbol (CMContext *context, CMStringView name)
 
 CMNode *cm_context_get_symbol (CMContext *context, CMStringView name)
 {
+	assert(cm_context_has_symbol(context, name));
+
 	for (size_t i = 0; i < context->n_symbol_defs; i++) {
 		CMSymbolDef def = context->symbol_defs[i];
 
@@ -145,9 +147,6 @@ CMNode *cm_context_get_symbol (CMContext *context, CMStringView name)
 			return def.value;
 		}
 	}
-
-	// TODO: should be syntax error
-	assert(false && "invalid symbol definition lookup");
 }
 
 
@@ -200,6 +199,8 @@ bool cm_context_has_op (CMContext *context, CMStringView name)
 
 CMOpDef cm_context_get_op (CMContext *context, CMStringView name)
 {
+	assert(cm_context_has_op(context, name));
+
 	for (size_t i = 0; i < context->n_op_defs; i++) {
 		CMOpDef def = context->op_defs[i];
 
@@ -207,9 +208,6 @@ CMOpDef cm_context_get_op (CMContext *context, CMStringView name)
 			return def;
 		}
 	}
-
-	// TODO: should be syntax error
-	assert(false && "invalid op definition lookup");
 }
 
 
@@ -668,15 +666,13 @@ CMNode *cm_interpret_op_invoke (CMContext *context, CMNode *node)
 	assert(node->type == CM_NODE_TYPE_OP_INVOKE);
 
 	if (! cm_context_has_op(context, node->value)) {
-		// TODO: should be syntax error
-		assert(false && "Undefined op");
+		cm_syntax_error(node->token, "Operation not defined");
 	}
 
 	CMOpDef def = cm_context_get_op(context, node->value);
 
 	if (def.arglist->n_children != node->n_children) {
-		// TODO: should be syntax error
-		assert(false && "Number of arguments do not match op definition");
+		cm_syntax_error(node->token, "Number of arguments do not match op definition");
 	}
 
 	CMContext scope = cm_context_clone(*context);
@@ -704,6 +700,10 @@ CMNode *cm_interpret_entity (CMContext *context, CMNode *node)
 		}
 
 		case CM_NODE_TYPE_SYMBOL: {
+			if (! cm_context_has_symbol(context, node->value)) {
+				cm_syntax_error(node->token, "Undefined symbol");
+			}
+
 			return cm_context_get_symbol(context, node->value);
 		}
 
@@ -773,8 +773,7 @@ void cm_interpret_symbol_def (CMContext *context, CMNode *node)
 	assert(symbol->type == CM_NODE_TYPE_SYMBOL);
 
 	if (cm_context_has_symbol(context, symbol->value)) {
-		// TODO: update to syntax error
-		assert(false && "Symbol redefined");
+		cm_syntax_error(symbol->token, "Symbol redefined");
 	}
 
 	CMNode *interpreted = cm_interpret_entity(context, value);
@@ -795,8 +794,7 @@ void cm_interpret_op_def (CMContext *context, CMNode *node)
 	assert(arglist->type == CM_NODE_TYPE_OP_ARGLIST);
 
 	if (cm_context_has_op(context, node->value)) {
-		// TODO: update to syntax error
-		assert(false && "Op redefined");
+		cm_syntax_error(node->token, "Op redefined");
 	}
 
 	cm_context_def_op(context, node->value, arglist, body);
