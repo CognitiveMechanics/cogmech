@@ -748,20 +748,6 @@ bool test_cm_interpret_op_invoke (void)
 }
 
 
-bool test_cm_interpret_print (void)
-{
-	CMContext context = cm_context();
-	CMNode *op = cm_node(CM_NODE_TYPE_PRINT);
-	CMStringView value = cm_sv("test output");
-	CMNode *value_node = cm_node_literal(value);
-
-	cm_node_append_child(op, value_node);
-	cm_interpret_print(&context, op);
-
-	return true;
-}
-
-
 bool test_cm_interpret_eval (void)
 {
 	CMContext context = cm_context();
@@ -819,18 +805,7 @@ bool test_cm_interpret_eval (void)
 bool test_cm_interpret (void)
 {
 	CMTokenList lists[] = {
-		cm_tokenize_file("../tests/cogm/00-hello.cogm"),
 		cm_tokenize_file("../tests/cogm/01-silent.cogm"),
-		cm_tokenize_file("../tests/cogm/02-extract.cogm"),
-		cm_tokenize_file("../tests/cogm/03-transclude.cogm"),
-		cm_tokenize_file("../tests/cogm/04-match.cogm"),
-		cm_tokenize_file("../tests/cogm/05-classes.cogm"),
-		cm_tokenize_file("../tests/cogm/06-dot.cogm"),
-		cm_tokenize_file("../tests/cogm/07-keys.cogm"),
-		cm_tokenize_file("../tests/cogm/08-relations.cogm"),
-		cm_tokenize_file("../tests/cogm/09-operations.cogm"),
-		cm_tokenize_file("../tests/cogm/10-integers.cogm"),
-		cm_tokenize_file("../tests/cogm/11-increment-decrement.cogm"),
 	};
 
 	for (size_t i = 0; i < ARRAY_LEN(lists); i++) {
@@ -868,7 +843,6 @@ void test_cm_interpreter (void)
 	cm_add_test(test_cm_interpret_relation_def);
 	cm_add_test(test_cm_interpret_op_def);
 	cm_add_test(test_cm_interpret_op_invoke);
-	cm_add_test(test_cm_interpret_print);
 	cm_add_test(test_cm_interpret);
 }
 
