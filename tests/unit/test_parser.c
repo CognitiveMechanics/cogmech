@@ -104,6 +104,36 @@ bool test_cm_node_alloc_free (void)
 }
 
 
+bool test_cm_node_set_token (void)
+{
+	CMToken token = cm_token("test.cogm", 1, 2, CM_TOKEN_TYPE_WORD);
+	CMNode *node = cm_node_symbol(cm_sv("symbol"));
+	cm_node_set_token(node, token);
+
+	if (node->token.type != CM_TOKEN_TYPE_WORD) {
+		cm_test_error("invalid token type\n");
+		return false;
+	}
+
+	if (node->token.loc.row != 1) {
+		cm_test_error("invalid row\n");
+		return false;
+	}
+
+	if (node->token.loc.col != 2) {
+		cm_test_error("invalid col\n");
+		return false;
+	}
+
+	if (strcmp(node->token.loc.filename, "test.cogm")) {
+		cm_test_error("invalid filename\n");
+		return false;
+	}
+
+	return true;
+}
+
+
 bool test_cm_node_symbol (void)
 {
 	CMStringView sv = cm_sv("sym");
@@ -1692,6 +1722,7 @@ void test_cm_parser (void)
 	cm_add_test(test_cm_node_type_has_value);
 	cm_add_test(test_cm_node_type_has_int_value);
 	cm_add_test(test_cm_node_alloc_free);
+	cm_add_test(test_cm_node_set_token);
 	cm_add_test(test_cm_node_symbol);
 	cm_add_test(test_cm_node_literal);
 	cm_add_test(test_cm_node_int);

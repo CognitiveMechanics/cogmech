@@ -60,6 +60,7 @@ bool cm_node_type_has_int_value (CMNodeType type);
 CMNode *cm_node (CMNodeType type);
 void cm_node_free (CMNode *node);
 CMNode *cm_node_clone (CMNode *node);
+void cm_node_set_token (CMNode *node, CMToken token);
 
 CMNode *cm_node_literal (CMStringView name);
 CMNode *cm_node_symbol (CMStringView identifier);

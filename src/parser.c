@@ -154,7 +154,6 @@ CMNode *cm_node (CMNodeType type)
 }
 
 
-// TODO: test
 void cm_node_set_token (CMNode *node, CMToken token)
 {
 	node->token = token;
