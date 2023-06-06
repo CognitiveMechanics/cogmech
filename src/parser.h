@@ -45,6 +45,7 @@ typedef struct CMNode {
 	size_t n_children;
 	size_t cap;
 	CMStringView value;
+	CMToken token;
 } CMNode;
 
 

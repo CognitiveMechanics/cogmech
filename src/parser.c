@@ -146,10 +146,18 @@ CMNode *cm_node (CMNodeType type)
 	node->type = type;
 	node->n_children = 0;
 	node->value = CM_SV_NULL;
+	node->token = CM_TOKEN_NULL;
 
 	cm_node_alloc_children(node, CM_NODE_CHILDREN_BLOCK_SIZE);
 
 	return node;
+}
+
+
+// TODO: test
+void cm_node_set_token (CMNode *node, CMToken token)
+{
+	node->token = token;
 }
 
 
@@ -260,6 +268,7 @@ CMNode *cm_node_clone (CMNode *node)
 
 	clone->n_children = 0;
 	clone->value = node->value;
+	clone->token = node->token;
 
 	cm_node_alloc_children(clone, node->cap);
 
@@ -383,8 +392,10 @@ CMNode *cm_parse_extract (CMTokenList *list)
 {
 	CMToken token = cm_tokenlist_shift(list); // shift word
 	CMNode *symbol = cm_node_symbol(token.value);
+	cm_node_set_token(symbol, token);
 
 	CMNode *extraction = cm_node(CM_NODE_TYPE_EXTRACT);
+	cm_node_set_token(extraction, token);
 	cm_node_append_child(extraction, symbol);
 
 	cm_tokenlist_expect(list, CM_TOKEN_TYPE_SQ_BRACKET_IN); // shift [
@@ -403,8 +414,9 @@ CMNode *cm_parse_extract (CMTokenList *list)
 
 CMNode *cm_parse_expr_list (CMTokenList *list, CMNodeType node_type, CMTokenType start_token_type, CMTokenType end_token_type)
 {
+	CMToken start = cm_tokenlist_expect(list, start_token_type);
 	CMNode *node = cm_node(node_type);
-	cm_tokenlist_expect(list, start_token_type);
+	cm_node_set_token(node, start);
 
 	do {
 		cm_tokenlist_skip_endl(list);
@@ -442,6 +454,7 @@ CMNode *cm_parse_transclude (CMTokenList *list)
 	assert(list->len >= 4);
 
 	CMNode *new_node = cm_parse_expr_list(list, CM_NODE_TYPE_TRANSCLUDE, CM_TOKEN_TYPE_PAREN_IN, CM_TOKEN_TYPE_PAREN_OUT);
+	cm_node_set_token(new_node, op);
 
 	if (new_node->n_children != 3) {
 		cm_syntax_error(op, "Transclude accepts exactly 3 arguments");
@@ -449,11 +462,9 @@ CMNode *cm_parse_transclude (CMTokenList *list)
 
 	CMNode *entity = new_node->children[0];
 
-	// TODO: should be syntax error
-	assert(
-		(entity->type == CM_NODE_TYPE_COMPOSE || entity->type == CM_NODE_TYPE_SYMBOL)
-		&& "Transcluded nodes must be composed entities or symbols"
-	);
+	if (entity->type != CM_NODE_TYPE_COMPOSE && entity->type != CM_NODE_TYPE_SYMBOL) {
+		cm_syntax_error(entity->token, "Transcluded nodes must be composed entities or symbols");
+	}
 
 	return new_node;
 }
@@ -465,6 +476,7 @@ CMNode *cm_parse_match (CMTokenList *list)
 	CMToken first_token = cm_tokenlist_first(*list);
 
 	CMNode *match = cm_parse_expr_list(list, CM_NODE_TYPE_MATCH, CM_TOKEN_TYPE_PAREN_IN, CM_TOKEN_TYPE_PAREN_OUT);
+	cm_node_set_token(match, first_token);
 
 	if (match->n_children != 2) {
 		cm_syntax_error(first_token, "match accepts exactly two arguments");
@@ -491,6 +503,7 @@ CMNode *cm_parse_eval (CMTokenList *list)
 	cm_tokenlist_expect(list, CM_TOKEN_TYPE_PAREN_OUT);
 
 	CMNode *eval = cm_node(CM_NODE_TYPE_EVAL);
+	cm_node_set_token(eval, word);
 	cm_node_append_child(eval, expr);
 
 	return eval;
@@ -499,7 +512,7 @@ CMNode *cm_parse_eval (CMTokenList *list)
 
 CMNode *cm_parse_increment (CMTokenList *list)
 {
-	cm_tokenlist_expect(list, CM_TOKEN_TYPE_PLUS);
+	CMToken symbol = cm_tokenlist_expect(list, CM_TOKEN_TYPE_PLUS);
 	cm_tokenlist_expect(list, CM_TOKEN_TYPE_PAREN_IN);
 	cm_tokenlist_skip_endl(list);
 
@@ -509,6 +522,7 @@ CMNode *cm_parse_increment (CMTokenList *list)
 	cm_tokenlist_expect(list, CM_TOKEN_TYPE_PAREN_OUT);
 
 	CMNode *op = cm_node(CM_NODE_TYPE_INCREMENT);
+	cm_node_set_token(op, symbol);
 	cm_node_append_child(op, expr);
 
 	return op;
@@ -517,7 +531,7 @@ CMNode *cm_parse_increment (CMTokenList *list)
 
 CMNode *cm_parse_decrement (CMTokenList *list)
 {
-	cm_tokenlist_expect(list, CM_TOKEN_TYPE_MINUS);
+	CMToken symbol = cm_tokenlist_expect(list, CM_TOKEN_TYPE_MINUS);
 	cm_tokenlist_expect(list, CM_TOKEN_TYPE_PAREN_IN);
 	cm_tokenlist_skip_endl(list);
 
@@ -527,6 +541,7 @@ CMNode *cm_parse_decrement (CMTokenList *list)
 	cm_tokenlist_expect(list, CM_TOKEN_TYPE_PAREN_OUT);
 
 	CMNode *op = cm_node(CM_NODE_TYPE_DECREMENT);
+	cm_node_set_token(op, symbol);
 	cm_node_append_child(op, expr);
 
 	return op;
@@ -548,6 +563,8 @@ CMNode *cm_parse_op_invoke (CMTokenList *list)
 		CM_TOKEN_TYPE_PAREN_OUT
 	);
 
+	cm_node_set_token(def, symbol_token);
+
 	def->value = symbol_token.value;
 
 	return def;
@@ -558,6 +575,7 @@ CMNode *cm_parse_builtin (CMTokenList *list)
 {
 	CMToken token = cm_tokenlist_first(*list);
 	CMNode *builtin = cm_node_from_word(token.value);
+	cm_node_set_token(builtin, token);
 
 	assert(builtin);
 
@@ -579,7 +597,7 @@ CMNode *cm_parse_builtin (CMTokenList *list)
 
 CMNode *cm_parse_class (CMTokenList *list)
 {
-	cm_tokenlist_expect(list, CM_TOKEN_TYPE_SQ_BRACKET_IN);
+	CMToken start = cm_tokenlist_expect(list, CM_TOKEN_TYPE_SQ_BRACKET_IN);
 	bool is_dot = false;
 
 	if (cm_tokenlist_first_like(*list, CM_TOKEN_TYPE_DOT)) {
@@ -591,12 +609,20 @@ CMNode *cm_parse_class (CMTokenList *list)
 	cm_tokenlist_expect(list, CM_TOKEN_TYPE_SQ_BRACKET_OUT);
 
 	CMNode *composition = cm_node(CM_NODE_TYPE_COMPOSE);
-	cm_node_append_child(composition, cm_node_literal(word.value));
+	cm_node_set_token(composition, start);
+
+	CMNode *literal = cm_node_literal(word.value);
+	cm_node_set_token(literal, word);
+	cm_node_append_child(composition, literal);
 
 	if (is_dot) {
-		cm_node_append_child(composition, cm_node(CM_NODE_TYPE_DOT_PROXY));
+		CMNode *proxy = cm_node(CM_NODE_TYPE_DOT_PROXY);
+		cm_node_set_token(proxy, start);
+		cm_node_append_child(composition, proxy);
 	} else {
-		cm_node_append_child(composition, cm_node(CM_NODE_TYPE_PROXY));
+		CMNode *proxy = cm_node(CM_NODE_TYPE_PROXY);
+		cm_node_set_token(proxy, start);
+		cm_node_append_child(composition, proxy);
 	}
 
 	return composition;
@@ -605,12 +631,16 @@ CMNode *cm_parse_class (CMTokenList *list)
 
 CMNode *cm_parse_key (CMTokenList *list)
 {
-	cm_tokenlist_expect(list, CM_TOKEN_TYPE_HASH);
+	CMToken start = cm_tokenlist_expect(list, CM_TOKEN_TYPE_HASH);
 	CMNode *expr = cm_parse_expr(list);
 
 	CMNode *composition = cm_node(CM_NODE_TYPE_COMPOSE);
+	cm_node_set_token(composition, start);
 
-	cm_node_append_child(composition, cm_node(CM_NODE_TYPE_KEY));
+	CMNode *key = cm_node(CM_NODE_TYPE_KEY);
+	cm_node_set_token(composition, start);
+
+	cm_node_append_child(composition, key);
 	cm_node_append_child(composition, expr);
 
 	return composition;
@@ -619,12 +649,13 @@ CMNode *cm_parse_key (CMTokenList *list)
 
 CMNode *cm_parse_dot (CMTokenList *list)
 {
-	cm_tokenlist_expect(list, CM_TOKEN_TYPE_DOT);
+	CMToken dot_token = cm_tokenlist_expect(list, CM_TOKEN_TYPE_DOT);
 	CMToken next = cm_tokenlist_first(*list);
 
 	switch (next.type) {
 		case CM_TOKEN_TYPE_WORD: {
 			CMNode *dot = cm_node(CM_NODE_TYPE_DOT);
+			cm_node_set_token(dot, dot_token);
 			cm_node_append_child(dot, cm_parse_word(list));
 
 			return dot;
@@ -669,8 +700,12 @@ CMNode *cm_parse_word (CMTokenList *list)
 		return cm_parse_op_invoke(list);
 	}
 
-	cm_tokenlist_shift(list); // shift word
-	return cm_node_symbol(token.value);
+	cm_tokenlist_shift(list); // shift word, already in `token`
+
+	CMNode *symbol = cm_node_symbol(token.value);
+	cm_node_set_token(symbol, token);
+
+	return symbol;
 }
 
 
@@ -679,7 +714,10 @@ CMNode *cm_parse_int (CMTokenList *list)
 	CMToken token = cm_tokenlist_shift(list);
 	assert(token.type == CM_TOKEN_TYPE_INT);
 
-	return cm_node_int(token.value);
+	CMNode *node = cm_node_int(token.value);
+	cm_node_set_token(node, token);
+
+	return node;
 }
 
 
@@ -701,41 +739,16 @@ CMNode *cm_parse_expr (CMTokenList *list)
 			return cm_parse_dot(list);
 		}
 
-		case CM_TOKEN_TYPE_SQ_BRACKET_IN: {
-			return cm_parse_class(list);
-		}
-
 		case CM_TOKEN_TYPE_HASH: {
 			return cm_parse_key(list);
-		}
-
-		case CM_TOKEN_TYPE_QUOTED: {
-			cm_tokenlist_shift(list);
-			return cm_node_literal(token.value);
 		}
 
 		case CM_TOKEN_TYPE_LT: {
 			return cm_parse_compose(list);
 		}
 
-		case CM_TOKEN_TYPE_PROXY: {
-			cm_tokenlist_shift(list);
-			return cm_node(CM_NODE_TYPE_PROXY);
-		}
-
-		case CM_TOKEN_TYPE_DOT_PROXY: {
-			cm_tokenlist_shift(list);
-			return cm_node(CM_NODE_TYPE_DOT_PROXY);
-		}
-
-		case CM_TOKEN_TYPE_TRUE: {
-			cm_tokenlist_shift(list);
-			return cm_node(CM_NODE_TYPE_TRUE);
-		}
-
-		case CM_TOKEN_TYPE_NULL: {
-			cm_tokenlist_shift(list);
-			return cm_node_null();
+		case CM_TOKEN_TYPE_SQ_BRACKET_IN: {
+			return cm_parse_class(list);
 		}
 
 		case CM_TOKEN_TYPE_PERCENT: {
@@ -748,6 +761,46 @@ CMNode *cm_parse_expr (CMTokenList *list)
 
 		case CM_TOKEN_TYPE_MINUS: {
 			return cm_parse_decrement(list);
+		}
+
+		case CM_TOKEN_TYPE_QUOTED: {
+			cm_tokenlist_shift(list);
+			CMNode *expr = cm_node_literal(token.value);
+			cm_node_set_token(expr, token);
+
+			return expr;
+		}
+
+		case CM_TOKEN_TYPE_PROXY: {
+			cm_tokenlist_shift(list);
+			CMNode *expr = cm_node(CM_NODE_TYPE_PROXY);
+			cm_node_set_token(expr, token);
+
+			return expr;
+		}
+
+		case CM_TOKEN_TYPE_DOT_PROXY: {
+			cm_tokenlist_shift(list);
+			CMNode *expr = cm_node(CM_NODE_TYPE_DOT_PROXY);
+			cm_node_set_token(expr, token);
+
+			return expr;
+		}
+
+		case CM_TOKEN_TYPE_TRUE: {
+			cm_tokenlist_shift(list);
+			CMNode *expr = cm_node(CM_NODE_TYPE_TRUE);
+			cm_node_set_token(expr, token);
+
+			return expr;
+		}
+
+		case CM_TOKEN_TYPE_NULL: {
+			cm_tokenlist_shift(list);
+			CMNode *expr = cm_node_null();
+			cm_node_set_token(expr, token);
+
+			return expr;
 		}
 
 		default: {
@@ -767,14 +820,16 @@ CMNode *cm_parse_compose (CMTokenList *list)
 
 CMNode *cm_parse_symbol_def (CMTokenList *list)
 {
-	CMNode *node = cm_node(CM_NODE_TYPE_SYMBOL_DEF);
-
 	if (! cm_tokenlist_like(*list, CM_FMT_ASSIGNMENT)) {
 		assert(false && "Invalid token list for symbol definition");
 	}
 
 	CMToken symbol_token = cm_tokenlist_shift(list);
+	CMNode *node = cm_node(CM_NODE_TYPE_SYMBOL_DEF);
+	cm_node_set_token(node, symbol_token);
+
 	CMNode *symbol = cm_node_symbol(symbol_token.value);
+	cm_node_set_token(symbol, symbol_token);
 	cm_node_append_child(node, symbol);
 
 	// discard :=
@@ -796,6 +851,7 @@ CMNode *cm_parse_op_def (CMTokenList *list)
 	CMToken symbol_token = cm_tokenlist_shift(list);
 
 	CMNode *def = cm_node(CM_NODE_TYPE_OP_DEF);
+	cm_node_set_token(def, symbol_token);
 	def->value = symbol_token.value;
 
 	CMNode *arglist = cm_parse_expr_list(
@@ -822,20 +878,25 @@ CMNode *cm_parse_op_def (CMTokenList *list)
 
 CMNode *cm_parse_relation_def (CMTokenList *list)
 {
+	CMToken start = cm_tokenlist_first(*list);
+
 	bool is_relation = cm_tokenlist_like(*list, CM_FMT_RELATION);
 	bool is_aliased_relation = cm_tokenlist_like(*list, CM_FMT_RELATION_ALIASED);
 
 	assert(is_relation || is_aliased_relation);
 
 	CMNode *relation = cm_node(CM_NODE_TYPE_RELATION_DEF);
+	cm_node_set_token(relation, start);
 
 	CMNode *state = cm_parse_expr(list);
 	cm_node_append_child(relation, state);
 
 	if (is_aliased_relation) {
 		cm_tokenlist_expect(list, CM_TOKEN_TYPE_COLON); // discard :
+
 		CMToken word = cm_tokenlist_expect(list, CM_TOKEN_TYPE_WORD);
 		CMNode *symbol = cm_node_symbol(word.value);
+		cm_node_set_token(symbol, word);
 		cm_node_append_child(relation, symbol);
 	} else {
 		cm_node_append_child(relation, cm_node_null());
@@ -852,10 +913,10 @@ CMNode *cm_parse_relation_def (CMTokenList *list)
 
 CMNode *cm_parse_print (CMTokenList *list)
 {
+	CMToken start = cm_tokenlist_shift(list);
 	CMNode *node = cm_node(CM_NODE_TYPE_PRINT);
 
-	// discard print
-	cm_tokenlist_shift(list);
+	cm_node_set_token(node, start);
 
 	CMNode *expr = cm_parse_expr(list);
 	cm_node_append_child(node, expr);

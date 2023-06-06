@@ -11,9 +11,10 @@
 #define CM_EXIT_USAGE 1
 
 
-// TODO: comments
 // TODO: improve error handling
 // TODO: execution test suite
+// TODO: include files
+// TODO: comments
 // TODO: enforce end lines
 // TODO: implement universal machine
 
