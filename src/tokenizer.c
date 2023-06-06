@@ -103,25 +103,60 @@ CMToken cm_token (const char * filename, size_t row, size_t col, CMTokenType typ
 }
 
 
-void cm_print_token (CMToken token)
+void cm_print_token_indented (CMToken token, int indent_level, int num_spaces)
 {
 	printf(
-		"Token {\n"
-		"  .type = %s\n"
-		"  .value = %.*s\n"
-		"  .loc = {\n"
-		"    .filename = %s\n"
-		"    .row = %zu\n"
-		"    .col = %zu\n"
-		"  }\n"
-		"}\n",
+		"%*sToken {\n"
+		"%*s.type = %s\n"
+		"%*s.value = %.*s\n"
+		"%*s.loc = {\n"
+		"%*s.filename = %s\n"
+		"%*s.row = %zu\n"
+		"%*s.col = %zu\n"
+		"%*s}\n"
+		"%*s}\n",
+
+		indent_level * num_spaces,
+		"",
+		(indent_level + 1) * num_spaces,
+		"",
+
 		cm_readable_token_type(token.type),
+
+		(indent_level + 1) * num_spaces,
+		"",
+
 		(int) token.value.len,
 		token.value.data,
+
+		(indent_level + 1) * num_spaces,
+		"",
+		(indent_level + 2) * num_spaces,
+		"",
+
 		token.loc.filename,
+
+		(indent_level + 2) * num_spaces,
+		"",
+
 		token.loc.row,
-		token.loc.col
+
+		(indent_level + 2) * num_spaces,
+		"",
+
+		token.loc.col,
+
+		(indent_level + 1) * num_spaces,
+		"",
+		indent_level * num_spaces,
+		""
 	);
+}
+
+
+void cm_print_token (CMToken token)
+{
+	cm_print_token_indented(token, 0, 2);
 }
 
 

@@ -80,8 +80,11 @@ static CMToken CM_TOKEN_NULL = {0};
 const char *cm_readable_token_type (CMTokenType type);
 const char *cm_token_type_symbol (CMTokenType type);
 void cm_syntax_error (CMToken token, const char *message);
+
 CMToken cm_token (const char * filename, size_t row, size_t col, CMTokenType type);
 void cm_print_token (CMToken token);
+void cm_print_token_indented (CMToken token, int indent_level, int num_spaces);
+
 CMTokenList cm_tokenlist (void);
 CMTokenList cm_tokenlist_clone (CMTokenList list);
 bool cm_token_eq (CMToken token1, CMToken token2);

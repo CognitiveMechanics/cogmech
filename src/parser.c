@@ -364,21 +364,27 @@ void _cm_print_node (CMNode *node, int indent_level, int num_spaces)
 		}
 
 		printf(
-			"%*s  }\n"
-			"%*s}\n",
-			indent_level * num_spaces,
-			"",
+			"%*s  }\n",
 			indent_level * num_spaces,
 			""
 		);
 	} else {
-		printf(
-			"}\n"
-			"%*s}\n",
-			indent_level * num_spaces,
-			""
-		);
+		printf("}\n");
 	}
+
+//	printf(
+//		"%*s  .token =\n",
+//		indent_level * num_spaces,
+//		""
+//	);
+//
+//	cm_print_token_indented(node->token, indent_level + 1, num_spaces);
+
+	printf(
+		"%*s}\n",
+		indent_level * num_spaces,
+		""
+	);
 }
 
 
@@ -638,7 +644,7 @@ CMNode *cm_parse_key (CMTokenList *list)
 	cm_node_set_token(composition, start);
 
 	CMNode *key = cm_node(CM_NODE_TYPE_KEY);
-	cm_node_set_token(composition, start);
+	cm_node_set_token(key, start);
 
 	cm_node_append_child(composition, key);
 	cm_node_append_child(composition, expr);
