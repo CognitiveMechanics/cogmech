@@ -27,5 +27,11 @@ add_executable(test
         tests/unit/test_interpreter.c
         tests/unit/test.c)
 
+add_executable(func
+        src/file.c
+        tests/func/func.c
+        tests/func/test.c)
+
 target_compile_options(cogmech PUBLIC -Wall -Wextra -std=c++17 -pedantic)
 target_compile_options(test PUBLIC -Wall -Wextra -std=c++17 -pedantic)
+target_compile_options(func PUBLIC -Wall -Wextra -std=c++17 -pedantic)

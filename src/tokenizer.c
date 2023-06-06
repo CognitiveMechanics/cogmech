@@ -81,6 +81,8 @@ const char *cm_token_type_symbol (CMTokenType type)
 
 void cm_syntax_error (CMToken token, const char *message)
 {
+	fflush(stdout);
+
 	if (! cm_sv_eq(token.value, CM_SV_NULL)) {
 		fprintf(stderr, "FAILURE %s:%zu:%zu: %s: got %s(%.*s)",
 			token.loc.filename, token.loc.row + 1, token.loc.col + 1,

@@ -147,6 +147,8 @@ CMNode *cm_context_get_symbol (CMContext *context, CMStringView name)
 			return def.value;
 		}
 	}
+
+	assert(false && "Tried getting undefined symbol");
 }
 
 
@@ -208,6 +210,8 @@ CMOpDef cm_context_get_op (CMContext *context, CMStringView name)
 			return def;
 		}
 	}
+
+	assert(false && "Tried getting undefined op");
 }
 
 
