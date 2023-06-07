@@ -34,6 +34,8 @@ bool test_cm_func_error_tests (void)
 
 void test_cm_func (void)
 {
+	printf("Loading func tests...\n");
+
 	cm_add_test(test_cm_func_tests);
 	cm_add_test(test_cm_func_error_tests);
 }
