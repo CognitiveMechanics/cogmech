@@ -1,1 +1,0 @@
-ERROR ../tests/cogm/errors/16-unterminated-expr-list.cogm:1:8: CM_TOKEN_TYPE_S_ARROW: Expected CM_TOKEN_TYPE_PAREN_OUT

@@ -1,1 +1,0 @@
-ERROR ../tests/cogm/errors/20-invalid-decrement.cogm:1:5: CM_TOKEN_TYPE_QUOTED(s): CM_NODE_TYPE_DECREMENT only accepts integral arguments

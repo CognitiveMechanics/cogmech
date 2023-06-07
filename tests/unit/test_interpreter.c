@@ -805,7 +805,7 @@ bool test_cm_interpret_eval (void)
 bool test_cm_interpret (void)
 {
 	CMTokenList lists[] = {
-		cm_tokenize_file("../tests/cogm/examples/01-silent.cogm"),
+		cm_tokenize_file("../cogm/examples/01-silent.cogm"),
 	};
 
 	for (size_t i = 0; i < ARRAY_LEN(lists); i++) {
@@ -821,7 +821,7 @@ bool test_cm_interpret (void)
 bool test_cm_interpret_file (void)
 {
 	CMTokenList *filenames[] = {
-		"../tests/cogm/examples/01-silent.cogm",
+		"../cogm/examples/01-silent.cogm",
 	};
 
 	for (size_t i = 0; i < ARRAY_LEN(filenames); i++) {

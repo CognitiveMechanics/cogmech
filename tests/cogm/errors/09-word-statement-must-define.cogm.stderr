@@ -1,1 +1,0 @@
-ERROR ../tests/cogm/errors/09-word-statement-must-define.cogm:1:1: CM_TOKEN_TYPE_WORD(a): A statement that begins with a word must be a definition

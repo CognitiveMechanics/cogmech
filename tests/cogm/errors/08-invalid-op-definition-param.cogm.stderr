@@ -1,1 +1,0 @@
-ERROR ../tests/cogm/errors/08-invalid-op-definition-param.cogm:1:3: CM_TOKEN_TYPE_QUOTED(a): All arguments in op definition must be symbols

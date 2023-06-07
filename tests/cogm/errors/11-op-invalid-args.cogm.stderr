@@ -1,1 +1,0 @@
-ERROR ../tests/cogm/errors/11-op-invalid-args.cogm:2:3: CM_TOKEN_TYPE_WORD(O): Number of arguments do not match op definition
