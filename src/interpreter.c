@@ -574,7 +574,10 @@ CMNode *cm_interpret_increment (CMContext *context, CMNode *node)
 
 	CMNode *entity = cm_interpret_entity(context, node->children[0]);
 
-	assert(cm_node_type_has_int_value(entity->type));
+	if (! cm_node_type_has_int_value(entity->type)) {
+		cm_syntax_error(node->children[0]->token, "CM_NODE_TYPE_INCREMENT only accepts integral arguments");
+	}
+
 	cm_int value = cm_node_int_value(entity);
 
 	value += 1;
@@ -593,7 +596,10 @@ CMNode *cm_interpret_decrement (CMContext *context, CMNode *node)
 
 	CMNode *entity = cm_interpret_entity(context, node->children[0]);
 
-	assert(cm_node_type_has_int_value(entity->type));
+	if (! cm_node_type_has_int_value(entity->type)) {
+		cm_syntax_error(node->children[0]->token, "CM_NODE_TYPE_DECREMENT only accepts integral arguments");
+	}
+
 	cm_int value = cm_node_int_value(entity);
 
 	value -= 1;

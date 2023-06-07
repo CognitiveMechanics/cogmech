@@ -1,0 +1,1 @@
+ERROR ../tests/cogm/errors/24-end-of-tokens.cogm:1:4: CM_TOKEN_TYPE_WORD(a): unexpected end of tokens

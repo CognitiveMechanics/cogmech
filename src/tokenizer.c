@@ -79,19 +79,23 @@ const char *cm_token_type_symbol (CMTokenType type)
 }
 
 
-void cm_syntax_error (CMToken token, const char *message)
+void  cm_syntax_error (CMToken token, const char *message)
 {
 	fflush(stdout);
 
 	if (! cm_sv_eq(token.value, CM_SV_NULL)) {
-		fprintf(stderr, "FAILURE %s:%zu:%zu: %s: got %s(%.*s)",
+		fprintf(stderr, "ERROR %s:%zu:%zu: %s(%.*s): %s",
 			token.loc.filename, token.loc.row + 1, token.loc.col + 1,
-			message, cm_readable_token_type(token.type),
-			(int) token.value.len, token.value.data);
+			 cm_readable_token_type(token.type),
+			(int) token.value.len, token.value.data,
+			message
+		);
 	} else {
-		fprintf(stderr, "FAILURE %s:%zu:%zu: %s: got %s",
+		fprintf(stderr, "ERROR %s:%zu:%zu: %s: %s",
 			token.loc.filename, token.loc.row + 1, token.loc.col + 1,
-			message, cm_readable_token_type(token.type));
+			cm_readable_token_type(token.type),
+			message
+		);
 	}
 
 	exit(CM_ERROR_EXIT_SYNTAX);
@@ -310,7 +314,8 @@ CMToken cm_tokenlist_shift (CMTokenList *list)
 CMToken cm_tokenlist_expect (CMTokenList *list, CMTokenType type)
 {
 	if (list->len < 1) {
-		assert(false && "cm_tokenlist_expect requires at least one value in the list");
+		CMToken last = list->tokens[list->cur - 1];
+		cm_syntax_error(last, "Unexpected end of tokens");
 	}
 
 	CMToken token = cm_tokenlist_shift(list);
@@ -320,6 +325,7 @@ CMToken cm_tokenlist_expect (CMTokenList *list, CMTokenType type)
 		const char *type_name = cm_readable_token_type(type);
 
 		snprintf(message, sizeof(message), "Expected %s", type_name);
+
 		cm_syntax_error(token, message);
 	}
 
@@ -390,6 +396,12 @@ bool cm_is_word (char c)
 }
 
 
+bool cm_is_not_space (char c)
+{
+	return (bool) ! isspace(c);
+}
+
+
 bool cm_is_num (char c)
 {
 	return (bool) isnumber(c) || c == '_';
@@ -449,11 +461,12 @@ CMTokenList cm_tokenize (const char *filename, CMStringView sv)
 				curr += 1;
 			}
 
+			col += quoted.value.len;
+
 			if (! terminated) {
+				quoted.value = cm_chop_left_len(&sv, curr);
 				cm_syntax_error(quoted, "Unterminated quote");
 			}
-
-			col += quoted.value.len;
 
 			// remove quotes
 			quoted.value.data = quoted.value.data + 1;
@@ -489,6 +502,7 @@ CMTokenList cm_tokenize (const char *filename, CMStringView sv)
 
 		} else {
 			CMToken unknown = cm_token(filename, row, col, CM_TOKEN_TYPE_UNKNOWN);
+			unknown.value = cm_chop_left_while(&sv, cm_is_not_space);
 			cm_syntax_error(unknown, "Invalid token");
 		}
 	}

@@ -1,0 +1,1 @@
+ERROR ../tests/cogm/errors/15-class-closing-bracket.cogm:1:10: CM_TOKEN_TYPE_ENDL: Expected CM_TOKEN_TYPE_SQ_BRACKET_OUT

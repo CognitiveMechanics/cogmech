@@ -1,0 +1,1 @@
+ERROR ../tests/cogm/errors/06-invalid-begin-statement.cogm:1:5: CM_TOKEN_TYPE_D_ARROW: Invalid begin of statement

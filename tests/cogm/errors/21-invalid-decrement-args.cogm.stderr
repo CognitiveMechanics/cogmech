@@ -1,0 +1,1 @@
+ERROR ../tests/cogm/errors/21-invalid-decrement-args.cogm:1:6: CM_TOKEN_TYPE_COMMA: Expected CM_TOKEN_TYPE_PAREN_OUT

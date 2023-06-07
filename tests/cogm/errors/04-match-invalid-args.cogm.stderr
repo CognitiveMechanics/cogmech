@@ -1,0 +1,1 @@
+ERROR ../tests/cogm/errors/04-match-invalid-args.cogm:1:3: CM_TOKEN_TYPE_PERCENT: match accepts exactly two arguments

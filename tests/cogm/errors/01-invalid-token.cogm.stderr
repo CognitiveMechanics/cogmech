@@ -1,0 +1,1 @@
+ERROR ../tests/cogm/errors/01-invalid-token.cogm:2:1: CM_TOKEN_TYPE_UNKNOWN(^): Invalid token

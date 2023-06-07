@@ -477,8 +477,7 @@ CMNode *cm_parse_transclude (CMTokenList *list)
 
 CMNode *cm_parse_match (CMTokenList *list)
 {
-	cm_tokenlist_shift(list); // shift %
-	CMToken first_token = cm_tokenlist_first(*list);
+	CMToken first_token = cm_tokenlist_shift(list);
 
 	CMNode *match = cm_parse_expr_list(list, CM_NODE_TYPE_MATCH, CM_TOKEN_TYPE_PAREN_IN, CM_TOKEN_TYPE_PAREN_OUT);
 	cm_node_set_token(match, first_token);
@@ -674,7 +673,7 @@ CMNode *cm_parse_dot (CMTokenList *list)
 		}
 
 		default: {
-			cm_syntax_error(next, "Expected word or in after CM_TOKEN_TYPE_DOT");
+			cm_syntax_error(next, "Expected word or int after CM_TOKEN_TYPE_DOT");
 		}
 	}
 
@@ -866,9 +865,9 @@ CMNode *cm_parse_op_def (CMTokenList *list)
 		CM_TOKEN_TYPE_PAREN_OUT
 	);
 
-	for (size_t i = 0; i < def->n_children; i++) {
-		if (def->children[i]->type != CM_NODE_TYPE_SYMBOL) {
-			cm_syntax_error(symbol_token, "All arguments in op definition must be symbols");
+	for (size_t i = 0; i < arglist->n_children; i++) {
+		if (arglist->children[i]->type != CM_NODE_TYPE_SYMBOL) {
+			cm_syntax_error(arglist->children[i]->token, "All arguments in op definition must be symbols");
 		}
 	}
 

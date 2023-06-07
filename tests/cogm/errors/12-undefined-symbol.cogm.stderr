@@ -1,0 +1,1 @@
+ERROR ../tests/cogm/errors/12-undefined-symbol.cogm:1:3: CM_TOKEN_TYPE_WORD(a): Undefined symbol

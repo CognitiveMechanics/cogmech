@@ -1,0 +1,1 @@
+ERROR ../tests/cogm/errors/02-transclude-invalid-args.cogm:1:3: CM_TOKEN_TYPE_WORD(T): Transclude accepts exactly 3 arguments

@@ -1,0 +1,1 @@
+ERROR ../tests/cogm/errors/18-invalid-increment.cogm:1:5: CM_TOKEN_TYPE_QUOTED(s): CM_NODE_TYPE_INCREMENT only accepts integral arguments

@@ -1612,7 +1612,7 @@ bool test_cm_parse_print (void)
 
 bool test_cm_parse (void)
 {
-	CMTokenList list = cm_tokenize_file("../tests/cogm/00-hello.cogm");
+	CMTokenList list = cm_tokenize_file("../tests/cogm/examples/00-hello.cogm");
 	CMNode *parsed = cm_parse(&list);
 
 	// root
