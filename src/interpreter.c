@@ -1,7 +1,6 @@
 
 
 #include <stdbool.h>
-#include <stdlib.h>
 #include <libgen.h>
 #include <string.h>
 
@@ -88,6 +87,7 @@ CMContext cm_context_clone (const CMContext context)
 {
 	CMContext new_context = (CMContext) {
 		.n_symbol_defs = context.n_symbol_defs,
+		.n_op_defs = context.n_op_defs,
 		.n_relation_defs = context.n_relation_defs,
 	};
 
@@ -190,9 +190,7 @@ void cm_context_force_def_symbol (CMContext *context, CMStringView name, CMNode 
 bool cm_context_has_op (CMContext *context, CMStringView name)
 {
 	for (size_t i = 0; i < context->n_op_defs; i++) {
-		CMOpDef def = context->op_defs[i];
-
-		if (cm_sv_eq(def.name, name)) {
+		if (cm_sv_eq(context->op_defs[0].name, name)) {
 			return true;
 		}
 	}
