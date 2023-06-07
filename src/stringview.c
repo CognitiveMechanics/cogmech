@@ -130,7 +130,7 @@ CMStringView cm_chop_left_while (CMStringView *sv, CMCharPredicate predicate)
 {
 	size_t chop_len = 0;
 
-	while (predicate(sv->data[chop_len])) {
+	while (chop_len <= sv->len && predicate(sv->data[chop_len])) {
 		chop_len++;
 	}
 

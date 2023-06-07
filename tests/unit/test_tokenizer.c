@@ -52,7 +52,7 @@ bool test_cm_tokenlist (void)
 {
 	CMTokenList list = cm_tokenlist();
 
-	if (list.len != 0) {
+	if (cm_tokenlist_len(list) != 0) {
 		cm_tokenlist_free(&list);
 		cm_test_error("List not empty\n");
 		return false;
@@ -85,7 +85,7 @@ bool test_cm_tokenlist_append_clear (void)
 	cm_tokenlist_append(&list, token1);
 	cm_tokenlist_append(&list, token2);
 
-	if (list.len != 2) {
+	if (cm_tokenlist_len(list) != 2) {
 		cm_tokenlist_free(&list);
 		cm_test_error("List contains incorrect number of elements\n");
 		return false;
@@ -105,13 +105,66 @@ bool test_cm_tokenlist_append_clear (void)
 
 	cm_tokenlist_clear(&list);
 
-	if (list.len != 0) {
+	if (cm_tokenlist_len(list) != 0) {
 		cm_tokenlist_free(&list);
 		cm_test_error("List did not clear\n");
 		return false;
 	}
 
 	cm_tokenlist_free(&list);
+
+	return true;
+}
+
+
+bool test_cm_tokenlist_len (void)
+{
+	CMTokenList list = cm_tokenlist();
+
+	CMToken token = cm_token(
+		"filename.cogm",
+		0,
+		1,
+		CM_TOKEN_TYPE_COLON
+	);
+
+	if (cm_tokenlist_len(list) != 0) {
+		cm_tokenlist_free(&list);
+		cm_test_error("Invalid tokenlist len\n");
+		return false;
+	}
+
+	cm_tokenlist_append(&list, token);
+
+	if (cm_tokenlist_len(list) != 1) {
+		cm_tokenlist_free(&list);
+		cm_test_error("Invalid tokenlist len\n");
+		return false;
+	}
+
+	cm_tokenlist_append(&list, token);
+
+	if (cm_tokenlist_len(list) != 2) {
+		cm_tokenlist_free(&list);
+		cm_test_error("Invalid tokenlist len\n");
+		return false;
+	}
+
+	cm_tokenlist_shift(&list);
+
+	if (cm_tokenlist_len(list) != 1) {
+		cm_tokenlist_free(&list);
+		cm_test_error("Invalid tokenlist len\n");
+		return false;
+	}
+
+	cm_tokenlist_shift(&list);
+
+	if (cm_tokenlist_len(list) != 0) {
+		cm_tokenlist_free(&list);
+		cm_test_error("Invalid tokenlist len\n");
+		return false;
+	}
 
 	return true;
 }
@@ -191,7 +244,7 @@ bool test_cm_tokenlist_get (void)
 	cm_tokenlist_append(&list, token1);
 	cm_tokenlist_append(&list, token2);
 
-	if (list.len != 2) {
+	if (cm_tokenlist_len(list) != 2) {
 		cm_tokenlist_free(&list);
 		cm_test_error("List contains incorrect number of elements\n");
 		return false;
@@ -217,7 +270,7 @@ bool test_cm_tokenlist_get (void)
 
 	cm_tokenlist_clear(&list);
 
-	if (list.len != 0) {
+	if (cm_tokenlist_len(list) != 0) {
 		cm_tokenlist_free(&list);
 		cm_test_error("List did not clear\n");
 		return false;
@@ -251,7 +304,7 @@ bool test_cm_tokenlist_clone (void)
 
 	CMTokenList clone = cm_tokenlist_clone(list);
 
-	if (clone.len != list.len) {
+	if (clone.len != cm_tokenlist_len(list)) {
 		cm_tokenlist_free(&list);
 		cm_tokenlist_free(&clone);
 		cm_test_error("List lengths are not equal\n");
@@ -450,7 +503,7 @@ bool test_cm_tokenlist_shift_expect (void)
 		return false;
 	}
 
-	if (list.len != 1) {
+	if (cm_tokenlist_len(list) != 1) {
 		cm_tokenlist_free(&list);
 		cm_test_error("Invalid list length after first shift\n");
 		return false;
@@ -470,7 +523,7 @@ bool test_cm_tokenlist_shift_expect (void)
 		return false;
 	}
 
-	if (list.len != 0) {
+	if (cm_tokenlist_len(list) != 0) {
 		cm_tokenlist_free(&list);
 		cm_test_error("Invalid list length after second shift\n");
 		return false;
@@ -516,13 +569,13 @@ bool test_cm_tokenize_file (void)
 	for (size_t i = 0; i < ARRAY_LEN(CM_FUNC_TEST_FILES); i++) {
 		CMTokenList list = cm_tokenize_file(CM_FUNC_TEST_FILES[i]);
 
-		if (list.len == 0) {
+		if (cm_tokenlist_len(list) == 0) {
 			cm_tokenlist_free(&list);
 			cm_test_error("No tokens read\n");
 			return false;
 		}
 
-		if (i == 0 && list.len != 15) {
+		if (i == 0 && cm_tokenlist_len(list) != 15) {
 			cm_tokenlist_free(&list);
 			cm_test_error("Invalid number of tokens read\n");
 			return false;
@@ -541,6 +594,7 @@ void test_cm_tokenizer (void)
 
 	cm_add_test(test_cm_token);
 	cm_add_test(test_cm_tokenlist);
+	cm_add_test(test_cm_tokenlist_len);
 	cm_add_test(test_cm_tokenlist_clone);
 	cm_add_test(test_cm_token_eq);
 	cm_add_test(test_cm_tokenlist_like);

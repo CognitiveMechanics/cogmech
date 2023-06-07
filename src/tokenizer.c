@@ -219,7 +219,7 @@ bool cm_token_eq (CMToken token1, CMToken token2)
 
 CMToken cm_tokenlist_get (CMTokenList list, size_t i)
 {
-	if (list.len < 1 || i > list.len - 1) {
+	if (cm_tokenlist_len(list) < 1 || i > cm_tokenlist_len(list) - 1) {
 		assert(false && "Attempted to access unset index with cm_tokenlist_get");
 	}
 
@@ -229,7 +229,7 @@ CMToken cm_tokenlist_get (CMTokenList list, size_t i)
 
 CMToken cm_tokenlist_first (CMTokenList list)
 {
-	if (list.len < 1) {
+	if (cm_tokenlist_len(list) < 1) {
 		assert(false && "Attempted to access empty list with cm_tokenlist_first");
 	}
 
@@ -239,11 +239,17 @@ CMToken cm_tokenlist_first (CMTokenList list)
 
 CMToken cm_tokenlist_last (CMTokenList list)
 {
-	if (list.len < 1) {
+	if (cm_tokenlist_len(list) < 1) {
 		assert(false && "Attempted to access empty list with cm_tokenlist_last");
 	}
 
-	return cm_tokenlist_get(list, list.len - 1);
+	return cm_tokenlist_get(list, cm_tokenlist_len(list) - 1);
+}
+
+
+size_t cm_tokenlist_len (CMTokenList list)
+{
+	return list.len - list.cur;
 }
 
 
@@ -251,7 +257,7 @@ CMToken cm_tokenlist_last (CMTokenList list)
 
 bool _cm_tokenlist_like (CMTokenList list, const CMTokenType types[], size_t types_len)
 {
-	if (list.len < types_len) {
+	if (cm_tokenlist_len(list) < types_len) {
 		return false;
 	}
 
@@ -261,7 +267,7 @@ bool _cm_tokenlist_like (CMTokenList list, const CMTokenType types[], size_t typ
 		while (cm_tokenlist_get(list, token_i).type == CM_TOKEN_TYPE_ENDL) {
 			token_i += 1;
 
-			if (token_i >= list.len) {
+			if (token_i >= cm_tokenlist_len(list)) {
 				return false;
 			}
 		}
@@ -270,9 +276,13 @@ bool _cm_tokenlist_like (CMTokenList list, const CMTokenType types[], size_t typ
 			return false;
 		}
 
+		if (i == types_len - 1) {
+			break;
+		}
+
 		token_i += 1;
 
-		if (token_i >= list.len) {
+		if (token_i >= cm_tokenlist_len(list)) {
 			return false;
 		}
 	}
@@ -300,14 +310,13 @@ bool cm_tokenlist_first_like (CMTokenList list, CMTokenType type)
 
 CMToken cm_tokenlist_shift (CMTokenList *list)
 {
-	if (list->len < 1) {
+	if (cm_tokenlist_len(*list) < 1) {
 		assert(false && "Attempted to shift empty list");
 	}
 
 	CMToken token = cm_tokenlist_first(*list);
 
 	list->cur += 1;
-	list->len -= 1;
 
 	return token;
 }
@@ -315,7 +324,7 @@ CMToken cm_tokenlist_shift (CMTokenList *list)
 
 CMToken cm_tokenlist_expect (CMTokenList *list, CMTokenType type)
 {
-	if (list->len < 1) {
+	if (cm_tokenlist_len(*list) < 1) {
 		CMToken last = list->tokens[list->cur - 1];
 		cm_syntax_error(last, "Unexpected end of tokens");
 	}
@@ -337,7 +346,7 @@ CMToken cm_tokenlist_expect (CMTokenList *list, CMTokenType type)
 
 bool cm_tokenlist_empty (CMTokenList list)
 {
-	return list.len == 0;
+	return cm_tokenlist_len(list) == 0;
 }
 
 
@@ -351,7 +360,7 @@ void cm_tokenlist_skip_endl (CMTokenList *list)
 
 void cm_print_tokenlist (CMTokenList list)
 {
-	for (size_t i = 0; i < list.len; i++) {
+	for (size_t i = 0; i < cm_tokenlist_len(list); i++) {
 		cm_print_token(cm_tokenlist_get(list, i));
 	}
 }
@@ -368,17 +377,18 @@ void cm_tokenlist_realloc (CMTokenList *list)
 
 void cm_tokenlist_append (CMTokenList *list, CMToken token)
 {
-	if (list->len + list->cur + 1 > list->cap) {
+	if (list->len + 1 > list->cap) {
 		cm_tokenlist_realloc(list);
 	}
 
-	list->tokens[list->cur + list->len] = token;
+	list->tokens[list->len] = token;
 	list->len = list->len + 1;
 }
 
 
 void cm_tokenlist_clear (CMTokenList *list)
 {
+	list->cur = 0;
 	list->len = 0;
 }
 
@@ -513,7 +523,6 @@ CMTokenList cm_tokenize (const char *filename, CMStringView sv)
 }
 
 
-// TODO: test
 CMTokenList cm_tokenize_file (const char *filename)
 {
 	return cm_tokenize(

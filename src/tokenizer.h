@@ -92,6 +92,7 @@ bool cm_token_eq (CMToken token1, CMToken token2);
 CMToken cm_tokenlist_get (CMTokenList list, size_t i);
 CMToken cm_tokenlist_first (CMTokenList list);
 CMToken cm_tokenlist_last (CMTokenList list);
+size_t cm_tokenlist_len (CMTokenList list);
 
 #define cm_tokenlist_like(list, types) _cm_tokenlist_like(list, types, ARRAY_LEN(types))
 bool _cm_tokenlist_like (CMTokenList list, const CMTokenType types[], size_t types_len);

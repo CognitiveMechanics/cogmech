@@ -1314,11 +1314,25 @@ bool test_cm_parse_relation_def (void)
 
 	symbol.value = cm_sv("a");
 
+	CMToken endl = cm_token(
+		"filename.cogm",
+		0,
+		0,
+		CM_TOKEN_TYPE_ENDL
+	);
+
 	CMToken colon = cm_token(
 		"filename.cogm",
 		0,
 		0,
 		CM_TOKEN_TYPE_COLON
+	);
+
+	CMToken lt = cm_token(
+		"filename.cogm",
+		0,
+		0,
+		CM_TOKEN_TYPE_LT
 	);
 
 	CMToken state = cm_token(
@@ -1329,6 +1343,13 @@ bool test_cm_parse_relation_def (void)
 	);
 
 	state.value = cm_sv("s0");
+
+	CMToken gt = cm_token(
+		"filename.cogm",
+		0,
+		0,
+		CM_TOKEN_TYPE_GT
+	);
 
 	CMToken op = cm_token(
 		"filename.cogm",
@@ -1348,9 +1369,17 @@ bool test_cm_parse_relation_def (void)
 
 	CMTokenList list = cm_tokenlist();
 	cm_tokenlist_append(&list, symbol);
+	cm_tokenlist_append(&list, endl);
 	cm_tokenlist_append(&list, colon);
+	cm_tokenlist_append(&list, endl);
+	cm_tokenlist_append(&list, lt);
+	cm_tokenlist_append(&list, endl);
 	cm_tokenlist_append(&list, state);
+	cm_tokenlist_append(&list, endl);
+	cm_tokenlist_append(&list, gt);
+	cm_tokenlist_append(&list, endl);
 	cm_tokenlist_append(&list, op);
+	cm_tokenlist_append(&list, endl);
 	cm_tokenlist_append(&list, literal);
 
 	CMNode *parsed = cm_parse_relation_def(&list);
@@ -1370,12 +1399,12 @@ bool test_cm_parse_relation_def (void)
 		return false;
 	}
 
-	if (parsed->children[1]->type != CM_NODE_TYPE_SYMBOL) {
+	if (parsed->children[1]->type != CM_NODE_TYPE_COMPOSE) {
 		cm_test_error("invalid state node type\n");
 		return false;
 	}
 
-	if (! cm_sv_eq(parsed->children[1]->value, cm_sv("s0"))) {
+	if (! cm_sv_eq(parsed->children[1]->children[0]->value, cm_sv("s0"))) {
 		cm_test_error("invalid state node value\n");
 		return false;
 	}

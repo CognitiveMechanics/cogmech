@@ -78,8 +78,6 @@ static const CMTokenType CM_FMT_RELATION[] = {
 static const CMTokenType CM_FMT_RELATION_ALIASED[] = {
 	CM_TOKEN_TYPE_WORD,
 	CM_TOKEN_TYPE_COLON,
-	CM_TOKEN_TYPE_WORD,
-	CM_TOKEN_TYPE_D_ARROW,
 };
 
 static const CMTokenType CM_FMT_OP_START[] = {
@@ -458,7 +456,7 @@ CMNode *cm_parse_transclude (CMTokenList *list)
 
 	assert(op.type == CM_TOKEN_TYPE_WORD);
 	assert(cm_sv_eq(op.value, cm_sv(cm_node_type_word(CM_NODE_TYPE_TRANSCLUDE))));
-	assert(list->len >= 4);
+	assert(cm_tokenlist_len(*list) >= 4);
 
 	CMNode *new_node = cm_parse_expr_list(list, CM_NODE_TYPE_TRANSCLUDE, CM_TOKEN_TYPE_PAREN_IN, CM_TOKEN_TYPE_PAREN_OUT);
 	cm_node_set_token(new_node, op);
@@ -694,16 +692,14 @@ CMNode *cm_parse_word (CMTokenList *list)
 		return cm_parse_builtin(list);
 	}
 
-	if (list->len > 1) {
+	if (cm_tokenlist_len(*list) > 1) {
 		CMToken next_token = cm_tokenlist_get(*list, 1);
 
 		if (next_token.type == CM_TOKEN_TYPE_SQ_BRACKET_IN) {
 			return cm_parse_extract(list);
+		} else if (next_token.type == CM_TOKEN_TYPE_PAREN_IN) {
+			return cm_parse_op_invoke(list);
 		}
-	}
-
-	if (cm_tokenlist_like(*list, CM_FMT_OP_START)) {
-		return cm_parse_op_invoke(list);
 	}
 
 	cm_tokenlist_shift(list); // shift word, already in `token`
@@ -743,14 +739,6 @@ CMNode *cm_parse_expr (CMTokenList *list)
 	CMToken token = cm_tokenlist_first(*list);
 
 	switch (token.type) {
-		case CM_TOKEN_TYPE_WORD: {
-			return cm_parse_word(list);
-		}
-
-		case CM_TOKEN_TYPE_INT: {
-			return cm_parse_int(list);
-		}
-
 		case CM_TOKEN_TYPE_DOT: {
 			return cm_parse_dot(list);
 		}
@@ -813,6 +801,14 @@ CMNode *cm_parse_expr (CMTokenList *list)
 			cm_node_set_token(expr, token);
 
 			return expr;
+		}
+
+		case CM_TOKEN_TYPE_WORD: {
+			return cm_parse_word(list);
+		}
+
+		case CM_TOKEN_TYPE_INT: {
+			return cm_parse_int(list);
 		}
 
 		default: {
@@ -900,21 +896,23 @@ CMNode *cm_parse_relation_def (CMTokenList *list)
 	CMNode *relation = cm_node(CM_NODE_TYPE_RELATION_DEF);
 	cm_node_set_token(relation, start);
 
-	CMNode *state = cm_parse_expr(list);
+	cm_tokenlist_skip_endl(list);
+
+	CMNode *state = cm_parse_word(list);
 	cm_node_append_child(relation, state);
+	cm_tokenlist_skip_endl(list);
 
 	if (is_aliased_relation) {
 		cm_tokenlist_expect(list, CM_TOKEN_TYPE_COLON); // discard :
-
-		CMToken word = cm_tokenlist_expect(list, CM_TOKEN_TYPE_WORD);
-		CMNode *symbol = cm_node_symbol(word.value);
-		cm_node_set_token(symbol, word);
-		cm_node_append_child(relation, symbol);
+		CMNode *expr = cm_parse_expr(list);
+		cm_node_append_child(relation, expr);
 	} else {
 		cm_node_append_child(relation, cm_node_null());
 	}
 
+	cm_tokenlist_skip_endl(list);
 	cm_tokenlist_expect(list, CM_TOKEN_TYPE_D_ARROW); // discard =>
+	cm_tokenlist_skip_endl(list);
 
 	CMNode *expr = cm_parse_expr(list);
 	cm_node_append_child(relation, expr);
