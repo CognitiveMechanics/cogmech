@@ -8,5 +8,7 @@
 
 
 char *cm_read_file_to_cstr (const char *filename);
+void cm_overwrite_file (const char* filename, char* content);
+
 
 #endif

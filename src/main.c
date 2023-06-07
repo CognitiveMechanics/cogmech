@@ -4,6 +4,7 @@
 #include <string.h>
 
 #include "file.h"
+#include "util.h"
 #include "tokenizer.h"
 #include "parser.h"
 #include "interpreter.h"
@@ -11,7 +12,6 @@
 #define CM_EXIT_USAGE 1
 
 
-// TODO: execution test suite
 // TODO: include files
 // TODO: comments
 // TODO: enforce end lines
@@ -41,20 +41,7 @@ void cm_print_usage (void)
 }
 
 
-const char *cm_shift_arg (int *argc, const char ***argv)
-{
-	assert((*argc) > 0);
-
-	const char *value = (*argv)[0];
-
-	(*argc) -= 1;
-	(*argv) += 1;
-
-	return value;
-}
-
-
-int main (int argc, const char **argv)
+int main (int argc, char **argv)
 {
 	cm_shift_arg(&argc, &argv);
 

@@ -3,10 +3,11 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <string.h>
-#include <assert.h>
 #include <stdbool.h>
 
 #include "func.h"
+#include "../../src/file.h"
+#include "../../src/util.h"
 
 
 void cm_run_func_test (char *filename, char *buf_stdout, char *buf_stderr, size_t buf_size) {
@@ -80,38 +81,86 @@ void cm_run_func_test (char *filename, char *buf_stdout, char *buf_stderr, size_
 }
 
 
-char *cm_shift_arg (int *argc, char ***argv)
+bool cm_run_func_tests(size_t n_files, char **filenames)
 {
-	assert((*argc) > 0);
+	bool success = true;
 
-	char *value = (*argv)[0];
+	char buf_stdout[CM_FUNC_TEST_BUFFER_SIZE];
+	char buf_stderr[CM_FUNC_TEST_BUFFER_SIZE];
 
-	(*argc) -= 1;
-	(*argv) += 1;
+	for (size_t i = 0; i < n_files; i++) {
+		char *filename = filenames[i];char out_filename[CM_FILENAME_BUFFER_SIZE];
+		char err_filename[CM_FILENAME_BUFFER_SIZE];
 
-	return value;
-}
+		snprintf(out_filename, CM_FILENAME_BUFFER_SIZE, "%s.stdout", filename);
+		snprintf(err_filename, CM_FILENAME_BUFFER_SIZE, "%s.stderr", filename);
 
+		if (! cm_str_ends_with(filename, ".cogm")) {
+			continue;
+		}
 
-void cm_overwrite_file (const char* filename, char* content) {
-	FILE* file = fopen(filename, "w");
+		cm_run_func_test(filename, buf_stdout, buf_stderr, CM_FILENAME_BUFFER_SIZE);
 
-	assert(file != NULL && "Failed to open the file.\n");
-	fputs(content, file);
+		char *expected_out = cm_read_file_to_cstr(out_filename);
+		char *expected_err = cm_read_file_to_cstr(err_filename);
 
-	fclose(file);
-}
+		bool out_failed = (strcmp(buf_stdout, expected_out) != 0);
+		bool err_failed = (strcmp(buf_stdout, expected_out) != 0);
 
+		if (! out_failed && ! err_failed) {
+			printf("%s passed\n", filename);
+			continue;
+		}
 
-bool cm_str_ends_with(const char* str, const char* suffix) {
-	size_t str_length = strlen(str);
-	size_t suffix_length = strlen(suffix);
+		success = false;
 
-	if (suffix_length > str_length) {
-		return false;
+		if (out_failed) {
+			fprintf(
+				stderr,
+				"%s stdout failed\n\nExpected: %s\n\nActual:%s\n\n",
+				filename,
+				expected_out,
+				buf_stdout
+			);
+		}
+
+		if (err_failed) {
+			fprintf(
+				stderr,
+				"%s stdout failed\n\nExpected: %s\n\nActual:%s\n\n",
+				filename,
+				expected_err,
+				buf_stderr
+			);
+		}
 	}
 
-	const char* str_end = str + (str_length - suffix_length);
+	return success;
+}
 
-	return strcmp(str_end, suffix) == 0;
+
+void cm_update_func_tests(size_t n_files, char **filenames)
+{
+	char buf_stdout[CM_FUNC_TEST_BUFFER_SIZE];
+	char buf_stderr[CM_FUNC_TEST_BUFFER_SIZE];
+
+	for (size_t i = 0; i < n_files; i++) {
+		char *filename = filenames[i];char out_filename[CM_FILENAME_BUFFER_SIZE];
+		char err_filename[CM_FILENAME_BUFFER_SIZE];
+
+		snprintf(out_filename, CM_FILENAME_BUFFER_SIZE, "%s.stdout", filename);
+		snprintf(err_filename, CM_FILENAME_BUFFER_SIZE, "%s.stderr", filename);
+
+		if (! cm_str_ends_with(filename, ".cogm")) {
+			continue;
+		}
+
+		cm_run_func_test(filename, buf_stdout, buf_stderr, CM_FILENAME_BUFFER_SIZE);
+
+		printf("Writing %s stdout to %s\n", filename, out_filename);
+		printf("Writing %s stderr to %s\n", filename, err_filename);
+
+		cm_overwrite_file(out_filename, buf_stdout);
+		cm_overwrite_file(err_filename, buf_stderr);
+	}
 }

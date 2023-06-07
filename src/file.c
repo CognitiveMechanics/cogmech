@@ -26,3 +26,14 @@ char *cm_read_file_to_cstr (const char *filename)
 
 	return str;
 }
+
+
+void cm_overwrite_file (const char* filename, char* content)
+{
+	FILE* file = fopen(filename, "w");
+
+	assert(file != NULL && "Failed to open the file.\n");
+	fputs(content, file);
+
+	fclose(file);
+}

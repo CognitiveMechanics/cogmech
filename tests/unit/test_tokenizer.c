@@ -5,6 +5,7 @@
 #include "unit.h"
 #include "test_tokenizer.h"
 #include "../../src/tokenizer.h"
+#include "../func/func.h"
 
 
 bool test_cm_token (void)
@@ -512,23 +513,8 @@ bool test_cm_tokenlist_empty (void)
 
 bool test_cm_tokenize_file (void)
 {
-	const char *files[] = {
-		"../tests/cogm/00-hello.cogm",
-		"../tests/cogm/01-silent.cogm",
-		"../tests/cogm/02-extract.cogm",
-		"../tests/cogm/03-transclude.cogm",
-		"../tests/cogm/04-match.cogm",
-		"../tests/cogm/05-classes.cogm",
-		"../tests/cogm/06-dot.cogm",
-		"../tests/cogm/07-keys.cogm",
-		"../tests/cogm/08-relations.cogm",
-		"../tests/cogm/09-operations.cogm",
-		"../tests/cogm/10-integers.cogm",
-		"../tests/cogm/11-increment-decrement.cogm",
-	};
-
-	for (size_t i = 0; i < ARRAY_LEN(files); i++) {
-		CMTokenList list = cm_tokenize_file(files[i]);
+	for (size_t i = 0; i < ARRAY_LEN(CM_FUNC_TEST_FILES); i++) {
+		CMTokenList list = cm_tokenize_file(CM_FUNC_TEST_FILES[i]);
 
 		if (list.len == 0) {
 			cm_tokenlist_free(&list);
