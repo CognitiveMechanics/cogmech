@@ -475,7 +475,7 @@ CMTokenList cm_tokenize (const char *filename, CMStringView sv)
 
 			col += quoted.value.len;
 
-			if (! terminated) {
+			if (!terminated) {
 				quoted.value = cm_chop_left_len(&sv, curr);
 				cm_syntax_error(quoted, "Unterminated quote");
 			}
@@ -485,6 +485,19 @@ CMTokenList cm_tokenize (const char *filename, CMStringView sv)
 			quoted.value.len = quoted.value.len - 2;
 
 			cm_tokenlist_append(&list, quoted);
+
+		} else if (cm_starts_with(sv, cm_sv("//"))) {
+			size_t curr = 2;
+
+			while (curr < sv.len) {
+				if (sv.data[curr] == '\n') {
+					break;
+				}
+
+				curr += 1;
+			}
+
+			cm_chop_left_len(&sv, curr);
 
 		} else if (isalpha(sv.data[0])) {
 			CMToken word = cm_token(filename, row, col, CM_TOKEN_TYPE_WORD);

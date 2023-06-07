@@ -1,0 +1,3 @@
+: "before" // end of line comment
+// full line comment : "test this gets ignored"
+: "after" // end of file comment
