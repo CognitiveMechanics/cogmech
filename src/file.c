@@ -9,7 +9,10 @@ char *cm_read_file_to_cstr (const char *filename)
 	FILE *f = fopen(filename, "rb");
 	char *str;
 
-	assert(f && "File could not be opened for reading");
+	if (! f) {
+		fprintf(stderr, "File could not be opened for reading: %s\n", filename);
+		exit(2);
+	}
 
 	fseek(f, 0, SEEK_END);
 	length = ftell(f);

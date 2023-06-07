@@ -2,6 +2,8 @@
 
 #include <stdbool.h>
 #include <stdlib.h>
+#include <libgen.h>
+#include <string.h>
 
 #include "stringview.h"
 #include "parser.h"
@@ -853,9 +855,32 @@ void cm_interpret_print (CMContext *context, CMNode *node)
 }
 
 
+void cm_interpret_include (CMContext *context, CMNode *node)
+{
+	assert(node->type == CM_NODE_TYPE_INCLUDE);
+	assert(node->n_children == 1);
+	assert(node->children[0] != NULL);
+	assert(node->children[0]->type == CM_NODE_TYPE_LITERAL);
+
+	CMNode *literal = node->children[0];
+	CMStringView path = literal->value;
+	char filename[255];
+
+	if (cm_starts_with(path, cm_sv("/"))) {
+		strcat(filename, cm_sv_to_cstr(literal->value));
+	} else {
+		strcat(filename, dirname((char *)node->token.loc.filename));
+		strcat(filename, "/");
+		strcat(filename, cm_sv_to_cstr(literal->value));
+	}
+
+	cm_interpret_file(context, filename);
+}
+
+
 void cm_interpret (CMContext *context, CMNode *ast)
 {
-	assert(CM_NODE_TYPE_COUNT == 24);
+	assert(CM_NODE_TYPE_COUNT == 25);
 
 	assert(ast->type == CM_NODE_TYPE_ROOT);
 
@@ -883,9 +908,22 @@ void cm_interpret (CMContext *context, CMNode *ast)
 				break;
 			}
 
+			case CM_NODE_TYPE_INCLUDE: {
+				cm_interpret_include(context, stmt);
+				break;
+			}
+
 			default: {
 				assert(false && "Invalid statement type");
 			}
 		}
 	}
+}
+
+
+void cm_interpret_file (CMContext *context, const char *filename)
+{
+	CMTokenList tokens = cm_tokenize_file(filename);
+	CMNode *ast = cm_parse(&tokens);
+	cm_interpret(context, ast);
 }

@@ -32,6 +32,7 @@ static const char *CM_NODE_TYPES_READABLE[CM_NODE_TYPE_COUNT] = {
 	"CM_NODE_TYPE_OP_INVOKE",
 	"CM_NODE_TYPE_INCREMENT",
 	"CM_NODE_TYPE_DECREMENT",
+	"CM_NODE_TYPE_INCLUDE",
 };
 
 
@@ -55,6 +56,7 @@ static const char* CM_NODE_TYPE_WORDS[CM_NODE_TYPE_COUNT] = {
 	"key",
 	NULL,
 	"R",
+	NULL,
 	NULL,
 	NULL,
 	NULL,
@@ -725,6 +727,16 @@ CMNode *cm_parse_int (CMTokenList *list)
 }
 
 
+CMNode *cm_parse_literal (CMTokenList *list)
+{
+	CMToken token = cm_tokenlist_expect(list, CM_TOKEN_TYPE_QUOTED);
+	CMNode *expr = cm_node_literal(token.value);
+	cm_node_set_token(expr, token);
+
+	return expr;
+}
+
+
 CMNode *cm_parse_expr (CMTokenList *list)
 {
 	cm_tokenlist_skip_endl(list);
@@ -768,11 +780,7 @@ CMNode *cm_parse_expr (CMTokenList *list)
 		}
 
 		case CM_TOKEN_TYPE_QUOTED: {
-			cm_tokenlist_shift(list);
-			CMNode *expr = cm_node_literal(token.value);
-			cm_node_set_token(expr, token);
-
-			return expr;
+			return cm_parse_literal(list);
 		}
 
 		case CM_TOKEN_TYPE_PROXY: {
@@ -929,10 +937,24 @@ CMNode *cm_parse_print (CMTokenList *list)
 }
 
 
+CMNode *cm_parse_include (CMTokenList *list)
+{
+	CMToken start = cm_tokenlist_shift(list);
+	CMNode *node = cm_node(CM_NODE_TYPE_INCLUDE);
+
+	cm_node_set_token(node, start);
+
+	CMNode *literal = cm_parse_literal(list);
+	cm_node_append_child(node, literal);
+
+	return node;
+}
+
+
 CMNode *cm_parse (CMTokenList *list)
 {
-	assert(CM_NODE_TYPE_COUNT == 24);
-	assert(CM_TOKEN_TYPE_COUNT == 25);
+	assert(CM_NODE_TYPE_COUNT == 25);
+	assert(CM_TOKEN_TYPE_COUNT == 26);
 
 	CMNode *root = cm_node(CM_NODE_TYPE_ROOT);
 
@@ -983,6 +1005,15 @@ CMNode *cm_parse (CMTokenList *list)
 				cm_node_append_child(
 					root,
 					cm_parse_print(list)
+				);
+
+				break;
+			}
+
+			case CM_TOKEN_TYPE_INCLUDE: {
+				cm_node_append_child(
+					root,
+					cm_parse_include(list)
 				);
 
 				break;

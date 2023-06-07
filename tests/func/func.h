@@ -22,6 +22,7 @@ static char *CM_FUNC_TEST_FILES[] = {
 	"../tests/cogm/examples/09-operations.cogm",
 	"../tests/cogm/examples/10-integers.cogm",
 	"../tests/cogm/examples/11-increment-decrement.cogm",
+	"../tests/cogm/examples/12-include.cogm",
 };
 
 

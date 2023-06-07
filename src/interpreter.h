@@ -79,7 +79,9 @@ void cm_interpret_symbol_def (CMContext *context, CMNode *node);
 void cm_interpret_op_def (CMContext *context, CMNode *node);
 void cm_interpret_relation_def (CMContext *context, CMNode *node);
 void cm_interpret_print (CMContext *context, CMNode *node);
+void cm_interpret_include (CMContext *context, CMNode *node);
 
+void cm_interpret_file (CMContext *context, const char *filename);
 void cm_interpret (CMContext *context, CMNode *ast);
 
 

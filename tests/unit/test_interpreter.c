@@ -818,6 +818,21 @@ bool test_cm_interpret (void)
 }
 
 
+bool test_cm_interpret_file (void)
+{
+	CMTokenList *filenames[] = {
+		"../tests/cogm/examples/01-silent.cogm",
+	};
+
+	for (size_t i = 0; i < ARRAY_LEN(filenames); i++) {
+		CMContext context = cm_context();
+		cm_interpret_file(&context, filenames[i]);
+	}
+
+	return true;
+}
+
+
 void test_cm_interpreter (void)
 {
 	printf("Loading interpreter tests...\n");
@@ -844,5 +859,6 @@ void test_cm_interpreter (void)
 	cm_add_test(test_cm_interpret_op_def);
 	cm_add_test(test_cm_interpret_op_invoke);
 	cm_add_test(test_cm_interpret);
+	cm_add_test(test_cm_interpret_file);
 }
 
