@@ -1,1 +1,1 @@
-FAILURE ../tests/cogm/errors/00-unterminated-quote.cogm:1:3: CM_TOKEN_TYPE_QUOTED("asd): Unterminated quote
+ERROR ../tests/cogm/errors/00-unterminated-quote.cogm:1:3: CM_TOKEN_TYPE_QUOTED("asd): Unterminated quote

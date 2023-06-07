@@ -105,7 +105,7 @@ bool cm_run_func_tests(size_t n_files, char **filenames)
 		char *expected_err = cm_read_file_to_cstr(err_filename);
 
 		bool out_failed = (strcmp(buf_stdout, expected_out) != 0);
-		bool err_failed = (strcmp(buf_stdout, expected_out) != 0);
+		bool err_failed = (strcmp(buf_stderr, expected_err) != 0);
 
 		if (! out_failed && ! err_failed) {
 			printf("%s passed\n", filename);
@@ -117,7 +117,7 @@ bool cm_run_func_tests(size_t n_files, char **filenames)
 		if (out_failed) {
 			fprintf(
 				stderr,
-				"%s stdout failed\n\nExpected: %s\n\nActual:%s\n\n",
+				"%s stdout failed\nExpected: %s\nActual:%s\n",
 				filename,
 				expected_out,
 				buf_stdout
@@ -127,7 +127,7 @@ bool cm_run_func_tests(size_t n_files, char **filenames)
 		if (err_failed) {
 			fprintf(
 				stderr,
-				"%s stdout failed\n\nExpected: %s\n\nActual:%s\n\n",
+				"%s stderr failed\nExpected: %s\nActual:%s\n",
 				filename,
 				expected_err,
 				buf_stderr
