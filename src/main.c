@@ -12,8 +12,6 @@
 #define CM_EXIT_USAGE 1
 
 
-// TODO: comments
-// TODO: enforce end lines
 // TODO: implement universal machine
 
 

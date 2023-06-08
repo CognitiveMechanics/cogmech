@@ -957,6 +957,7 @@ CMNode *cm_parse (CMTokenList *list)
 	CMNode *root = cm_node(CM_NODE_TYPE_ROOT);
 
 	while (! cm_tokenlist_empty(*list)) {
+		cm_tokenlist_skip_endl(list);
 		CMToken token = cm_tokenlist_first(*list);
 
 		switch (token.type) {
@@ -1017,14 +1018,14 @@ CMNode *cm_parse (CMTokenList *list)
 				break;
 			}
 
-			case CM_TOKEN_TYPE_ENDL: {
-				cm_tokenlist_skip_endl(list);
-				break;
-			}
-
 			default: {
 				cm_syntax_error(token, "Invalid begin of statement");
 			}
+		}
+
+		if (! cm_tokenlist_empty(*list)) {
+			cm_tokenlist_expect(list, CM_TOKEN_TYPE_ENDL);
+			cm_tokenlist_skip_endl(list);
 		}
 	}
 
