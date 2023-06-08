@@ -16,6 +16,6 @@ s1 : add_s([*],  not0,          [])
 s2 : add_s([*],  *0,  [])
   => add_s([],   [],  s2["sum"])
 
-add(a, b) -> R(add_s(4, 6, []))["sum"]
+add(a, b) -> R(add_s(a, b, []))["sum"]
 
 : add(1, 2)
