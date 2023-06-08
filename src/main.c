@@ -13,6 +13,7 @@
 
 
 // TODO: add cm_tokenlist_expect message
+// TODO: CLI error messages
 // TODO: implement universal machine
 // TODO: add documentation
 
