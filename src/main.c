@@ -12,7 +12,9 @@
 #define CM_EXIT_USAGE 1
 
 
+// TODO: add cm_tokenlist_expect message
 // TODO: implement universal machine
+// TODO: add documentation
 
 
 const char* cm_get_usage (void)
