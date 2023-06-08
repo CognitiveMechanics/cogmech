@@ -1,0 +1,1 @@
+ERROR ../cogm/errors/25-unterminated-statement.cogm:1:8: CM_TOKEN_TYPE_WORD(b): Expected CM_TOKEN_TYPE_ENDL
