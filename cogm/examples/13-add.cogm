@@ -1,19 +1,21 @@
 
-not0 := 1
+@include "../lib/math.cogm"
 
-add(a, b, r) -> <
+add_s(a, b, r) -> <
   <"op1", a>,
   <"op2", b>,
   <"sum", r>
 >
 
-s0 : add([], [], [*])
-  => add([], s0["op1"], s0["op2"])
+s0 : add_s([],  [],         [*])
+  => add_s([],  s0["op1"],  s0["op2"])
 
-s1 : add([*], not0, [])
-  => add([], -(s1["op2"]), +(s1["sum"]))
+s1 : add_s([*],  not0,          [])
+  => add_s([],   -(s1["op2"]),  +(s1["sum"]))
 
-s2 : add([*], *0, [])
-  => add([], [], s2["sum"])
+s2 : add_s([*],  *0,  [])
+  => add_s([],   [],  s2["sum"])
 
-: R(add(4, 6, []))
+add(a, b) -> R(add_s(4, 6, []))["sum"]
+
+: add(1, 2)

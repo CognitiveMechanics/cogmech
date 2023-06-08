@@ -190,7 +190,9 @@ void cm_context_force_def_symbol (CMContext *context, CMStringView name, CMNode 
 bool cm_context_has_op (CMContext *context, CMStringView name)
 {
 	for (size_t i = 0; i < context->n_op_defs; i++) {
-		if (cm_sv_eq(context->op_defs[0].name, name)) {
+		CMOpDef def = context->op_defs[i];
+
+		if (cm_sv_eq(def.name, name)) {
 			return true;
 		}
 	}

@@ -85,7 +85,7 @@ CMNode *cm_parse_expr (CMTokenList *list);
 CMNode *cm_parse_increment (CMTokenList *list);
 CMNode *cm_parse_decrement (CMTokenList *list);
 CMNode *cm_parse_expr_list (CMTokenList *list, CMNodeType node_type, CMTokenType start_token_type, CMTokenType end_token_type);
-CMNode *cm_parse_extract (CMTokenList *list);
+CMNode *cm_parse_extract (CMNode *subject, CMTokenList *list);
 CMNode *cm_parse_transclude (CMTokenList *list);
 CMNode *cm_parse_match (CMTokenList *list);
 CMNode *cm_parse_eval (CMTokenList *list);

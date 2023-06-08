@@ -455,13 +455,9 @@ bool test_cm_parse_extract (void)
 {
 	CMTokenList list = cm_tokenlist();
 
+	CMNode *symbol = cm_node_symbol(cm_sv("symbol"));
+
 	CMToken tokens[] = {
-		cm_token(
-			"filename.cogm",
-			0,
-			0,
-			CM_TOKEN_TYPE_WORD
-		),
 		cm_token(
 			"filename.cogm",
 			0,
@@ -486,7 +482,7 @@ bool test_cm_parse_extract (void)
 		cm_tokenlist_append(&list, tokens[i]);
 	}
 
-	CMNode *composition = cm_parse_extract(&list);
+	CMNode *composition = cm_parse_extract(symbol, &list);
 
 	if (composition->type != CM_NODE_TYPE_EXTRACT) {
 		cm_test_error("invalid extract expression\n");

@@ -13,7 +13,6 @@
 
 
 // TODO: add cm_tokenlist_expect message
-// TODO: CLI error messages
 // TODO: implement universal machine
 // TODO: add documentation
 
@@ -50,6 +49,11 @@ int main (int argc, char **argv)
 	}
 
 	const char *subcommand = cm_shift_arg(&argc, &argv);
+
+	if (argc < 1) {
+		cm_print_usage();
+	}
+
 	const char *filepath = cm_shift_arg(&argc, &argv);
 
 	if (strcmp(subcommand, "tokenize") == 0) {

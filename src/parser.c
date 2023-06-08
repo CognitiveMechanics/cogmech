@@ -393,15 +393,11 @@ void cm_print_node (CMNode *node)
 }
 
 
-CMNode *cm_parse_extract (CMTokenList *list)
+CMNode *cm_parse_extract (CMNode *subject, CMTokenList *list)
 {
-	CMToken token = cm_tokenlist_shift(list); // shift word
-	CMNode *symbol = cm_node_symbol(token.value);
-	cm_node_set_token(symbol, token);
-
 	CMNode *extraction = cm_node(CM_NODE_TYPE_EXTRACT);
-	cm_node_set_token(extraction, token);
-	cm_node_append_child(extraction, symbol);
+	cm_node_set_token(extraction, subject->token);
+	cm_node_append_child(extraction, subject);
 
 	cm_tokenlist_expect(list, CM_TOKEN_TYPE_SQ_BRACKET_IN); // shift [
 	cm_tokenlist_skip_endl(list);
@@ -696,7 +692,8 @@ CMNode *cm_parse_word (CMTokenList *list)
 		CMToken next_token = cm_tokenlist_get(*list, 1);
 
 		if (next_token.type == CM_TOKEN_TYPE_SQ_BRACKET_IN) {
-			return cm_parse_extract(list);
+			cm_tokenlist_shift(list);
+			return cm_parse_extract(cm_node_symbol(token.value), list);
 		} else if (next_token.type == CM_TOKEN_TYPE_PAREN_IN) {
 			return cm_parse_op_invoke(list);
 		}
@@ -737,78 +734,85 @@ CMNode *cm_parse_expr (CMTokenList *list)
 {
 	cm_tokenlist_skip_endl(list);
 	CMToken token = cm_tokenlist_first(*list);
+	CMNode *expr;
 
 	switch (token.type) {
 		case CM_TOKEN_TYPE_DOT: {
-			return cm_parse_dot(list);
+			expr = cm_parse_dot(list);
+			break;
 		}
 
 		case CM_TOKEN_TYPE_HASH: {
-			return cm_parse_key(list);
+			expr = cm_parse_key(list);
+			break;
 		}
 
 		case CM_TOKEN_TYPE_LT: {
-			return cm_parse_compose(list);
+			expr = cm_parse_compose(list);
+			break;
 		}
 
 		case CM_TOKEN_TYPE_SQ_BRACKET_IN: {
-			return cm_parse_class(list);
+			expr = cm_parse_class(list);
+			break;
 		}
 
 		case CM_TOKEN_TYPE_PERCENT: {
-			return cm_parse_match(list);
+			expr = cm_parse_match(list);
+			break;
 		}
 
 		case CM_TOKEN_TYPE_PLUS: {
-			return cm_parse_increment(list);
+			expr = cm_parse_increment(list);
+			break;
 		}
 
 		case CM_TOKEN_TYPE_MINUS: {
-			return cm_parse_decrement(list);
+			expr = cm_parse_decrement(list);
+			break;
 		}
 
 		case CM_TOKEN_TYPE_QUOTED: {
-			return cm_parse_literal(list);
+			expr = cm_parse_literal(list);
+			break;
 		}
 
 		case CM_TOKEN_TYPE_PROXY: {
 			cm_tokenlist_shift(list);
-			CMNode *expr = cm_node(CM_NODE_TYPE_PROXY);
+			expr = cm_node(CM_NODE_TYPE_PROXY);
 			cm_node_set_token(expr, token);
-
-			return expr;
+			break;
 		}
 
 		case CM_TOKEN_TYPE_DOT_PROXY: {
 			cm_tokenlist_shift(list);
-			CMNode *expr = cm_node(CM_NODE_TYPE_DOT_PROXY);
+			expr = cm_node(CM_NODE_TYPE_DOT_PROXY);
 			cm_node_set_token(expr, token);
-
-			return expr;
+			break;
 		}
 
 		case CM_TOKEN_TYPE_TRUE: {
 			cm_tokenlist_shift(list);
-			CMNode *expr = cm_node(CM_NODE_TYPE_TRUE);
+			expr = cm_node(CM_NODE_TYPE_TRUE);
 			cm_node_set_token(expr, token);
-
-			return expr;
+			break;
 		}
 
 		case CM_TOKEN_TYPE_NULL: {
 			cm_tokenlist_shift(list);
-			CMNode *expr = cm_node_null();
+			expr = cm_node_null();
 			cm_node_set_token(expr, token);
-
-			return expr;
+			break;
 		}
 
 		case CM_TOKEN_TYPE_WORD: {
-			return cm_parse_word(list);
+			expr = cm_parse_word(list);
+			break;
 		}
 
 		case CM_TOKEN_TYPE_INT: {
-			return cm_parse_int(list);
+			expr = cm_parse_int(list);
+			break;
 		}
 
 		default: {
@@ -816,7 +820,11 @@ CMNode *cm_parse_expr (CMTokenList *list)
 		}
 	}
 
-	assert(false && "Unreachable");
+	if (! cm_tokenlist_empty(*list) && cm_tokenlist_first(*list).type == CM_TOKEN_TYPE_SQ_BRACKET_IN) {
+		return cm_parse_extract(expr, list);
+	}
+
+	return expr;
 }
 
 
