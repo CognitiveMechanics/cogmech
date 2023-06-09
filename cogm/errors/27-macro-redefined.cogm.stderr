@@ -1,0 +1,1 @@
+ERROR ../cogm/errors/27-macro-redefined.cogm:3:1: CM_TOKEN_TYPE_WORD(a): Macro redefined

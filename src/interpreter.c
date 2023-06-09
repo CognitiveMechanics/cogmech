@@ -864,7 +864,7 @@ void cm_interpret_include (CMContext *context, CMNode *node)
 
 	CMNode *literal = node->children[0];
 	CMStringView path = literal->value;
-	char filename[255];
+	char filename[255] = "";
 
 	if (cm_starts_with(path, cm_sv("/"))) {
 		strcat(filename, cm_sv_to_cstr(literal->value));

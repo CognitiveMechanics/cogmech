@@ -25,6 +25,7 @@ static char *CM_FUNC_TEST_FILES[] = {
 	"../cogm/examples/12-include.cogm",
 	"../cogm/examples/13-add.cogm",
 	"../cogm/examples/14-comments.cogm",
+	"../cogm/examples/15-macros.cogm",
 };
 
 
@@ -54,6 +55,9 @@ static char *CM_FUNC_TEST_ERROR_FILES[] = {
 	"../cogm/errors/22-invalid-key.cogm",
 	"../cogm/errors/23-invalid-op-def.cogm",
 	"../cogm/errors/24-end-of-tokens.cogm",
+	"../cogm/errors/25-unterminated-statement.cogm",
+	"../cogm/errors/26-macro-error-location.cogm",
+	"../cogm/errors/27-macro-redefined.cogm",
 };
 
 

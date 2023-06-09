@@ -7,6 +7,7 @@
 #endif
 
 #define CM_ERROR_EXIT_SYNTAX 2
+#define CM_MACRO_DEFS 2048
 
 
 #include <stdlib.h>
@@ -54,15 +55,19 @@ typedef enum CMTokenType
 	CM_TOKEN_TYPE_PLUS,
 	CM_TOKEN_TYPE_MINUS,
 	CM_TOKEN_TYPE_INCLUDE,
+	CM_TOKEN_TYPE_D_COLON,
 	CM_TOKEN_TYPE_COUNT,
 } CMTokenType;
 
+
+typedef struct CMToken CMToken;
 
 typedef struct CMToken
 {
 	CMLoc loc;
 	CMTokenType type;
 	CMStringView value;
+	CMToken *macro;
 } CMToken;
 
 
@@ -73,6 +78,20 @@ typedef struct CMTokenList
 	size_t cap;
 	size_t cur;
 } CMTokenList;
+
+
+typedef struct CMMacroDef
+{
+	CMToken token;
+	CMTokenList body;
+} CMMacroDef;
+
+
+typedef struct CMStaticContext
+{
+	CMMacroDef macro_defs[CM_MACRO_DEFS];
+	size_t n_macro_defs;
+} CMStaticContext;
 
 
 static CMToken CM_TOKEN_NULL = {0};
@@ -110,6 +129,11 @@ void cm_tokenlist_append (CMTokenList *list, CMToken token);
 void cm_tokenlist_clear (CMTokenList *list);
 void cm_tokenlist_free (CMTokenList *list);
 bool cm_is_word (char c);
+
+CMStaticContext cm_static_context(void);
+bool cm_static_context_has_macro(CMStaticContext *context, CMStringView name);
+CMMacroDef cm_static_context_get_macro(CMStaticContext *context, CMStringView name);
+void cm_static_context_def_macro(CMStaticContext *context, CMToken word, CMTokenList body);
 
 CMTokenList cm_tokenize (const char *filename, CMStringView sv);
 CMTokenList cm_tokenize_file (const char *filename);

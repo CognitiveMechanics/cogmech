@@ -661,6 +661,15 @@ CMNode *cm_parse_dot (CMTokenList *list)
 			return dot;
 		}
 
+		case CM_TOKEN_TYPE_PROXY: {
+			CMNode *dot_proxy = cm_node(CM_NODE_TYPE_DOT_PROXY);
+			cm_tokenlist_shift(list);
+			cm_node_set_token(dot_proxy, dot_token);
+
+			return dot_proxy;
+		}
+
+
 		case CM_TOKEN_TYPE_INT: {
 			CMNode *exact_int = cm_parse_int(list);
 			exact_int->type = CM_NODE_TYPE_INT_EXACT;
@@ -669,7 +678,11 @@ CMNode *cm_parse_dot (CMTokenList *list)
 		}
 
 		default: {
-			cm_syntax_error(next, "Expected word or int after CM_TOKEN_TYPE_DOT");
+			cm_syntax_error(
+				next,
+				"Expected CM_TOKEN_TYPE_WORD, CM_TOKEN_TYPE_INT, "
+				"or CM_TOKEN_TYPE_PROXY after CM_TOKEN_TYPE_DOT"
+			);
 		}
 	}
 
@@ -960,12 +973,17 @@ CMNode *cm_parse_include (CMTokenList *list)
 CMNode *cm_parse (CMTokenList *list)
 {
 	assert(CM_NODE_TYPE_COUNT == 25);
-	assert(CM_TOKEN_TYPE_COUNT == 26);
+	assert(CM_TOKEN_TYPE_COUNT == 27);
 
 	CMNode *root = cm_node(CM_NODE_TYPE_ROOT);
 
 	while (! cm_tokenlist_empty(*list)) {
 		cm_tokenlist_skip_endl(list);
+
+		if (cm_tokenlist_empty(*list)) {
+			break;
+		}
+
 		CMToken token = cm_tokenlist_first(*list);
 
 		switch (token.type) {

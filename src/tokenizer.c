@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <assert.h>
 #include <ctype.h>
+#include <stdbool.h>
 
 #include "file.h"
 #include "util.h"
@@ -36,6 +37,7 @@ const char *CM_TOKEN_TYPES_READABLE[CM_TOKEN_TYPE_COUNT] = {
 	"CM_TOKEN_TYPE_PLUS",
 	"CM_TOKEN_TYPE_MINUS",
 	"CM_TOKEN_TYPE_INCLUDE",
+	"CM_TOKEN_TYPE_D_COLON",
 };
 
 
@@ -66,6 +68,7 @@ const char *CM_TOKEN_TYPE_SYMBOLS[CM_TOKEN_TYPE_COUNT] = {
 	"+",
 	"-",
 	"@include",
+	"::",
 };
 
 
@@ -100,6 +103,14 @@ void  cm_syntax_error (CMToken token, const char *message)
 		);
 	}
 
+	if (token.macro) {
+		fprintf(stderr, "\nExpanded from %s:%zu:%zu: %s(%.*s)",
+			token.macro->loc.filename, token.macro->loc.row + 1, token.macro->loc.col + 1,
+			cm_readable_token_type(token.macro->type),
+			(int) token.macro->value.len, token.macro->value.data
+		);
+	}
+
 	exit(CM_ERROR_EXIT_SYNTAX);
 }
 
@@ -113,7 +124,8 @@ CMToken cm_token (const char * filename, size_t row, size_t col, CMTokenType typ
 			.col = col,
 		},
 		.type = type,
-		.value = CM_SV_NULL
+		.value = CM_SV_NULL,
+		.macro = NULL
 	};
 }
 
@@ -420,19 +432,66 @@ bool cm_is_num (char c)
 }
 
 
-CMTokenList cm_tokenize (const char *filename, CMStringView sv)
+CMStaticContext cm_static_context (void)
 {
-	assert(CM_TOKEN_TYPE_COUNT == 26);
+	return (CMStaticContext) {0};
+}
 
-	size_t row = 0;
-	size_t col = 0;
+
+bool cm_static_context_has_macro (CMStaticContext *context, CMStringView name)
+{
+	for (size_t i = 0; i < context->n_macro_defs; i++) {
+		CMMacroDef def = context->macro_defs[i];
+
+		if (cm_sv_eq(def.token.value, name)) {
+			return true;
+		}
+	}
+
+	return false;
+}
+
+
+CMMacroDef cm_static_context_get_macro (CMStaticContext *context, CMStringView name)
+{
+	for (size_t i = 0; i < context->n_macro_defs; i++) {
+		CMMacroDef def = context->macro_defs[i];
+
+		if (cm_sv_eq(def.token.value, name)) {
+			return def;
+		}
+	}
+
+	assert(false && "Macro not defined");
+}
+
+
+void cm_static_context_def_macro(CMStaticContext *context, CMToken word, CMTokenList body)
+{
+	assert(word.type == CM_TOKEN_TYPE_WORD);
+	assert(! cm_static_context_has_macro(context, word.value) && "Attempt to redefine macro");
+	assert(context->n_macro_defs < CM_MACRO_DEFS - 1);
+
+	context->macro_defs[context->n_macro_defs] = (CMMacroDef) {
+		.token = word,
+		.body = body
+	};
+
+	context->n_macro_defs += 1;
+}
+
+
+CMTokenList _cm_tokenize (const char *filename, CMStringView sv, size_t *row, size_t *col, CMToken *macro)
+{
+	assert(CM_TOKEN_TYPE_COUNT == 27);
 
 	CMTokenList list = cm_tokenlist();
+	CMStaticContext static_context = cm_static_context();
 
 	while (! cm_sv_empty(sv)) {
 		size_t trimmed = cm_trim_left(&sv, " \t");
 		bool is_punctuation = false;
-		col += trimmed;
+		(*col) += trimmed;
 
 		for (size_t type = 0; type < CM_TOKEN_TYPE_COUNT; type++) {
 			const char* symbol = cm_token_type_symbol(type);
@@ -443,11 +502,11 @@ CMTokenList cm_tokenize (const char *filename, CMStringView sv)
 
 					cm_tokenlist_append(
 						&list,
-						cm_token(filename, row, col, type)
+						cm_token(filename, *row, *col, type)
 					);
 
 					cm_chop_left_len(&sv, symbol_len);
-					col += symbol_len;
+					(*col) += symbol_len;
 					is_punctuation = true;
 					break;
 				}
@@ -459,7 +518,7 @@ CMTokenList cm_tokenize (const char *filename, CMStringView sv)
 		}
 
 		if (cm_starts_with(sv, cm_sv("\""))) {
-			CMToken quoted = cm_token(filename, row, col, CM_TOKEN_TYPE_QUOTED);
+			CMToken quoted = cm_token(filename, *row, *col, CM_TOKEN_TYPE_QUOTED);
 			size_t curr = 1;
 			bool terminated = false;
 
@@ -473,7 +532,7 @@ CMTokenList cm_tokenize (const char *filename, CMStringView sv)
 				curr += 1;
 			}
 
-			col += quoted.value.len;
+			(*col) += quoted.value.len;
 
 			if (!terminated) {
 				quoted.value = cm_chop_left_len(&sv, curr);
@@ -500,39 +559,78 @@ CMTokenList cm_tokenize (const char *filename, CMStringView sv)
 			cm_chop_left_len(&sv, curr);
 
 		} else if (isalpha(sv.data[0])) {
-			CMToken word = cm_token(filename, row, col, CM_TOKEN_TYPE_WORD);
+			CMToken word = cm_token(filename, *row, *col, CM_TOKEN_TYPE_WORD);
 			word.value = cm_chop_left_while(&sv, cm_is_word);
+			(*col) += word.value.len;
 
-			cm_tokenlist_append(&list, word);
-			col += word.value.len;
+			(*col) += cm_trim_left(&sv, " \t");
+
+			if (cm_starts_with(sv, cm_sv("::"))) {
+				if (cm_static_context_has_macro(&static_context, word.value)) {
+					cm_syntax_error(word, "Macro redefined");
+				}
+
+				(*col) += 2;
+				cm_chop_left_delim(&sv, cm_sv("::"));
+
+				cm_static_context_def_macro(&static_context, word, _cm_tokenize(filename, sv, row, col, &word));
+
+				cm_chop_left_delim(&sv, cm_sv("\n"));
+
+			} else if (cm_static_context_has_macro(&static_context, word.value)) {
+				CMMacroDef def = cm_static_context_get_macro(&static_context, word.value);
+
+				for (size_t i = 0; i < cm_tokenlist_len(def.body); i++) {
+					CMToken expanded = cm_tokenlist_get(def.body, i);
+					expanded.macro = &word;
+					cm_tokenlist_append(&list, expanded);
+				}
+
+			} else {
+				cm_tokenlist_append(&list, word);
+			}
 
 		} else if (isnumber(sv.data[0])) {
-			CMToken word = cm_token(filename, row, col, CM_TOKEN_TYPE_INT);
+			CMToken word = cm_token(filename, *row, *col, CM_TOKEN_TYPE_INT);
 			word.value = cm_chop_left_while(&sv, cm_is_num);
 
 			cm_tokenlist_append(&list, word);
-			col += word.value.len;
+			(*col) += word.value.len;
 
 		} else if (cm_in_chars(sv.data[0], "\n")) {
-			CMToken word = cm_token(filename, row, col, CM_TOKEN_TYPE_ENDL);
+			CMToken word = cm_token(filename, *row, *col, CM_TOKEN_TYPE_ENDL);
 			cm_chop_left_len(&sv, 1);
 
+			(*row) += 1;
+			(*col) = 0;
+
+			if (macro) {
+				break;
+			}
+
 			cm_tokenlist_append(&list, word);
-			row += 1;
-			col = 0;
 
 		} else if (cm_in_chars(sv.data[0], "\r")) {
 			// just skip carriage return
 			cm_trim_left(&sv, "\r");
 
 		} else {
-			CMToken unknown = cm_token(filename, row, col, CM_TOKEN_TYPE_UNKNOWN);
+			CMToken unknown = cm_token(filename, *row, *col, CM_TOKEN_TYPE_UNKNOWN);
 			unknown.value = cm_chop_left_while(&sv, cm_is_not_space);
 			cm_syntax_error(unknown, "Invalid token");
 		}
 	}
 
 	return list;
+}
+
+
+CMTokenList cm_tokenize (const char *filename, CMStringView sv)
+{
+	size_t row = 0;
+	size_t col = 0;
+
+	return _cm_tokenize(filename, sv, &row, &col, false);
 }
 
 

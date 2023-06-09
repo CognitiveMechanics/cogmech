@@ -1,4 +1,4 @@
 
-anynum := 0
-not0   := 1
+anynum :: 0
+not0   :: 1
 

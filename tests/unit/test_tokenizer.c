@@ -564,6 +564,54 @@ bool test_cm_tokenlist_empty (void)
 }
 
 
+bool test_cm_static_context (void)
+{
+	CMStaticContext context = cm_static_context();
+
+	if (context.n_macro_defs != 0) {
+		cm_test_error("Empty context initialized with macros\n");
+		return false;
+	}
+
+	return true;
+}
+
+
+bool test_cm_context_def_get_macro (void)
+{
+	CMStaticContext context = cm_static_context();
+
+	CMTokenList tokens = cm_tokenlist();
+	cm_tokenlist_append(&tokens, cm_token("test.cogm", 0, 0, CM_TOKEN_TYPE_PERCENT));
+
+	CMStringView name = cm_sv("macro");
+
+	CMToken word = cm_token("test.cogm", 0, 0, CM_TOKEN_TYPE_WORD);
+	word.value = name;
+
+	if (cm_static_context_has_macro(&context, name)) {
+		cm_test_error("Empty context has macro defined");
+		return false;
+	}
+
+	cm_static_context_def_macro(&context, word, tokens);
+
+	if (! cm_static_context_has_macro(&context, name)) {
+		cm_test_error("Could not find defined macro");
+		return false;
+	}
+
+	CMMacroDef retrieved = cm_static_context_get_macro(&context, name);
+
+	if (cm_tokenlist_first(retrieved.body).type != CM_TOKEN_TYPE_PERCENT) {
+		cm_test_error("Retrieved different macro than defined");
+		return false;
+	}
+
+	return true;
+}
+
+
 bool test_cm_tokenize_file (void)
 {
 	for (size_t i = 0; i < ARRAY_LEN(CM_FUNC_TEST_FILES); i++) {
@@ -603,5 +651,7 @@ void test_cm_tokenizer (void)
 	cm_add_test(test_cm_tokenlist_append_clear);
 	cm_add_test(test_cm_tokenlist_shift_expect);
 	cm_add_test(test_cm_tokenlist_empty);
+	cm_add_test(test_cm_static_context);
+	cm_add_test(test_cm_context_def_get_macro);
 	cm_add_test(test_cm_tokenize_file);
 }

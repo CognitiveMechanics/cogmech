@@ -1,0 +1,27 @@
+
+// anything after the :: is a legal part of the macro that gets expanded as a set of tokens
+// this is particularly useful for complex relation definitions (see 13-add.cogm example)
+
+to_a :: -> a
+
+a := "this is a"
+B(c) to_a  // expands to `B(c) -> a`
+
+: B(0)
+
+
+// we can also use macros to test new syntax
+
+MatchMacro :: %
+: MatchMacro(1, 2)
+: MatchMacro(2, 1)
+
+b := <<"test", "value1">>
+TranscludeMacro :: T
+: TranscludeMacro(b, "test", "value2")
+
+
+// let's test that this doesn't screw with other identifiers
+
+TestOp(c) -> c
+: TestOp("this should print")
