@@ -10,6 +10,10 @@ add_executable(cogmech
         src/file.c
         src/util.c
         src/stringview.c
+        src/context.c
+        src/token.c
+        src/tokenlist.c
+        src/node.c
         src/tokenizer.c
         src/parser.c
         src/interpreter.c
@@ -19,14 +23,22 @@ add_executable(test
         src/file.c
         src/util.c
         src/stringview.c
+        src/context.c
+        src/token.c
+        src/tokenlist.c
+        src/node.c
         src/tokenizer.c
         src/interpreter.c
         src/parser.c
         tests/unit/unit.c
         tests/unit/test_file.c
         tests/unit/test_func.c
+        tests/unit/test_token.c
+        tests/unit/test_tokenlist.c
         tests/unit/test_tokenizer.c
+        tests/unit/test_node.c
         tests/unit/test_parser.c
+        tests/unit/test_context.c
         tests/unit/test_interpreter.c
         tests/func/func.c
         tests/main.c)

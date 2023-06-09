@@ -8,207 +8,6 @@
 #include "../../src/interpreter.h"
 
 
-bool test_cm_context (void)
-{
-	CMContext context = cm_context();
-
-	if (context.n_symbol_defs != 0) {
-		cm_test_error("Empty context initialized with symbols\n");
-		return false;
-	}
-
-	return true;
-}
-
-
-bool test_cm_context_clone (void)
-{
-	CMContext context = cm_context();
-	CMStringView name = cm_sv("name");
-	CMNode *node = cm_node(CM_NODE_TYPE_ROOT);
-
-	cm_context_def_symbol(&context, name, node);
-
-	CMContext cloned = cm_context_clone(context);
-
-	CMNode *test1 = cm_context_get_symbol(&context, name);
-	CMNode *test2 = cm_context_get_symbol(&cloned, name);
-
-	if (! cm_node_eq(test1, test2)) {
-		cm_test_error("Cloned values should be equivalent");
-		return false;
-	}
-
-	if (test1 == test2) {
-		cm_test_error("Cloned values should not be the same");
-		return false;
-	}
-
-	return true;
-}
-
-
-bool test_cm_context_def_get_symbol (void)
-{
-	CMContext context = cm_context();
-	CMStringView name = cm_sv("symbol_name");
-	CMNode *node = cm_node(CM_NODE_TYPE_LITERAL);
-
-	if (cm_context_has_symbol(&context, name)) {
-		cm_test_error("Empty context has symbol defined");
-		return false;
-	}
-
-	cm_context_def_symbol(&context, name, node);
-
-	if (! cm_context_has_symbol(&context, name)) {
-		cm_test_error("Could not fine defined symbol");
-		return false;
-	}
-
-	CMNode *retrieved = cm_context_get_symbol(&context, name);
-
-	if (node != retrieved) {
-		cm_test_error("Retrieved different symbol than defined");
-		return false;
-	}
-
-	return true;
-}
-
-
-bool test_cm_context_redef_symbol (void)
-{
-	CMContext context = cm_context();
-	CMStringView name = cm_sv("symbol_name");
-	CMNode *node1 = cm_node(CM_NODE_TYPE_LITERAL);
-	CMNode *node2 = cm_node(CM_NODE_TYPE_SYMBOL);
-
-	cm_context_def_symbol(&context, name, node1);
-	CMNode *retrieved1 = cm_context_get_symbol(&context, name);
-
-	if (node1 != retrieved1) {
-		cm_test_error("Retrieved sifferent symbol than defined");
-		return false;
-	}
-
-	cm_context_redef_symbol(&context, name, node2);
-	CMNode *retrieved2 = cm_context_get_symbol(&context, name);
-
-	if (cm_node_eq(node1, retrieved2)) {
-		cm_test_error("Redefined node should not be equal to original");
-		return false;
-	}
-
-	if (node2 != retrieved2) {
-		cm_test_error("Retrieved sifferent symbol than defined");
-		return false;
-	}
-
-	return true;
-}
-
-
-bool test_cm_context_force_def_symbol (void)
-{
-	CMContext context = cm_context();
-	CMStringView name = cm_sv("symbol_name");
-	CMNode *node1 = cm_node(CM_NODE_TYPE_LITERAL);
-	CMNode *node2 = cm_node(CM_NODE_TYPE_SYMBOL);
-
-	cm_context_force_def_symbol(&context, name, node1);
-	CMNode *retrieved1 = cm_context_get_symbol(&context, name);
-
-	if (node1 != retrieved1) {
-		cm_test_error("Retrieved sifferent symbol than defined");
-		return false;
-	}
-
-	cm_context_force_def_symbol(&context, name, node2);
-	CMNode *retrieved2 = cm_context_get_symbol(&context, name);
-
-	if (cm_node_eq(node1, retrieved2)) {
-		cm_test_error("Redefined node should not be equal to original");
-		return false;
-	}
-
-	if (node2 != retrieved2) {
-		cm_test_error("Retrieved different symbol than defined");
-		return false;
-	}
-
-	return true;
-}
-
-
-bool test_cm_context_def_get_op (void)
-{
-	CMContext context = cm_context();
-	CMStringView name = cm_sv("O");
-	CMNode *arglist = cm_node(CM_NODE_TYPE_OP_ARGLIST);
-	CMNode *body = cm_node(CM_NODE_TYPE_SYMBOL);
-
-	if (cm_context_has_op(&context, name)) {
-		cm_test_error("Empty context has op defined");
-		return false;
-	}
-
-	cm_context_def_op(&context, name, arglist, body);
-
-	if (! cm_context_has_op(&context, name)) {
-		cm_test_error("Could not fine defined op");
-		return false;
-	}
-
-	CMOpDef def = cm_context_get_op(&context, name);
-
-	if (def.arglist != arglist || def.body != body || ! cm_sv_eq(def.name, name)) {
-		cm_test_error("Retrieved different op than defined");
-		return false;
-	}
-
-	return true;
-}
-
-
-bool test_cm_context_def_get_relation (void)
-{
-	CMContext context = cm_context();
-	CMStringView bind = cm_sv("symbol_name");
-
-	CMNode *state = cm_node(CM_NODE_TYPE_SYMBOL);
-	state->value = cm_sv("test_value");
-
-	CMNode *body = cm_node(CM_NODE_TYPE_COMPOSE);
-
-	cm_context_def_relation(&context, bind, state, body);
-
-	if (context.n_relation_defs != 1) {
-		cm_test_error("Failed to define relation");
-		return false;
-	}
-
-	CMRelationDef *def = cm_context_get_matching_relation(&context, state);
-
-	if (! def) {
-		cm_test_error("failed to retrieve matching relation");
-		return false;
-	}
-
-	CMNode *no_match = cm_node(CM_NODE_TYPE_SYMBOL);
-	no_match->value = cm_sv("no_match");
-
-	CMRelationDef *nodef = cm_context_get_matching_relation(&context, no_match);
-
-	if (nodef != NULL) {
-		cm_test_error("found undefined relation");
-		return false;
-	}
-
-	return true;
-}
-
-
 bool test_cm_create_key_value (void)
 {
 	CMStringView key = cm_sv("key");
@@ -550,83 +349,6 @@ bool test_cm_interpret_decrement (void)
 }
 
 
-bool test_cm_match (void)
-{
-	CMStringView tag = cm_sv("tag");
-	CMNode *tag_node = cm_node_literal(tag);
-
-	CMStringView value = cm_sv("value");
-	CMNode *value_node = cm_node_literal(value);
-
-	CMNode *proxy_node = cm_node(CM_NODE_TYPE_PROXY);
-
-	CMNode *outer_1 = cm_node(CM_NODE_TYPE_COMPOSE);
-	CMNode *inner_1 = cm_node(CM_NODE_TYPE_COMPOSE);
-	cm_node_append_child(inner_1, tag_node);
-	cm_node_append_child(inner_1, value_node);
-	cm_node_append_child(outer_1, inner_1);
-
-	CMNode *outer_2 = cm_node(CM_NODE_TYPE_COMPOSE);
-	CMNode *inner_2 = cm_node(CM_NODE_TYPE_COMPOSE);
-	cm_node_append_child(inner_2, tag_node);
-	cm_node_append_child(inner_2, proxy_node);
-	cm_node_append_child(outer_2, inner_2);
-
-	bool true_result = cm_match(outer_1, outer_2);
-	bool false_result = cm_match(outer_2, outer_1);
-
-	if (! true_result) {
-		cm_test_error("true result is not true");
-		return false;
-	}
-
-	if (false_result) {
-		cm_test_error("false result is not false");
-		return false;
-	}
-
-	CMNode *int_0 = cm_node_int(cm_sv("0"));
-	CMNode *int_1 = cm_node_int(cm_sv("1"));
-	CMNode *int_2 = cm_node_int(cm_sv("2"));
-
-	CMNode *int_e_0 = cm_node_int_exact(cm_sv("0"));
-	CMNode *int_e_1 = cm_node_int_exact(cm_sv("1"));
-	CMNode *int_e_2 = cm_node_int_exact(cm_sv("2"));
-
-	if (! cm_match(int_1, int_0)) {
-		cm_test_error("1 should match 0");
-		return false;
-	}
-
-	if (! cm_match(int_1, int_1)) {
-		cm_test_error("1 should match 1");
-		return false;
-	}
-
-	if (cm_match(int_1, int_2)) {
-		cm_test_error("1 should not match 2");
-		return false;
-	}
-
-	if (cm_match(int_1, int_e_0)) {
-		cm_test_error("1 should not match exactly 0");
-		return false;
-	}
-
-	if (! cm_match(int_1, int_e_1)) {
-		cm_test_error("1 should match exactly 1");
-		return false;
-	}
-
-	if (cm_match(int_1, int_e_2)) {
-		cm_test_error("1 should not match exactly 2");
-		return false;
-	}
-
-	return true;
-}
-
-
 bool test_cm_interpret_op_def (void)
 {
 	CMContext context = cm_context();
@@ -820,7 +542,7 @@ bool test_cm_interpret (void)
 
 bool test_cm_interpret_file (void)
 {
-	CMTokenList *filenames[] = {
+	const char *filenames[] = {
 		"../cogm/examples/01-silent.cogm",
 	};
 
@@ -837,13 +559,6 @@ void test_cm_interpreter (void)
 {
 	printf("Loading interpreter tests...\n");
 
-	cm_add_test(test_cm_context);
-	cm_add_test(test_cm_context_clone);
-	cm_add_test(test_cm_context_def_get_symbol);
-	cm_add_test(test_cm_context_redef_symbol);
-	cm_add_test(test_cm_context_force_def_symbol);
-	cm_add_test(test_cm_context_def_get_op);
-	cm_add_test(test_cm_context_def_get_relation);
 	cm_add_test(test_cm_create_key_value);
 	cm_add_test(test_cm_interpret_entity);
 	cm_add_test(test_cm_interpret_extract);
@@ -853,7 +568,6 @@ void test_cm_interpreter (void)
 	cm_add_test(test_cm_interpret_decrement);
 	cm_add_test(test_cm_interpret_match);
 	cm_add_test(test_cm_interpret_dot);
-	cm_add_test(test_cm_match);
 	cm_add_test(test_cm_interpret_symbol_def);
 	cm_add_test(test_cm_interpret_relation_def);
 	cm_add_test(test_cm_interpret_op_def);
@@ -861,4 +575,3 @@ void test_cm_interpreter (void)
 	cm_add_test(test_cm_interpret);
 	cm_add_test(test_cm_interpret_file);
 }
-
