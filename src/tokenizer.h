@@ -18,8 +18,8 @@
 
 void cm_syntax_error (CMToken token, const char *message);
 
-CMTokenList cm_tokenize (const char *filename, CMStringView sv);
-CMTokenList cm_tokenize_file (const char *filename);
+CMTokenList cm_tokenize (CMContext *context, const char *filename, CMStringView sv);
+CMTokenList cm_tokenize_file (CMContext *context, const char *filename);
 
 
 #endif // CM_TOKENIZER_H

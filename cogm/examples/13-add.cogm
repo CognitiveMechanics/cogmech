@@ -12,7 +12,7 @@ s0 : add(proxy,      proxy,     *proxy)
   => add(proxy,  s0["op1"],  s0["op2"])
 
 s1 : add(*proxy,             not0,            proxy)
-  => add(proxy,   Incr(s1["op2"]),  Decr(s1["sum"]))
+  => add(proxy,   Decr(s1["op2"]),  Incr(s1["sum"]))
 
 s2 : add(  *proxy,     *0,      proxy)
   => add(   proxy,  proxy,  s2["sum"])

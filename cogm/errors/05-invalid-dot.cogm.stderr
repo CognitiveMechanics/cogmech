@@ -1,1 +1,1 @@
-ERROR ../cogm/errors/05-invalid-dot.cogm:1:5: CM_TOKEN_TYPE_QUOTED(fail): Expected word or int after CM_TOKEN_TYPE_DOT
+ERROR ../cogm/errors/05-invalid-dot.cogm:1:5: CM_TOKEN_TYPE_QUOTED(fail): Expected CM_TOKEN_TYPE_WORD, CM_TOKEN_TYPE_INT, or CM_TOKEN_TYPE_PROXY after CM_TOKEN_TYPE_DOT

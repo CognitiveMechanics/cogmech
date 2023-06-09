@@ -45,6 +45,15 @@ CMContext cm_context_clone (const CMContext context)
 		};
 	}
 
+	for (size_t i = 0; i < context.n_relation_defs; i++) {
+		CMMacroDef def = context.macro_defs[i];
+
+		new_context.macro_defs[i] = (CMMacroDef) {
+			.token = def.token,
+			.body = cm_tokenlist_clone(def.body),
+		};
+	}
+
 	return new_context;
 }
 

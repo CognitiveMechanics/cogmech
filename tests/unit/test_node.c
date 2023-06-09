@@ -272,9 +272,11 @@ bool test_cm_node_int_value (void)
 
 bool test_cm_node_eq (void)
 {
-	CMTokenList seq1 = cm_tokenize("test1.cogm", cm_sv(" a  := <\"b\", c>\n"));
-	CMTokenList seq2 = cm_tokenize("test2.cogm", cm_sv("a := < \"b\" , c > \n"));
-	CMTokenList seq3 = cm_tokenize("test3.cogm", cm_sv("a := <\"b\", x>\n"));
+	CMContext context = cm_context();
+
+	CMTokenList seq1 = cm_tokenize(&context, "test1.cogm", cm_sv(" a  := <\"b\", c>\n"));
+	CMTokenList seq2 = cm_tokenize(&context, "test2.cogm", cm_sv("a := < \"b\" , c > \n"));
+	CMTokenList seq3 = cm_tokenize(&context, "test3.cogm", cm_sv("a := <\"b\", x>\n"));
 
 	CMNode *ast1 = cm_parse(&seq1);
 	CMNode *ast2 = cm_parse(&seq2);
@@ -331,7 +333,8 @@ bool test_cm_node_from_word (void)
 
 bool test_cm_node_clone (void)
 {
-	CMTokenList seq1 = cm_tokenize("test1.cogm", cm_sv(" a  := <\"b\", c>\n"));
+	CMContext context = cm_context();
+	CMTokenList seq1 = cm_tokenize(&context, "test1.cogm", cm_sv(" a  := <\"b\", c>\n"));
 
 	CMNode *node1 = cm_parse(&seq1);
 	CMNode *node2 = node1;

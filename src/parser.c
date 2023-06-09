@@ -588,24 +588,10 @@ CMNode *cm_parse_print (CMTokenList *list)
 }
 
 
-CMNode *cm_parse_include (CMTokenList *list)
-{
-	CMToken start = cm_tokenlist_shift(list);
-	CMNode *node = cm_node(CM_NODE_TYPE_INCLUDE);
-
-	cm_node_set_token(node, start);
-
-	CMNode *literal = cm_parse_literal(list);
-	cm_node_append_child(node, literal);
-
-	return node;
-}
-
-
 CMNode *cm_parse (CMTokenList *list)
 {
-	assert(CM_NODE_TYPE_COUNT == 25);
-	assert(CM_TOKEN_TYPE_COUNT == 27);
+	assert(CM_NODE_TYPE_COUNT == 24);
+	assert(CM_TOKEN_TYPE_COUNT == 26);
 
 	CMNode *root = cm_node(CM_NODE_TYPE_ROOT);
 
@@ -662,15 +648,6 @@ CMNode *cm_parse (CMTokenList *list)
 				cm_node_append_child(
 					root,
 					cm_parse_print(list)
-				);
-
-				break;
-			}
-
-			case CM_TOKEN_TYPE_INCLUDE: {
-				cm_node_append_child(
-					root,
-					cm_parse_include(list)
 				);
 
 				break;

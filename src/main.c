@@ -55,21 +55,20 @@ int main (int argc, char **argv)
 	}
 
 	const char *filepath = cm_shift_arg(&argc, &argv);
+	CMContext context = cm_context();
 
 	if (strcmp(subcommand, "tokenize") == 0) {
-		CMTokenList list = cm_tokenize_file(filepath);
+		CMTokenList list = cm_tokenize_file(&context, filepath);
 		cm_print_tokenlist(list);
 
 	} else if (strcmp(subcommand, "parse") == 0) {
-		CMTokenList list = cm_tokenize_file(filepath);
+		CMTokenList list = cm_tokenize_file(&context, filepath);
 		CMNode *ast = cm_parse(&list);
 		cm_print_node(ast);
 
 	} else if (strcmp(subcommand, "exec") == 0) {
-		CMTokenList list = cm_tokenize_file(filepath);
+		CMTokenList list = cm_tokenize_file(&context, filepath);
 		CMNode *ast = cm_parse(&list);
-		CMContext context = cm_context();
-
 		cm_interpret(&context, ast);
 
 	} else {

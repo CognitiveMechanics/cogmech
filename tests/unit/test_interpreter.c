@@ -526,13 +526,14 @@ bool test_cm_interpret_eval (void)
 
 bool test_cm_interpret (void)
 {
+	CMContext context = cm_context();
+
 	CMTokenList lists[] = {
-		cm_tokenize_file("../cogm/examples/01-silent.cogm"),
+		cm_tokenize_file(&context, "../cogm/examples/01-silent.cogm"),
 	};
 
 	for (size_t i = 0; i < ARRAY_LEN(lists); i++) {
 		CMNode *ast = cm_parse(&lists[i]);
-		CMContext context = cm_context();
 		cm_interpret(&context, ast);
 	}
 

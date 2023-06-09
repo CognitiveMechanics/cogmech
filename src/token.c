@@ -28,7 +28,6 @@ const char *CM_TOKEN_TYPES_READABLE[CM_TOKEN_TYPE_COUNT] = {
 	"CM_TOKEN_TYPE_D_ARROW",
 	"CM_TOKEN_TYPE_PLUS",
 	"CM_TOKEN_TYPE_MINUS",
-	"CM_TOKEN_TYPE_INCLUDE",
 	"CM_TOKEN_TYPE_D_COLON",
 };
 
@@ -59,7 +58,6 @@ const char *CM_TOKEN_TYPE_SYMBOLS[CM_TOKEN_TYPE_COUNT] = {
 	"=>",
 	"+",
 	"-",
-	"@include",
 	"::",
 };
 

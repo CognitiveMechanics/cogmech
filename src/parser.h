@@ -31,7 +31,6 @@ CMNode *cm_parse_symbol_def (CMTokenList *list);
 CMNode *cm_parse_op_def (CMTokenList *list);
 CMNode *cm_parse_relation_def (CMTokenList *list);
 CMNode *cm_parse_print (CMTokenList *list);
-CMNode *cm_parse_include (CMTokenList *list);
 CMNode *cm_parse (CMTokenList *list);
 
 

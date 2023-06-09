@@ -1290,52 +1290,10 @@ bool test_cm_parse_print (void)
 }
 
 
-bool test_cm_parse_include (void)
-{
-	CMToken op = cm_token(
-		"filename.cogm",
-		0,
-		0,
-		CM_TOKEN_TYPE_INCLUDE
-	);
-
-	CMToken literal = cm_token(
-		"filename.cogm",
-		0,
-		0,
-		CM_TOKEN_TYPE_QUOTED
-	);
-
-	literal.value = cm_sv("include.cogm");
-
-	CMTokenList list = cm_tokenlist();
-	cm_tokenlist_append(&list, op);
-	cm_tokenlist_append(&list, literal);
-
-	CMNode *parsed = cm_parse_include(&list);
-
-	if (parsed->type != CM_NODE_TYPE_INCLUDE) {
-		cm_test_error("invalid node type\n");
-		return false;
-	}
-
-	if (parsed->children[0]->type != CM_NODE_TYPE_LITERAL) {
-		cm_test_error("invalid literal node type\n");
-		return false;
-	}
-
-	if (! cm_sv_eq(parsed->children[0]->value, cm_sv("include.cogm"))) {
-		cm_test_error("invalid literal node value\n");
-		return false;
-	}
-
-	return true;
-}
-
-
 bool test_cm_parse (void)
 {
-	CMTokenList list = cm_tokenize_file("../cogm/examples/00-hello.cogm");
+	CMContext context = cm_context();
+	CMTokenList list = cm_tokenize_file(&context, "../cogm/examples/00-hello.cogm");
 	CMNode *parsed = cm_parse(&list);
 
 	// root
@@ -1461,6 +1419,5 @@ void test_cm_parser (void)
 	cm_add_test(test_cm_parse_relation_def);
 	cm_add_test(test_cm_parse_eval);
 	cm_add_test(test_cm_parse_print);
-	cm_add_test(test_cm_parse_include);
 	cm_add_test(test_cm_parse);
 }
