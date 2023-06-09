@@ -1,1 +1,1 @@
-ERROR ../cogm/errors/17-invalid-eval.cogm:1:6: CM_TOKEN_TYPE_COMMA: Expected CM_TOKEN_TYPE_PAREN_OUT
+ERROR ../cogm/errors/17-invalid-eval.cogm:1:6: CM_TOKEN_TYPE_COMMA: Expected CM_TOKEN_TYPE_PAREN_OUT: Invalid end of eval arg list

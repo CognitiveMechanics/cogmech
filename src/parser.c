@@ -31,7 +31,12 @@ CMNode *cm_parse_extract (CMNode *subject, CMTokenList *list)
 	cm_node_set_token(extraction, subject->token);
 	cm_node_append_child(extraction, subject);
 
-	cm_tokenlist_expect(list, CM_TOKEN_TYPE_SQ_BRACKET_IN); // shift [
+	cm_tokenlist_expect(
+		list,
+		CM_TOKEN_TYPE_SQ_BRACKET_IN,
+		"Invalid extract sequence initializer"
+	); // shift [
+
 	cm_tokenlist_skip_endl(list);
 
 	CMNode *expr = cm_parse_expr(list);
@@ -39,7 +44,11 @@ CMNode *cm_parse_extract (CMNode *subject, CMTokenList *list)
 
 	cm_node_append_child(extraction, expr);
 
-	cm_tokenlist_expect(list, CM_TOKEN_TYPE_SQ_BRACKET_OUT); // shift ]
+	cm_tokenlist_expect(
+		list,
+		CM_TOKEN_TYPE_SQ_BRACKET_OUT,
+		"Extracted sequence improperly terminated"
+	); // shift ]
 
 	return extraction;
 }
@@ -47,7 +56,7 @@ CMNode *cm_parse_extract (CMNode *subject, CMTokenList *list)
 
 CMNode *cm_parse_expr_list (CMTokenList *list, CMNodeType node_type, CMTokenType start_token_type, CMTokenType end_token_type)
 {
-	CMToken start = cm_tokenlist_expect(list, start_token_type);
+	CMToken start = cm_tokenlist_expect(list, start_token_type, "Invalid begin of expression list");
 	CMNode *node = cm_node(node_type);
 	cm_node_set_token(node, start);
 
@@ -72,7 +81,7 @@ CMNode *cm_parse_expr_list (CMTokenList *list, CMNodeType node_type, CMTokenType
 	} while (! cm_tokenlist_empty(*list));
 
 	cm_tokenlist_skip_endl(list);
-	cm_tokenlist_expect(list, end_token_type);
+	cm_tokenlist_expect(list, end_token_type, "Invalid termination of expression list");
 
 	return node;
 }
@@ -120,19 +129,19 @@ CMNode *cm_parse_match (CMTokenList *list)
 
 CMNode *cm_parse_eval (CMTokenList *list)
 {
-	CMToken word = cm_tokenlist_expect(list, CM_TOKEN_TYPE_WORD);
+	CMToken word = cm_tokenlist_expect(list, CM_TOKEN_TYPE_WORD, "Eval must begin with identifier");
 
 	if (! cm_sv_eq(word.value, cm_sv(cm_node_type_word(CM_NODE_TYPE_EVAL)))) {
 		assert(false && "Invalid eval word");
 	}
 
-	cm_tokenlist_expect(list, CM_TOKEN_TYPE_PAREN_IN);
+	cm_tokenlist_expect(list, CM_TOKEN_TYPE_PAREN_IN, "Invalid start of eval arg list");
 	cm_tokenlist_skip_endl(list);
 
 	CMNode *expr = cm_parse_expr(list);
 	cm_tokenlist_skip_endl(list);
 
-	cm_tokenlist_expect(list, CM_TOKEN_TYPE_PAREN_OUT);
+	cm_tokenlist_expect(list, CM_TOKEN_TYPE_PAREN_OUT, "Invalid end of eval arg list");
 
 	CMNode *eval = cm_node(CM_NODE_TYPE_EVAL);
 	cm_node_set_token(eval, word);
@@ -144,14 +153,18 @@ CMNode *cm_parse_eval (CMTokenList *list)
 
 CMNode *cm_parse_increment (CMTokenList *list)
 {
-	CMToken symbol = cm_tokenlist_expect(list, CM_TOKEN_TYPE_PLUS);
-	cm_tokenlist_expect(list, CM_TOKEN_TYPE_PAREN_IN);
+	CMToken symbol = cm_tokenlist_expect(
+		list, CM_TOKEN_TYPE_PLUS,
+		"Invalid symbol for CM_NODE_TYPE_INCREMENT"
+	);
+
+	cm_tokenlist_expect(list, CM_TOKEN_TYPE_PAREN_IN, "Invalid begin of increment arg list");
 	cm_tokenlist_skip_endl(list);
 
 	CMNode *expr = cm_parse_expr(list);
 	cm_tokenlist_skip_endl(list);
 
-	cm_tokenlist_expect(list, CM_TOKEN_TYPE_PAREN_OUT);
+	cm_tokenlist_expect(list, CM_TOKEN_TYPE_PAREN_OUT, "Invalid begin of increment arg list");
 
 	CMNode *op = cm_node(CM_NODE_TYPE_INCREMENT);
 	cm_node_set_token(op, symbol);
@@ -163,14 +176,18 @@ CMNode *cm_parse_increment (CMTokenList *list)
 
 CMNode *cm_parse_decrement (CMTokenList *list)
 {
-	CMToken symbol = cm_tokenlist_expect(list, CM_TOKEN_TYPE_MINUS);
-	cm_tokenlist_expect(list, CM_TOKEN_TYPE_PAREN_IN);
+	CMToken symbol = cm_tokenlist_expect(
+		list, CM_TOKEN_TYPE_MINUS,
+		"Invalid symbol for CM_NODE_TYPE_DECREMENT"
+	);
+
+	cm_tokenlist_expect(list, CM_TOKEN_TYPE_PAREN_IN, "Invalid begin of decrement arg list");
 	cm_tokenlist_skip_endl(list);
 
 	CMNode *expr = cm_parse_expr(list);
 	cm_tokenlist_skip_endl(list);
 
-	cm_tokenlist_expect(list, CM_TOKEN_TYPE_PAREN_OUT);
+	cm_tokenlist_expect(list, CM_TOKEN_TYPE_PAREN_OUT, "Invalid end of decrement arg list");
 
 	CMNode *op = cm_node(CM_NODE_TYPE_DECREMENT);
 	cm_node_set_token(op, symbol);
@@ -229,7 +246,7 @@ CMNode *cm_parse_builtin (CMTokenList *list)
 
 CMNode *cm_parse_class (CMTokenList *list)
 {
-	CMToken start = cm_tokenlist_expect(list, CM_TOKEN_TYPE_SQ_BRACKET_IN);
+	CMToken start = cm_tokenlist_expect(list, CM_TOKEN_TYPE_SQ_BRACKET_IN, "Invalid start of class");
 	bool is_dot = false;
 
 	if (cm_tokenlist_first_like(*list, CM_TOKEN_TYPE_DOT)) {
@@ -237,8 +254,8 @@ CMNode *cm_parse_class (CMTokenList *list)
 		is_dot = true;
 	}
 
-	CMToken word = cm_tokenlist_expect(list, CM_TOKEN_TYPE_WORD);
-	cm_tokenlist_expect(list, CM_TOKEN_TYPE_SQ_BRACKET_OUT);
+	CMToken word = cm_tokenlist_expect(list, CM_TOKEN_TYPE_WORD, "Class expects word");
+	cm_tokenlist_expect(list, CM_TOKEN_TYPE_SQ_BRACKET_OUT, "Invalid end of class");
 
 	CMNode *composition = cm_node(CM_NODE_TYPE_COMPOSE);
 	cm_node_set_token(composition, start);
@@ -263,7 +280,7 @@ CMNode *cm_parse_class (CMTokenList *list)
 
 CMNode *cm_parse_key (CMTokenList *list)
 {
-	CMToken start = cm_tokenlist_expect(list, CM_TOKEN_TYPE_HASH);
+	CMToken start = cm_tokenlist_expect(list, CM_TOKEN_TYPE_HASH, "Invalid key symbol");
 	CMNode *expr = cm_parse_expr(list);
 
 	CMNode *composition = cm_node(CM_NODE_TYPE_COMPOSE);
@@ -281,7 +298,7 @@ CMNode *cm_parse_key (CMTokenList *list)
 
 CMNode *cm_parse_dot (CMTokenList *list)
 {
-	CMToken dot_token = cm_tokenlist_expect(list, CM_TOKEN_TYPE_DOT);
+	CMToken dot_token = cm_tokenlist_expect(list, CM_TOKEN_TYPE_DOT, "Invalid dot symbol");
 	CMToken next = cm_tokenlist_first(*list);
 
 	switch (next.type) {
@@ -367,7 +384,7 @@ CMNode *cm_parse_int (CMTokenList *list)
 
 CMNode *cm_parse_literal (CMTokenList *list)
 {
-	CMToken token = cm_tokenlist_expect(list, CM_TOKEN_TYPE_QUOTED);
+	CMToken token = cm_tokenlist_expect(list, CM_TOKEN_TYPE_QUOTED, "Literals must be quoted");
 	CMNode *expr = cm_node_literal(token.value);
 	cm_node_set_token(expr, token);
 
@@ -530,7 +547,7 @@ CMNode *cm_parse_op_def (CMTokenList *list)
 
 	cm_node_append_child(def, arglist);
 
-	cm_tokenlist_expect(list, CM_TOKEN_TYPE_S_ARROW);
+	cm_tokenlist_expect(list, CM_TOKEN_TYPE_S_ARROW, "Invalid op defintion");
 	cm_node_append_child(def, cm_parse_expr(list));
 
 	return def;
@@ -556,7 +573,7 @@ CMNode *cm_parse_relation_def (CMTokenList *list)
 	cm_tokenlist_skip_endl(list);
 
 	if (is_aliased_relation) {
-		cm_tokenlist_expect(list, CM_TOKEN_TYPE_COLON); // discard :
+		cm_tokenlist_expect(list, CM_TOKEN_TYPE_COLON, "Invalid state separator in relation definition"); // discard :
 		CMNode *expr = cm_parse_expr(list);
 		cm_node_append_child(relation, expr);
 	} else {
@@ -564,7 +581,7 @@ CMNode *cm_parse_relation_def (CMTokenList *list)
 	}
 
 	cm_tokenlist_skip_endl(list);
-	cm_tokenlist_expect(list, CM_TOKEN_TYPE_D_ARROW); // discard =>
+	cm_tokenlist_expect(list, CM_TOKEN_TYPE_D_ARROW, "Invalid relation definition token"); // discard =>
 	cm_tokenlist_skip_endl(list);
 
 	CMNode *expr = cm_parse_expr(list);
@@ -659,7 +676,7 @@ CMNode *cm_parse (CMTokenList *list)
 		}
 
 		if (! cm_tokenlist_empty(*list)) {
-			cm_tokenlist_expect(list, CM_TOKEN_TYPE_ENDL);
+			cm_tokenlist_expect(list, CM_TOKEN_TYPE_ENDL, "Statements must end with a newline");
 			cm_tokenlist_skip_endl(list);
 		}
 	}

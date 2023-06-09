@@ -137,7 +137,7 @@ CMToken cm_tokenlist_shift (CMTokenList *list)
 }
 
 
-CMToken cm_tokenlist_expect (CMTokenList *list, CMTokenType type)
+CMToken cm_tokenlist_expect (CMTokenList *list, CMTokenType type, const char *message)
 {
 	if (cm_tokenlist_len(*list) < 1) {
 		CMToken last = list->tokens[list->cur - 1];
@@ -147,12 +147,16 @@ CMToken cm_tokenlist_expect (CMTokenList *list, CMTokenType type)
 	CMToken token = cm_tokenlist_shift(list);
 
 	if (token.type != type) {
-		char message[128];
+		char full_message[128];
 		const char *type_name = cm_readable_token_type(type);
 
-		snprintf(message, sizeof(message), "Expected %s", type_name);
+		if (message != NULL) {
+			snprintf(full_message, sizeof(full_message), "Expected %s: %s", type_name, message);
+		} else {
+			snprintf(full_message, sizeof(full_message), "Expected %s", type_name);
+		}
 
-		cm_syntax_error(token, message);
+		cm_syntax_error(token, full_message);
 	}
 
 	return token;

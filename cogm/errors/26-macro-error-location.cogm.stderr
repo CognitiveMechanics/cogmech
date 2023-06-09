@@ -1,2 +1,2 @@
-ERROR ../cogm/errors/26-macro-error-location.cogm:2:14: CM_TOKEN_TYPE_PERCENT: Expected CM_TOKEN_TYPE_ENDL
+ERROR ../cogm/errors/26-macro-error-location.cogm:2:14: CM_TOKEN_TYPE_PERCENT: Expected CM_TOKEN_TYPE_ENDL: Statements must end with a newline
 Expanded from ../cogm/errors/26-macro-error-location.cogm:4:6: CM_TOKEN_TYPE_WORD(to_1)

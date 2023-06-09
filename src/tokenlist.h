@@ -37,7 +37,7 @@ bool _cm_tokenlist_like (CMTokenList list, const CMTokenType types[], size_t typ
 
 bool cm_tokenlist_first_like (CMTokenList list, CMTokenType type);
 CMToken cm_tokenlist_shift (CMTokenList *list);
-CMToken cm_tokenlist_expect (CMTokenList *list, CMTokenType type);
+CMToken cm_tokenlist_expect (CMTokenList *list, CMTokenType type, const char *message);
 void cm_tokenlist_skip_endl (CMTokenList *list);
 
 bool cm_tokenlist_empty (CMTokenList list);

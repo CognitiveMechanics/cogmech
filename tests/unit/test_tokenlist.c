@@ -421,7 +421,7 @@ bool test_cm_tokenlist_shift_expect (void)
 		return false;
 	}
 
-	CMToken shifted2 = cm_tokenlist_expect(&list, CM_TOKEN_TYPE_COLON_EQ);
+	CMToken shifted2 = cm_tokenlist_expect(&list, CM_TOKEN_TYPE_COLON_EQ, NULL);
 
 	if (shifted2.type != CM_TOKEN_TYPE_COLON_EQ) {
 		cm_tokenlist_free(&list);

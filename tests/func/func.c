@@ -117,7 +117,7 @@ bool cm_run_func_tests(size_t n_files, char **filenames)
 		if (out_failed) {
 			fprintf(
 				stderr,
-				"%s stdout failed\nExpected: %s\nActual:%s\n",
+				"%s stdout failed\nExpected : %s\nActual   : %s\n",
 				filename,
 				expected_out,
 				buf_stdout
@@ -127,7 +127,7 @@ bool cm_run_func_tests(size_t n_files, char **filenames)
 		if (err_failed) {
 			fprintf(
 				stderr,
-				"%s stderr failed\nExpected: %s\nActual:%s\n",
+				"%s stderr failed\nExpected : %s\nActual   : %s\n",
 				filename,
 				expected_err,
 				buf_stderr
