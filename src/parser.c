@@ -482,8 +482,8 @@ CMNode *cm_parse_expr (CMTokenList *list)
 		}
 	}
 
-	if (! cm_tokenlist_empty(*list) && cm_tokenlist_first(*list).type == CM_TOKEN_TYPE_SQ_BRACKET_IN) {
-		return cm_parse_extract(expr, list);
+	while (! cm_tokenlist_empty(*list) && cm_tokenlist_first(*list).type == CM_TOKEN_TYPE_SQ_BRACKET_IN) {
+		expr = cm_parse_extract(expr, list);
 	}
 
 	return expr;

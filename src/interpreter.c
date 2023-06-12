@@ -258,6 +258,10 @@ CMNode *cm_interpret_extract (CMContext *context, CMNode *node)
 	CMNode *entity = cm_interpret_entity(context, node->children[0]);
 	CMNode *key = cm_interpret_entity(context, node->children[1]);
 
+	if (entity->type == CM_NODE_TYPE_NULL) {
+		return cm_node_null();
+	}
+
 	assert(entity->type == CM_NODE_TYPE_COMPOSE);
 
 	for (size_t i = 0; i < entity->n_children; i++) {
@@ -412,23 +416,27 @@ CMNode *cm_interpret_eval (CMContext *context, CMNode *node)
 	CMNode *entity = cm_interpret_entity(context, node->children[0]);
 	CMContext scope_context = cm_context_clone(*context);
 
-	CMRelationDef *def = NULL;
-	CMNode *new_entity = NULL;
+	CMRelationDef *def = cm_context_get_matching_relation(context, entity);
 
-	do {
-		def = cm_context_get_matching_relation(context, entity);
-
-		if (def != NULL) {
-			cm_context_force_def_symbol(&scope_context, def->bind, entity);
-			new_entity = cm_interpret_entity(&scope_context, def->body);
-		}
+	while(def != NULL) {
+//		printf("\n\nMATCHED %.*s\n", def->bind.len, def->bind.data);
+		cm_context_force_def_symbol(&scope_context, def->bind, entity);
+		CMNode *new_entity = cm_interpret_entity(&scope_context, def->body);
+//		cm_print_entity(new_entity);
 
 		if (cm_node_eq(entity, new_entity)) {
+			printf("Halted\n");
 			return entity;
-		} else {
-			entity = new_entity;
 		}
-	} while(def != NULL);
+
+		entity = new_entity;
+		def = cm_context_get_matching_relation(context, entity);
+	};
+
+//	printf("\n\nFINAL");
+//	cm_print_entity(entity);
+//	exit(1);
+//	printf("Exit\n");
 
 	return entity;
 }

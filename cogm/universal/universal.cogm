@@ -1,0 +1,203 @@
+
+@include "../lib/std.cogm"
+@include "../lib/math.cogm"
+
+
+// ------------------------------------------------------------------------------------------------------------------ //
+// SPECIFIERS
+// ------------------------------------------------------------------------------------------------------------------ //
+
+
+// This is the specifier for states of the machine.
+
+universal (name, structure, configurations, index, next, matched, instruction, result) ->
+  <
+    <"structure"    , structure>,
+    <"configurations", configurations>,
+    <"index"        , index>,
+    <"next"         , next>,
+    <"matched"      , matched>,
+    <"instruction"  , instruction>,
+    <"result"       , result>
+  >
+
+
+// This is a specifier for the active instruction loaded into the machine.
+
+instruction (structure, configurations, operation) ->
+  <
+    <"structure"    , structure>,     // this key is only to pass down recursively to other evaluations
+    <"configurations", configurations>, // this key is only to pass down recursively to other evaluations
+    <"operation"    , operation>      // this is an entity that represents the operations to perform
+  >
+
+
+// This is a specifier for a configuration, a pair of a pattern that serves to match the machine's current "structure",
+// and when it does, load "instruction".
+
+configuration (pattern, instruction) ->
+  <
+    <"pattern"    , pattern>,
+    <"instruction", instruction>
+  >
+
+
+// ------------------------------------------------------------------------------------------------------------------ //
+// OPERATIONS
+// ------------------------------------------------------------------------------------------------------------------ //
+
+
+// This instruction evals an instruction, which has its own set of relations to transition between defined outside the
+// universal machine. The nature of those specified relations determines the behavior of the universal machine.
+
+EvalInstruction (structure, configurations, operation) ->
+  Eval(
+    instruction(structure, configurations, operation)
+  )["operation"]
+
+
+// ------------------------------------------------------------------------------------------------------------------ //
+// MACHINE STATES
+// ------------------------------------------------------------------------------------------------------------------ //
+
+
+// This state sets up a new machine by taking in "structure" and "configurations" entities, and setting various defaults.
+
+s0 : universal([], [], [], [*], null, [], [*], [*]) =>
+  universal(
+    "s0",
+    s0["structure"],
+    s0["configurations"],
+    0,
+    s0["configurations"][0],
+    null,
+    [],
+    []
+  )
+
+
+// This state evaluates a matched "instruction".
+
+s1 : universal([], [], [], anynum, [], true, [], [*]) =>
+  universal(
+    "s1",
+    EvalInstruction(
+      s1["structure"],
+      s1["configurations"],
+      s1["instruction"]
+    ),
+    s1["configurations"],
+    0,
+    s1["configurations"][0], // begin searching for next match from first element in "configurations"
+    null,
+    [],
+    []
+  )
+
+
+// Stop if there is no next instruction.
+
+s2 : universal([], [], [], anynum, null, [], [], []) =>
+  universal(
+    "s2",
+    [],
+    [],
+    [],
+    null,
+    [],
+    [],
+    s2["structure"]
+  )
+
+
+// Set next "pattern" for matching.
+
+s3_current_configuration :: s3["configurations"][s3["index"]]
+
+s3 : universal([], [], [], anynum, [], null,  [], [*]) =>
+  universal(
+    "s3",
+    s3["structure"],
+    s3["configurations"],
+    +(s3["index"]),
+    s3["configurations"][
+      +(s3["index"])
+    ],
+    Match(
+      s3["structure"],
+      s3_current_configuration["pattern"]
+    ),
+    s3_current_configuration["instruction"],
+    []
+  )
+
+
+// ------------------------------------------------------------------------------------------------------------------ //
+// OPERATION SPECIFIERS & RELATIONS
+// ------------------------------------------------------------------------------------------------------------------ //
+
+// When an "operation" entity within and "instruction" takes the following forms, we will evaluate them according to
+// the relations defined below. This is what allows us to use the universal to emulate any cogm system.
+
+
+// Convenience specifier.
+
+op_result(result) ->
+  instruction(
+    s["structure"],
+    s["configurations"],
+    result
+  )
+
+
+// A "ref" atom is composed with another entity to indicate that it will be evaluated like a symbol that refers to
+// another entity.
+
+ref(entity) -> <#"ref", entity>
+
+s : instruction([], [], ref([])) =>
+  op_result(
+    s["structure"][
+      <s["operation"]>[#"ref"] // This is confusing, but operation needs to be wrapped in another composition to push
+    ]                          // "ref" key down on level so it can be extracted, e.g: <"ref", "value">["ref"] -> (null)
+  )                            //  but <<"ref", "value">>["ref"] -> "value" (notice the extra enclosing <>)
+
+
+// ------------------------------------------------------------------------------------------------------------------ //
+// UNIVERSAL EVALUATION OPERATION
+// ------------------------------------------------------------------------------------------------------------------ //
+
+
+// This is our final operation to execute the universal machine.
+
+Universal(structure, configurations) ->
+  Eval(
+    universal(
+      "begin",
+      structure,
+      configurations,
+      [],
+      null,
+      [],
+      [],
+      []
+    )
+  )
+
+
+// TEST
+
+single_var_structure :=
+  <
+    <"var", "value">
+  >
+
+single_var_configurations :=
+  <
+    <0, configuration(
+       <<"var", []>>,
+       ref("var")
+    )>
+  >
+
+: Universal(single_var_structure, single_var_configurations)
