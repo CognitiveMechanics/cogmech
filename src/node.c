@@ -136,14 +136,17 @@ void cm_node_set_token (CMNode *node, CMToken token)
 void cm_node_realloc_children (CMNode *node)
 {
 	node->cap = node->cap + CM_NODE_CHILDREN_BLOCK_SIZE;
-	node->children = realloc(node->children, node->cap);
-
+	assert(node->children != NULL);
+	node->children = realloc(node->children, node->cap * sizeof(CMNode *));
 	assert(node->children != NULL);
 }
 
 
 void cm_node_append_child (CMNode *node, CMNode *child)
 {
+	assert(node != NULL);
+	assert(child != NULL);
+
 	if (node->n_children + 1 > node->cap) {
 		cm_node_realloc_children(node);
 	}

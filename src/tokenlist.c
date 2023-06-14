@@ -188,7 +188,7 @@ void cm_print_tokenlist (CMTokenList list)
 void cm_tokenlist_realloc (CMTokenList *list)
 {
 	list->cap = list->cap + CM_TOKEN_LIST_BLOCK_SIZE;
-	list->tokens = realloc(list->tokens, list->cap);
+	list->tokens = realloc(list->tokens, list->cap * sizeof(CMToken));
 
 	assert(list->tokens != NULL);
 }

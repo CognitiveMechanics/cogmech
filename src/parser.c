@@ -626,11 +626,8 @@ CMNode *cm_parse (CMTokenList *list)
 				bool is_assignment = cm_tokenlist_like(*list, CM_FMT_ASSIGNMENT);
 
 				if (is_assignment) {
-					cm_node_append_child(
-						root,
-						cm_parse_symbol_def(list)
-					);
-
+					CMNode *node = cm_parse_symbol_def(list);
+					cm_node_append_child(root, node);
 					break;
 				}
 
@@ -638,22 +635,16 @@ CMNode *cm_parse (CMTokenList *list)
 				bool is_aliased_relation = cm_tokenlist_like(*list, CM_FMT_RELATION_ALIASED);
 
 				if (is_relation || is_aliased_relation) {
-					cm_node_append_child(
-						root,
-						cm_parse_relation_def(list)
-					);
-
+					CMNode *node = cm_parse_relation_def(list);
+					cm_node_append_child(root, node);
 					break;
 				}
 
 				bool is_op = cm_tokenlist_like(*list, CM_FMT_OP_START);
 
 				if (is_op) {
-					cm_node_append_child(
-						root,
-						cm_parse_op_def(list)
-					);
-
+					CMNode *node = cm_parse_op_def(list);
+					cm_node_append_child(root, node);
 					break;
 				}
 
