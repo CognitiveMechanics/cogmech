@@ -14,3 +14,7 @@ a := <
 : a[k]
 : a[#"k"]
 : a["k"]
+
+: %(<key, "symbol">, #k)
+: %(<"symbol">, #k)
+: %(k, <key, "symbol">)

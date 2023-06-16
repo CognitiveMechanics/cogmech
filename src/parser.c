@@ -108,7 +108,7 @@ CMNode *cm_parse_transclude (CMTokenList *list)
 	    && entity->type != CM_NODE_TYPE_SYMBOL
         && entity->type != CM_NODE_TYPE_OP_INVOKE)
 	{
-		cm_syntax_error(entity->token, "Transcluded nodes must be composed entities, symbols, or operation invokations");
+		cm_syntax_error(entity->token, "Transcluded nodes must be composed entities, symbols, or operation invocations");
 	}
 
 	return new_node;
@@ -238,6 +238,13 @@ CMNode *cm_parse_builtin (CMTokenList *list)
 
 		case CM_NODE_TYPE_EVAL: {
 			return cm_parse_eval(list);
+		}
+
+		case CM_NODE_TYPE_KEY: {
+			CMNode *node = cm_node(CM_NODE_TYPE_KEY);
+			node->token = cm_tokenlist_shift(list);
+
+			return node;
 		}
 
 		default: {
