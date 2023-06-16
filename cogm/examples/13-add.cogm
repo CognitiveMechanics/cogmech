@@ -2,22 +2,25 @@
 @include "../lib/std.cogm"
 @include "../lib/math.cogm"
 
-add(a, b, r) -> <
-  <"op1", a>,
-  <"op2", b>,
-  <"sum", r>
->
+add(a, b, r) ->
+  <
+    <"op1", a>,
+    <"op2", b>,
+    <"sum", r>
+  >
 
-s0 : add(proxy,      proxy,     *proxy)
-  => add(proxy,  s0["op1"],  s0["op2"])
+s0 : add( [],         [],        [*] )
+  => add( [],  s0["op1"],  s0["op2"] )
 
-s1 : add(*proxy,             not0,            proxy)
-  => add(proxy,   Decr(s1["op2"]),  Incr(s1["sum"]))
+s1 : add( [*],          not0,            [] )
+  => add(  [],  -(s1["op2"]),  +(s1["sum"]) )
 
-s2 : add(  *proxy,     *0,      proxy)
-  => add(   proxy,  proxy,  s2["sum"])
+s2 : add( [*],  *0,         [] )
+  => add(  [],  [],  s2["sum"] )
 
-add_i :: add(a, b, proxy)
-Add(a, b) -> Eval(add_i)["sum"]
+Add(a, b) ->
+  Eval(
+    add(a, b, [])
+  )["sum"]
 
 : Add(1, 2)

@@ -1,5 +1,5 @@
 
-@include "../universal/universal.cogm"
+@include "../universal.cogm"
 
 struct := []
 
@@ -7,7 +7,7 @@ configs :=
   <
     <0, configuration(
        [*],
-       decr(incr(incr(0)))
+       x(<<"var", "value">>, "var")
     )>
   >
 

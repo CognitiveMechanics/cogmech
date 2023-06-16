@@ -26,6 +26,8 @@ static char *CM_FUNC_TEST_FILES[] = {
 	"../cogm/examples/13-add.cogm",
 	"../cogm/examples/14-comments.cogm",
 	"../cogm/examples/15-macros.cogm",
+	"../cogm/examples/16-test-trace-1.cogm",
+	"../cogm/examples/17-test-trace-2.cogm",
 };
 
 

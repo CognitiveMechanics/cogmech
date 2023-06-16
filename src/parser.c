@@ -247,6 +247,20 @@ CMNode *cm_parse_builtin (CMTokenList *list)
 			return node;
 		}
 
+		case CM_NODE_TYPE_NULL: {
+			CMNode *node = cm_node_null();
+			node->token = cm_tokenlist_shift(list);
+
+			return node;
+		}
+
+		case CM_NODE_TYPE_TRUE: {
+			CMNode *node = cm_node(CM_NODE_TYPE_TRUE);
+			node->token = cm_tokenlist_shift(list);
+
+			return node;
+		}
+
 		default: {
 			assert(false && "Invalid builtin word");
 		}
