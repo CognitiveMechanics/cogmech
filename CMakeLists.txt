@@ -49,6 +49,9 @@ add_executable(func
         tests/func/func.c
         tests/func/main.c)
 
-target_compile_options(cogmech PUBLIC -Wall -Wextra -std=c++17 -pedantic)
-target_compile_options(test PUBLIC -Wall -Wextra -std=c++17 -pedantic)
-target_compile_options(func PUBLIC -Wall -Wextra -std=c++17 -pedantic)
+target_compile_options(cogmech PUBLIC -Wall -Wextra -std=c17 -pedantic)
+target_compile_options(test PUBLIC -Wall -Wextra -std=c17 -pedantic)
+target_compile_options(func PUBLIC -Wall -Wextra -std=c17 -pedantic)
+
+set(INSTALL_DIR "/usr/local/bin")
+install(TARGETS cogmech DESTINATION ${INSTALL_DIR})
