@@ -1,0 +1,14 @@
+
+@include "../universal/universal.cogm"
+
+struct := []
+
+configs :=
+  <
+    <0, configuration(
+       [*],
+       decr(incr(incr(0)))
+    )>
+  >
+
+: Universal(struct, configs)

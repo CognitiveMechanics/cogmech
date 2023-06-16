@@ -104,8 +104,11 @@ CMNode *cm_parse_transclude (CMTokenList *list)
 
 	CMNode *entity = new_node->children[0];
 
-	if (entity->type != CM_NODE_TYPE_COMPOSE && entity->type != CM_NODE_TYPE_SYMBOL) {
-		cm_syntax_error(entity->token, "Transcluded nodes must be composed entities or symbols");
+	if (entity->type != CM_NODE_TYPE_COMPOSE
+	    && entity->type != CM_NODE_TYPE_SYMBOL
+        && entity->type != CM_NODE_TYPE_OP_INVOKE)
+	{
+		cm_syntax_error(entity->token, "Transcluded nodes must be composed entities, symbols, or operation invokations");
 	}
 
 	return new_node;

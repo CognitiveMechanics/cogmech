@@ -245,6 +245,79 @@ sC4 : instruction([], [], c4([], [], [], [])) =>
   )
 
 
+// x specifies the extract operation
+
+x(op1, op2) ->
+  <
+    <"op", "X">,
+    <"op1", op1>,
+    <"op2", op2>
+  >
+
+sx : instruction([], [], x([], [])) =>
+  op_result(
+    sx,
+    EvalInstruction(sx["structure"], sx["configurations"], sx["operation"]["op1"])[
+      EvalInstruction(sx["structure"], sx["configurations"], sx["operation"]["op2"])
+    ]
+  )
+
+
+// t specifies the transclude operation
+
+t(op1, op2, op3) ->
+  <
+    <"op", "T">,
+    <"op1", op1>,
+    <"op2", op2>,
+    <"op3", op3>
+  >
+
+st : instruction([], [], t([], [], [])) =>
+  op_result(
+    st,
+    T(
+      EvalInstruction(st["structure"], st["configurations"], st["operation"]["op1"]),
+      EvalInstruction(st["structure"], st["configurations"], st["operation"]["op2"]),
+      EvalInstruction(st["structure"], st["configurations"], st["operation"]["op3"])
+    )
+  )
+
+
+// incr specifies the increment operation
+
+incr(op1) ->
+  <
+    <"op", "+">,
+    <"op1", op1>
+  >
+
+sincr : instruction([], [], incr([])) =>
+  op_result(
+    sincr,
+    +(
+      EvalInstruction(sincr["structure"], sincr["configurations"], sincr["operation"]["op1"])
+    )
+  )
+
+
+// decr specifies the decrement operation
+
+decr(op1) ->
+  <
+    <"op", "-">,
+    <"op1", op1>
+  >
+
+sdecr : instruction([], [], decr([])) =>
+  op_result(
+    sdecr,
+    -(
+      EvalInstruction(sdecr["structure"], sdecr["configurations"], sdecr["operation"]["op1"])
+    )
+  )
+
+
 // ------------------------------------------------------------------------------------------------------------------ //
 // UNIVERSAL EVALUATION OPERATION
 // ------------------------------------------------------------------------------------------------------------------ //

@@ -99,7 +99,7 @@ bool cm_run_func_tests(size_t n_files, char **filenames)
 			continue;
 		}
 
-		cm_run_func_test(filename, buf_stdout, buf_stderr, CM_FILENAME_BUFFER_SIZE);
+		cm_run_func_test(filename, buf_stdout, buf_stderr, CM_FUNC_TEST_BUFFER_SIZE);
 
 		char *expected_out = cm_read_file_to_cstr(out_filename);
 		char *expected_err = cm_read_file_to_cstr(err_filename);
@@ -155,7 +155,7 @@ void cm_update_func_tests(size_t n_files, char **filenames)
 			continue;
 		}
 
-		cm_run_func_test(filename, buf_stdout, buf_stderr, CM_FILENAME_BUFFER_SIZE);
+		cm_run_func_test(filename, buf_stdout, buf_stderr, CM_FUNC_TEST_BUFFER_SIZE);
 
 		printf("Writing %s stdout to %s:\n%s\n", filename, out_filename, buf_stdout);
 		printf("Writing %s stderr to %s:\n%s\n", filename, err_filename, buf_stderr);

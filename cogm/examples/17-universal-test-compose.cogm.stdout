@@ -1,0 +1,24 @@
+<
+  <"structure", []>,
+  <"configurations", []>,
+  <"index", []>,
+  <"next", null>,
+  <"matched", []>,
+  <"instruction", []>,
+  <
+    "result",
+    <
+      <
+        <
+          <"value">,
+          "l1"
+        >,
+        "l2",
+        "l2"
+      >,
+      "l3",
+      "l3",
+      "l3"
+    >
+  >
+>

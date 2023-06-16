@@ -2,7 +2,7 @@
 #ifndef CM_FUNC_H
 #define CM_FUNC_H
 
-#define CM_FUNC_TEST_BUFFER_SIZE 2048
+#define CM_FUNC_TEST_BUFFER_SIZE 10240
 #define CM_FILENAME_BUFFER_SIZE 256
 
 #include <stdlib.h>

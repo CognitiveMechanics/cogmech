@@ -1,0 +1,14 @@
+<
+  <"structure", []>,
+  <"configurations", []>,
+  <"index", []>,
+  <"next", null>,
+  <"matched", []>,
+  <"instruction", []>,
+  <
+    "result",
+    <
+      <"var", "new_value">
+    >
+  >
+>
