@@ -28,7 +28,7 @@ bool test_cm_context_clone (void)
 
 	cm_context_def_symbol(&context, name, node);
 
-	CMContext cloned = cm_context_clone(context);
+	CMContext cloned = cm_context_clone(&context);
 
 	CMNode *test1 = cm_context_get_symbol(&context, name);
 	CMNode *test2 = cm_context_get_symbol(&cloned, name);

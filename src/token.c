@@ -74,14 +74,26 @@ const char *cm_token_type_symbol (CMTokenType type)
 }
 
 
+CMLoc cm_loc (const char * filename, size_t row, size_t col)
+{
+	assert(filename != NULL);
+
+	CMLoc loc = {
+		.filename = malloc(strlen(filename) + 1),
+		.row = row,
+		.col = col
+	};
+
+	strcpy(loc.filename, filename);
+
+	return loc;
+}
+
+
 CMToken cm_token (const char * filename, size_t row, size_t col, CMTokenType type)
 {
 	return (CMToken) {
-		.loc = (CMLoc) {
-			.filename = filename,
-			.row = row,
-			.col = col,
-		},
+		.loc = cm_loc(filename, row, col),
 		.type = type,
 		.value = CM_SV_NULL,
 		.macro = NULL

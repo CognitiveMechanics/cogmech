@@ -1,12 +1,14 @@
 
 
 #include <stdbool.h>
-#include <libgen.h>
 #include <string.h>
 
 #include "stringview.h"
 #include "parser.h"
 #include "interpreter.h"
+
+#define CM_TRACE_PREFIX "// "
+#define CM_TRACE_LINE_PREFIX "============================================================"
 
 
 bool _cm_print_entity_has_composition (CMNode *node)
@@ -33,7 +35,7 @@ bool _cm_print_entity_should_indent (CMNode *node)
 }
 
 
-void _cm_print_entity (CMNode *node, int indent_level, int num_spaces, bool with_comma)
+void _cm_print_entity (CMNode *node, const char *prefix, int indent_level, int num_spaces, bool with_comma)
 {
 	char *comma;
 
@@ -46,7 +48,8 @@ void _cm_print_entity (CMNode *node, int indent_level, int num_spaces, bool with
 	switch (node->type) {
 		case CM_NODE_TYPE_NULL: {
 			printf(
-				"%*snull%s\n",
+				"%s%*snull%s\n",
+				prefix,
 				indent_level * num_spaces,
 				"",
 				comma
@@ -57,7 +60,8 @@ void _cm_print_entity (CMNode *node, int indent_level, int num_spaces, bool with
 
 		case CM_NODE_TYPE_TRUE: {
 			printf(
-				"%*strue%s\n",
+				"%s%*strue%s\n",
+				prefix,
 				indent_level * num_spaces,
 				"",
 				comma
@@ -68,7 +72,8 @@ void _cm_print_entity (CMNode *node, int indent_level, int num_spaces, bool with
 
 		case CM_NODE_TYPE_PROXY: {
 			printf(
-				"%*s[]%s\n",
+				"%s%*s[]%s\n",
+				prefix,
 				indent_level * num_spaces,
 				"",
 				comma
@@ -79,7 +84,8 @@ void _cm_print_entity (CMNode *node, int indent_level, int num_spaces, bool with
 
 		case CM_NODE_TYPE_DOT_PROXY: {
 			printf(
-				"%*s[.]%s\n",
+				"%s%*s[*]%s\n",
+				prefix,
 				indent_level * num_spaces,
 				"",
 				comma
@@ -88,9 +94,11 @@ void _cm_print_entity (CMNode *node, int indent_level, int num_spaces, bool with
 			break;
 		}
 
+		// TODO made out parseable
 		case CM_NODE_TYPE_KEY: {
 			printf(
-				"%*skey%s\n",
+				"%s%*skey%s\n",
+				prefix,
 				indent_level * num_spaces,
 				"",
 				comma
@@ -101,7 +109,8 @@ void _cm_print_entity (CMNode *node, int indent_level, int num_spaces, bool with
 
 		case CM_NODE_TYPE_LITERAL: {
 			printf(
-				"%*s\"%.*s\"%s\n",
+				"%s%*s\"%.*s\"%s\n",
+				prefix,
 				indent_level * num_spaces,
 				"",
 				(int) node->value.len,
@@ -114,7 +123,8 @@ void _cm_print_entity (CMNode *node, int indent_level, int num_spaces, bool with
 
 		case CM_NODE_TYPE_INT: {
 			printf(
-				"%*s%.*s%s\n",
+				"%s%*s%.*s%s\n",
+				prefix,
 				indent_level * num_spaces,
 				"",
 				(int) node->value.len,
@@ -127,7 +137,8 @@ void _cm_print_entity (CMNode *node, int indent_level, int num_spaces, bool with
 
 		case CM_NODE_TYPE_INT_EXACT: {
 			printf(
-				"%*s*%.*s%s\n",
+				"%s%*s*%.*s%s\n",
+				prefix,
 				indent_level * num_spaces,
 				"",
 				(int) node->value.len,
@@ -140,20 +151,21 @@ void _cm_print_entity (CMNode *node, int indent_level, int num_spaces, bool with
 
 		case CM_NODE_TYPE_COMPOSE: {
 			if (_cm_print_entity_should_indent(node)) {
-				printf("%*s<\n", indent_level * num_spaces, "");
+				printf("%s%*s<\n", prefix, indent_level * num_spaces, "");
 
 				for (size_t i = 0; i < node->n_children; i++) {
 					_cm_print_entity(
 						node->children[i],
+						prefix,
 						indent_level + 1,
 						num_spaces,
 						i < node->n_children - 1
 					);
 				}
 
-				printf("%*s>%s\n", indent_level * num_spaces, "", comma);
+				printf("%s%*s>%s\n", prefix, indent_level * num_spaces, "", comma);
 			} else {
-				printf("%*s<", indent_level * num_spaces, "");
+				printf("%s%*s<", prefix, indent_level * num_spaces, "");
 
 				for (size_t i = 0; i < node->n_children; i++) {
 					CMNode *child = node->children[i];
@@ -216,9 +228,15 @@ void _cm_print_entity (CMNode *node, int indent_level, int num_spaces, bool with
 }
 
 
+void cm_print_entity_with_prefix (CMNode *node, const char *prefix)
+{
+	_cm_print_entity(node, prefix, 0, 2, false);
+}
+
+
 void cm_print_entity (CMNode *node)
 {
-	_cm_print_entity(node, 0, 2, false);
+	_cm_print_entity(node, "", 0, 2, false);
 }
 
 
@@ -414,18 +432,31 @@ CMNode *cm_interpret_eval (CMContext *context, CMNode *node)
 	assert(node->type == CM_NODE_TYPE_EVAL);
 
 	CMNode *entity = cm_interpret_entity(context, node->children[0]);
-	CMContext scope_context = cm_context_clone(*context);
+	CMContext scope_context = cm_context_clone(context);
 
 	CMRelationDef *def = cm_context_get_matching_relation(context, entity);
 
-	while(def != NULL) {
-//		printf("\n\nMATCHED %.*s\n", def->bind.len, def->bind.data);
+	while (def != NULL) {
+		if (context->trace > 1) {
+			printf(CM_TRACE_PREFIX CM_TRACE_LINE_PREFIX "\n" CM_TRACE_PREFIX "MATCHED %.*s:\n",
+				   (int) def->bind.len, def->bind.data);
+			cm_print_entity_with_prefix(entity, CM_TRACE_PREFIX);
+		}
+
 		cm_context_force_def_symbol(&scope_context, def->bind, entity);
 		CMNode *new_entity = cm_interpret_entity(&scope_context, def->body);
-//		cm_print_entity(new_entity);
+
+		if (context->trace > 0) {
+			printf(CM_TRACE_PREFIX CM_TRACE_LINE_PREFIX "\n" CM_TRACE_PREFIX "AFTER %.*s:\n",
+				   (int) def->bind.len, def->bind.data);
+			cm_print_entity_with_prefix(new_entity, CM_TRACE_PREFIX);
+		}
 
 		if (cm_node_eq(entity, new_entity)) {
-			printf("Halted\n");
+			if (context->trace > 0) {
+				printf(CM_TRACE_PREFIX CM_TRACE_LINE_PREFIX "\n" CM_TRACE_PREFIX "HALTED\n");
+			}
+
 			return entity;
 		}
 
@@ -433,10 +464,10 @@ CMNode *cm_interpret_eval (CMContext *context, CMNode *node)
 		def = cm_context_get_matching_relation(context, entity);
 	};
 
-//	printf("\n\nFINAL");
-//	cm_print_entity(entity);
-//	exit(1);
-//	printf("Exit\n");
+	if (context->trace > 1) {
+		printf(CM_TRACE_PREFIX CM_TRACE_LINE_PREFIX "\n" CM_TRACE_PREFIX "FINAL\n");
+		cm_print_entity_with_prefix(entity, CM_TRACE_PREFIX);
+	}
 
 	return entity;
 }
@@ -456,7 +487,7 @@ CMNode *cm_interpret_op_invoke (CMContext *context, CMNode *node)
 		cm_syntax_error(node->token, "Number of arguments do not match op definition");
 	}
 
-	CMContext scope = cm_context_clone(*context);
+	CMContext scope = cm_context_clone(context);
 
 	for (size_t i = 0; i < def.arglist->n_children; i++) {
 		CMNode *arg = def.arglist->children[i];
@@ -627,7 +658,6 @@ void cm_interpret_print (CMContext *context, CMNode *node)
 void cm_interpret (CMContext *context, CMNode *ast)
 {
 	assert(CM_NODE_TYPE_COUNT == 24);
-
 	assert(ast->type == CM_NODE_TYPE_ROOT);
 
 	for (size_t i = 0; i < ast->n_children; i++) {

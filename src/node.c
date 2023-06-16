@@ -114,7 +114,7 @@ void cm_node_alloc_children (CMNode *node, size_t cap)
 
 CMNode *cm_node (CMNodeType type)
 {
-	CMNode* node = calloc(1, sizeof(CMNode));
+	CMNode* node = malloc(sizeof(CMNode));
 
 	node->type = type;
 	node->n_children = 0;

@@ -59,9 +59,10 @@ bool cm_is_num (char c)
 }
 
 
-CMToken cm_tokenize_quote (const char * filename, CMStringView *sv, size_t *row, size_t *col)
+// TODO: test
+CMToken cm_tokenize_quote (CMLoc *loc, CMStringView *sv)
 {
-	CMToken quoted = cm_token(filename, *row, *col, CM_TOKEN_TYPE_QUOTED);
+	CMToken quoted = cm_token(loc->filename, loc->row, loc->col, CM_TOKEN_TYPE_QUOTED);
 	size_t curr = 1;
 	bool terminated = false;
 
@@ -75,7 +76,7 @@ CMToken cm_tokenize_quote (const char * filename, CMStringView *sv, size_t *row,
 		curr += 1;
 	}
 
-	(*col) += quoted.value.len;
+	loc->col += quoted.value.len;
 
 	if (!terminated) {
 		quoted.value = cm_chop_left_len(sv, curr);
@@ -90,7 +91,18 @@ CMToken cm_tokenize_quote (const char * filename, CMStringView *sv, size_t *row,
 }
 
 
-CMTokenList _cm_tokenize (CMContext *context, const char *filename, CMStringView sv, size_t *row, size_t *col, CMToken *macro)
+// TODO: test
+CMToken cm_tokenize_int (CMLoc *loc, CMStringView *sv)
+{
+	CMToken word = cm_token(loc->filename, loc->row, loc->col, CM_TOKEN_TYPE_INT);
+	word.value = cm_chop_left_while(sv, cm_is_num);
+	loc->col += word.value.len;
+
+	return word;
+}
+
+
+CMTokenList _cm_tokenize (CMContext *context, CMLoc *loc, CMStringView sv, CMToken *macro)
 {
 	assert(CM_TOKEN_TYPE_COUNT == 26);
 
@@ -99,7 +111,7 @@ CMTokenList _cm_tokenize (CMContext *context, const char *filename, CMStringView
 	while (! cm_sv_empty(sv)) {
 		size_t trimmed = cm_trim_left(&sv, " \t");
 		bool is_punctuation = false;
-		(*col) += trimmed;
+		loc->col += trimmed;
 
 		for (size_t type = 0; type < CM_TOKEN_TYPE_COUNT; type++) {
 			const char* symbol = cm_token_type_symbol(type);
@@ -110,11 +122,11 @@ CMTokenList _cm_tokenize (CMContext *context, const char *filename, CMStringView
 
 					cm_tokenlist_append(
 						&list,
-						cm_token(filename, *row, *col, type)
+						cm_token(loc->filename, loc->row, loc->col, type)
 					);
 
 					cm_chop_left_len(&sv, symbol_len);
-					(*col) += symbol_len;
+					loc->col += symbol_len;
 					is_punctuation = true;
 					break;
 				}
@@ -126,34 +138,47 @@ CMTokenList _cm_tokenize (CMContext *context, const char *filename, CMStringView
 		}
 
 		if (cm_starts_with(sv, cm_sv("\""))) {
-			CMToken quoted = cm_tokenize_quote(filename, &sv, row, col);
+			CMToken quoted = cm_tokenize_quote(loc, &sv);
 			cm_tokenlist_append(&list, quoted);
 
 		} else if (cm_starts_with(sv, cm_sv("\""))) {
-			CMToken quoted = cm_tokenize_quote(filename, &sv, row, col);
+			CMToken quoted = cm_tokenize_quote(loc, &sv);
 			cm_tokenlist_append(&list, quoted);
 
 		} else if (cm_starts_with(sv, cm_sv("@include"))) {
 			cm_chop_left_delim(&sv, cm_sv("@include"));
-			(*col) += strlen("@include");
-			(*col) += cm_trim_left(&sv, " \t");
-			CMToken quoted = cm_tokenize_quote(filename, &sv, row, col);
+			loc->col += strlen("@include");
+			loc->col += cm_trim_left(&sv, " \t");
+			CMToken quoted = cm_tokenize_quote(loc, &sv);
 
-			char filename_buffer[1024] = "";
+			char filename_buffer[1024] = {0};
 
 			if (cm_starts_with(quoted.value, cm_sv("/"))) {
 				strcat(filename_buffer, cm_sv_to_cstr(quoted.value));
 			} else {
-				strcat(filename_buffer, dirname((char *) filename));
+				strcat(filename_buffer, dirname((char *) loc->filename));
 				strcat(filename_buffer, "/");
 				strcat(filename_buffer, cm_sv_to_cstr(quoted.value));
 			}
 
-			CMTokenList included = cm_tokenize_file(context, filename_buffer);
+			CMTokenList included = cm_tokenize_file(context, (const char *) filename_buffer);
 
 			for (size_t i = 0; i < cm_tokenlist_len(included); i++) {
 				cm_tokenlist_append(&list, cm_tokenlist_get(included, i));
 			}
+
+		} else if (cm_starts_with(sv, cm_sv("@trace"))) {
+			cm_chop_left_delim(&sv, cm_sv("@trace"));
+			loc->col += strlen("@trace");
+			loc->col += cm_trim_left(&sv, " \t");
+
+			CMToken token = cm_tokenize_int(loc, &sv);
+
+			if (token.value.len == 0) {
+				cm_syntax_error(token, "Invalid trace level");
+			}
+
+			context->trace = strtol(cm_sv_to_cstr(token.value), NULL, 10);
 
 		} else if (cm_starts_with(sv, cm_sv("//"))) {
 			size_t curr = 2;
@@ -169,20 +194,19 @@ CMTokenList _cm_tokenize (CMContext *context, const char *filename, CMStringView
 			cm_chop_left_len(&sv, curr);
 
 		} else if (isalpha(sv.data[0])) {
-			CMToken word = cm_token(filename, *row, *col, CM_TOKEN_TYPE_WORD);
+			CMToken word = cm_token(loc->filename, loc->row, loc->col, CM_TOKEN_TYPE_WORD);
 			word.value = cm_chop_left_while(&sv, cm_is_word);
-			(*col) += word.value.len;
-
-			(*col) += cm_trim_left(&sv, " \t");
+			loc->col += word.value.len;
+			loc->col += cm_trim_left(&sv, " \t");
 
 			if (cm_starts_with(sv, cm_sv("::"))) {
 				if (cm_static_context_has_macro(context, word.value)) {
 					cm_syntax_error(word, "Macro redefined");
 				}
 
-				(*col) += 2;
+				loc->col += 2;
 				cm_chop_left_delim(&sv, cm_sv("::"));
-				cm_static_context_def_macro(context, word, _cm_tokenize(context, filename, sv, row, col, &word));
+				cm_static_context_def_macro(context, word, _cm_tokenize(context, loc, sv,  &word));
 				cm_chop_left_delim(&sv, cm_sv("\n"));
 
 			} else if (cm_static_context_has_macro(context, word.value)) {
@@ -200,18 +224,15 @@ CMTokenList _cm_tokenize (CMContext *context, const char *filename, CMStringView
 			}
 
 		} else if (isnumber(sv.data[0])) {
-			CMToken word = cm_token(filename, *row, *col, CM_TOKEN_TYPE_INT);
-			word.value = cm_chop_left_while(&sv, cm_is_num);
-
+			CMToken word = cm_tokenize_int(loc, &sv);
 			cm_tokenlist_append(&list, word);
-			(*col) += word.value.len;
 
 		} else if (cm_in_chars(sv.data[0], "\n")) {
-			CMToken word = cm_token(filename, *row, *col, CM_TOKEN_TYPE_ENDL);
+			CMToken word = cm_token(loc->filename, loc->row, loc->col, CM_TOKEN_TYPE_ENDL);
 			cm_chop_left_len(&sv, 1);
 
-			(*row) += 1;
-			(*col) = 0;
+			loc->row += 1;
+			loc->col = 0;
 
 			if (macro) {
 				break;
@@ -224,7 +245,7 @@ CMTokenList _cm_tokenize (CMContext *context, const char *filename, CMStringView
 			cm_trim_left(&sv, "\r");
 
 		} else {
-			CMToken unknown = cm_token(filename, *row, *col, CM_TOKEN_TYPE_UNKNOWN);
+			CMToken unknown = cm_token(loc->filename, loc->row, loc->col, CM_TOKEN_TYPE_UNKNOWN);
 			unknown.value = cm_chop_left_while(&sv, cm_is_not_space);
 			cm_syntax_error(unknown, "Invalid token");
 		}
@@ -236,10 +257,10 @@ CMTokenList _cm_tokenize (CMContext *context, const char *filename, CMStringView
 
 CMTokenList cm_tokenize (CMContext *context, const char *filename, CMStringView sv)
 {
-	size_t row = 0;
-	size_t col = 0;
+	CMLoc *loc = malloc(sizeof(CMLoc));
+	*loc = cm_loc(filename, 0, 0);
 
-	return _cm_tokenize(context, filename, sv, &row, &col, false);
+	return _cm_tokenize(context, loc, sv, false);
 }
 
 

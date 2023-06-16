@@ -1,0 +1,29 @@
+
+@include "../universal/universal.cogm"
+
+struct :=
+  <
+    <"var", "value">
+  >
+
+configs :=
+  <
+    <0, configuration(
+       <<"var", []>>,
+       c4(
+         c3(
+           c2(
+             c1(ref("var")),
+             "l1"
+           ),
+         "l2",
+         "l2"
+       ),
+       "l3",
+       "l3",
+       "l3"
+     )
+    )>
+  >
+
+: Universal(struct, configs)

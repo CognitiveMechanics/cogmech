@@ -21,7 +21,7 @@
 
 typedef struct CMLoc
 {
-	const char * filename;
+	char * filename;
 	size_t row;
 	size_t col;
 } CMLoc;
@@ -76,6 +76,7 @@ static CMToken CM_TOKEN_NULL = {0};
 const char *cm_readable_token_type (CMTokenType type);
 const char *cm_token_type_symbol (CMTokenType type);
 
+CMLoc cm_loc (const char * filename, size_t row, size_t col);
 CMToken cm_token (const char * filename, size_t row, size_t col, CMTokenType type);
 bool cm_token_eq (CMToken token1, CMToken token2);
 void cm_print_token (CMToken token);

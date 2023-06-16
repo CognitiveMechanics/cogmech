@@ -1,4 +1,5 @@
 
+
 @include "../lib/std.cogm"
 @include "../lib/math.cogm"
 
@@ -37,7 +38,7 @@ instruction (structure, configurations, operation) ->
 
 configuration (pattern, instruction) ->
   <
-    <"pattern"    , pattern>,
+    <"pattern"  , pattern>,
     <"instruction", instruction>
   >
 
@@ -142,7 +143,7 @@ s3 : universal([], [], [], anynum, [], null,  [], [*]) =>
 
 // Convenience specifier.
 
-op_result(result) ->
+op_result(s, result) ->
   instruction(
     s["structure"],
     s["configurations"],
@@ -151,16 +152,97 @@ op_result(result) ->
 
 
 // A "ref" atom is composed with another entity to indicate that it will be evaluated like a symbol that refers to
-// another entity.
+// another entity in "structure".
 
-ref(entity) -> <#"ref", entity>
+ref(entity) -> <<#"ref", entity>>
 
-s : instruction([], [], ref([])) =>
+sRef : instruction([], [], ref([])) =>
   op_result(
-    s["structure"][
-      <s["operation"]>[#"ref"] // This is confusing, but operation needs to be wrapped in another composition to push
-    ]                          // "ref" key down on level so it can be extracted, e.g: <"ref", "value">["ref"] -> (null)
-  )                            //  but <<"ref", "value">>["ref"] -> "value" (notice the extra enclosing <>)
+    sRef,
+    sRef["structure"][
+      sRef["operation"][#"ref"]
+    ]
+  )
+
+
+// C1 is the compose operation with only one operand, i.e. <op1>
+
+c1(op1) ->
+  <
+    <"op", "C1">,
+    <"op1", op1>
+  >
+
+sC1 : instruction([], [], c1([])) =>
+  op_result(
+    sC1,
+    <
+      EvalInstruction(sC1["structure"], sC1["configurations"], sC1["operation"]["op1"])
+    >
+  )
+
+
+// C2 is the compose operation with two operands
+
+c2(op1, op2) ->
+  <
+    <"op", "C2">,
+    <"op1", op1>,
+    <"op2", op2>
+  >
+
+sC2 : instruction([], [], c2([], [])) =>
+  op_result(
+    sC2,
+    <
+      EvalInstruction(sC2["structure"], sC2["configurations"], sC2["operation"]["op1"]),
+      EvalInstruction(sC2["structure"], sC2["configurations"], sC2["operation"]["op2"])
+    >
+  )
+
+
+// C3 is the compose operation with three operands
+
+c3(op1, op2, op3) ->
+  <
+    <"op", "C3">,
+    <"op1", op1>,
+    <"op2", op2>,
+    <"op3", op3>
+  >
+
+sC3 : instruction([], [], c3([], [], [])) =>
+  op_result(
+    sC3,
+    <
+      EvalInstruction(sC3["structure"], sC3["configurations"], sC3["operation"]["op1"]),
+      EvalInstruction(sC3["structure"], sC3["configurations"], sC3["operation"]["op2"]),
+      EvalInstruction(sC3["structure"], sC3["configurations"], sC3["operation"]["op3"])
+    >
+  )
+
+
+// C4 is the compose operation with three operands
+
+c4(op1, op2, op3, op4) ->
+  <
+    <"op", "C4">,
+    <"op1", op1>,
+    <"op2", op2>,
+    <"op3", op3>,
+    <"op4", op4>
+  >
+
+sC4 : instruction([], [], c4([], [], [], [])) =>
+  op_result(
+    sC4,
+    <
+      EvalInstruction(sC4["structure"], sC4["configurations"], sC4["operation"]["op1"]),
+      EvalInstruction(sC4["structure"], sC4["configurations"], sC4["operation"]["op2"]),
+      EvalInstruction(sC4["structure"], sC4["configurations"], sC4["operation"]["op3"]),
+      EvalInstruction(sC4["structure"], sC4["configurations"], sC4["operation"]["op4"])
+    >
+  )
 
 
 // ------------------------------------------------------------------------------------------------------------------ //
@@ -183,21 +265,3 @@ Universal(structure, configurations) ->
       []
     )
   )
-
-
-// TEST
-
-single_var_structure :=
-  <
-    <"var", "value">
-  >
-
-single_var_configurations :=
-  <
-    <0, configuration(
-       <<"var", []>>,
-       ref("var")
-    )>
-  >
-
-: Universal(single_var_structure, single_var_configurations)

@@ -1,0 +1,19 @@
+
+@include "../universal/universal.cogm"
+
+// TEST
+
+single_var_structure :=
+  <
+    <"var", "value">
+  >
+
+single_var_configurations :=
+  <
+    <0, configuration(
+       <<"var", []>>,
+       ref("var")
+    )>
+  >
+
+: Universal(single_var_structure, single_var_configurations)

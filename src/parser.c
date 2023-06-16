@@ -672,5 +672,6 @@ CMNode *cm_parse (CMTokenList *list)
 		}
 	}
 
+//	cm_print_node(root);
 	return root;
 }

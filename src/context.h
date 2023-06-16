@@ -54,11 +54,13 @@ typedef struct CMContext {
 
 	CMMacroDef macro_defs[CM_MAX_MACROS];
 	size_t n_macro_defs;
+
+	size_t trace;
 } CMContext;
 
 
 CMContext cm_context (void);
-CMContext cm_context_clone (const CMContext context);
+CMContext cm_context_clone (const CMContext *context);
 
 bool cm_context_has_symbol (CMContext *context, CMStringView name);
 CMNode *cm_context_get_symbol (CMContext *context, CMStringView name);

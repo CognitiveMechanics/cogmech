@@ -8,16 +8,26 @@ CMContext cm_context (void)
 }
 
 
-CMContext cm_context_clone (const CMContext context)
+CMContext cm_context_clone (const CMContext *context)
 {
 	CMContext new_context = (CMContext) {
-		.n_symbol_defs = context.n_symbol_defs,
-		.n_op_defs = context.n_op_defs,
-		.n_relation_defs = context.n_relation_defs,
+		.n_macro_defs = context->n_macro_defs,
+		.macro_defs = {0},
+
+		.n_symbol_defs = context->n_symbol_defs,
+		.symbol_defs = {0},
+
+		.n_op_defs = context->n_op_defs,
+		.op_defs = {0},
+
+		.n_relation_defs = context->n_relation_defs,
+		.relation_defs = {0},
+
+		.trace = context->trace,
 	};
 
-	for (size_t i = 0; i < context.n_symbol_defs; i++) {
-		CMSymbolDef def = context.symbol_defs[i];
+	for (size_t i = 0; i < context->n_symbol_defs; i++) {
+		CMSymbolDef def = context->symbol_defs[i];
 
 		new_context.symbol_defs[i] = (CMSymbolDef) {
 			.name = def.name,
@@ -25,8 +35,8 @@ CMContext cm_context_clone (const CMContext context)
 		};
 	}
 
-	for (size_t i = 0; i < context.n_op_defs; i++) {
-		CMOpDef def = context.op_defs[i];
+	for (size_t i = 0; i < context->n_op_defs; i++) {
+		CMOpDef def = context->op_defs[i];
 
 		new_context.op_defs[i] = (CMOpDef) {
 			.name = def.name,
@@ -35,8 +45,8 @@ CMContext cm_context_clone (const CMContext context)
 		};
 	}
 
-	for (size_t i = 0; i < context.n_relation_defs; i++) {
-		CMRelationDef def = context.relation_defs[i];
+	for (size_t i = 0; i < context->n_relation_defs; i++) {
+		CMRelationDef def = context->relation_defs[i];
 
 		new_context.relation_defs[i] = (CMRelationDef) {
 			.bind = def.bind,
@@ -45,8 +55,8 @@ CMContext cm_context_clone (const CMContext context)
 		};
 	}
 
-	for (size_t i = 0; i < context.n_relation_defs; i++) {
-		CMMacroDef def = context.macro_defs[i];
+	for (size_t i = 0; i < context->n_macro_defs; i++) {
+		CMMacroDef def = context->macro_defs[i];
 
 		new_context.macro_defs[i] = (CMMacroDef) {
 			.token = def.token,
