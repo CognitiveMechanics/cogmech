@@ -1,0 +1,4 @@
+@trace 1
+
+t1 : "begin" => "end"
+: R("begin")
