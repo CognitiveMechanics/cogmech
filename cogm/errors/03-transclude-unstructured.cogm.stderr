@@ -1,1 +1,1 @@
-ERROR ../cogm/errors/03-transclude-unstructured.cogm:1:5: CM_TOKEN_TYPE_QUOTED(test): Transcluded nodes must be composed entities or symbols
+ERROR ../cogm/errors/03-transclude-unstructured.cogm:1:5: CM_TOKEN_TYPE_QUOTED(test): Transcluded nodes must be composed entities, symbols, or operation invocations
