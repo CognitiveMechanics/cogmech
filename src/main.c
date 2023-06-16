@@ -12,7 +12,6 @@
 #define CM_EXIT_USAGE 1
 
 
-// TODO: add key entity
 // TODO: add documentation
 // TODO: add universal machine example
 
