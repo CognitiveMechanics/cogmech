@@ -12,8 +12,9 @@
 #define CM_EXIT_USAGE 1
 
 
-// TODO: implement universal machine
+// TODO: add key entity
 // TODO: add documentation
+// TODO: add universal machine example
 
 
 const char* cm_get_usage (void)
