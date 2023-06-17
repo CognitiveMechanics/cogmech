@@ -1,5 +1,4 @@
 
-@include "../lib/std.cogm"
 @include "../lib/math.cogm"
 
 add(a, b, r) ->
@@ -31,7 +30,7 @@ s2 : add( [*], *0, [] ) =>
   )
 
 Add(a, b) ->
-  Eval(
+  R(
     add(a, b, [])
   )["sum"]
 
