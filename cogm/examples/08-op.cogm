@@ -1,0 +1,17 @@
+Pair(arg1, arg2) -> <arg1, arg2>
+
+dessert := 
+  <
+    Pair("flavor", []),
+    Pair("dessert_type", [])
+  >
+
+CreateDessert(flavor, type) ->
+  T(
+    T(dessert, "flavor", flavor),
+    "dessert_type",
+    type
+  )
+  
+: CreateDessert("chocolate", "cake")
+: CreateDessert("peach", "cobbler")

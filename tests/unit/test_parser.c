@@ -1293,7 +1293,7 @@ bool test_cm_parse_print (void)
 bool test_cm_parse (void)
 {
 	CMContext context = cm_context();
-	CMTokenList list = cm_tokenize_file(&context, "../cogm/examples/00-hello.cogm");
+	CMTokenList list = cm_tokenize_file(&context, "../cogm/tests/00-hello.cogm");
 	CMNode *parsed = cm_parse(&list);
 
 	// root

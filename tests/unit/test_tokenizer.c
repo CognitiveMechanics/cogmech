@@ -10,9 +10,8 @@
 
 bool test_cm_tokenize_file (void)
 {
-	CMContext context = cm_context();
-
 	for (size_t i = 0; i < ARRAY_LEN(CM_FUNC_TEST_FILES); i++) {
+		CMContext context = cm_context();
 		CMTokenList list = cm_tokenize_file(&context, CM_FUNC_TEST_FILES[i]);
 
 		if (cm_tokenlist_len(list) == 0) {

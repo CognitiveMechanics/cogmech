@@ -1,6 +1,5 @@
 
 
-@include "../lib/std.cogm"
 @include "../lib/math.cogm"
 
 
@@ -52,7 +51,7 @@ configuration (pattern, instruction) ->
 // universal machine. The nature of those specified relations determines the behavior of the universal machine.
 
 EvalInstruction (structure, configurations, operation) ->
-  Eval(
+  R(
     instruction(structure, configurations, operation)
   )["operation"]
 
@@ -124,7 +123,7 @@ s3 : universal([], [], [], anynum, [], null,  [], [*]) =>
     s3["configurations"][
       +(s3["index"])
     ],
-    Match(
+    %(
       s3["structure"],
       s3_current_configuration["pattern"]
     ),
@@ -326,7 +325,7 @@ sdecr : instruction([], [], decr([])) =>
 // This is our final operation to execute the universal machine.
 
 Universal(structure, configurations) ->
-  Eval(
+  R(
     universal(
       "begin",
       structure,

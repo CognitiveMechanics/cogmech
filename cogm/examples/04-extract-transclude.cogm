@@ -1,0 +1,18 @@
+ex_map :=
+  <
+    <"key1", "value1">,
+    <"key2", "value2">
+  >
+
+: ex_map["key1"] // prints "value1"
+
+ex_key := "key2"
+: ex_map[ex_key]
+
+: ex_map["nonexistent_key"]
+
+ex_map_1 := T(ex_map, "key1", "updated_value") 
+: ex_map_1
+
+ex_map_2 := T(ex_map_1, "key3", "new_value")
+: ex_map_2

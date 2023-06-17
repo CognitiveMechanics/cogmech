@@ -1,7 +1,6 @@
-a := <
-    "outer",
-    <"inner", []>
->
+box := 
+  <
+    <"contents", []>
+  >
 
-: *a
-: a
+: *box

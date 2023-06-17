@@ -1,0 +1,83 @@
+
+dessert(flavor, type) ->
+  <
+    <"flavor", flavor>,
+    <"dessert_type", type>,
+    <"eaten", null>
+  >
+
+EatDessert(dessert) -> T(dessert, "eaten", true)
+
+: "Uneaten chocolate cake"
+: dessert("chocolate", "cake")
+
+: "Eaten peach cobbler"
+: EatDessert(dessert("peach", "cobbler"))
+
+// prints:
+// "Uneaten chocolate cake"
+// <
+//   <"flavor", "chocolate">,
+//   <"dessert_type", "cake">,
+//   <"eaten", null>
+// >
+// "Eaten peach cobbler"
+// <
+//   <"flavor", "peach">,
+//   <"dessert_type", "cobbler">,
+//   <"eaten", true>
+// >
+
+
+
+uneaten_dessert := dessert([], [])
+s_eat : uneaten_dessert => EatDessert(s_eat)
+
+vanilla_pudding := dessert("vanilla", "pudding")
+
+: "Vanilla pudding that sits around gets eaten"
+: R(vanilla_pudding)
+
+// prints:
+// "Vanilla pudding that sits around gets eaten"
+// <
+//   <"flavor", "vanilla">,
+//   <"dessert_type", "pudding">,
+//   <"eaten", true>
+// >
+
+
+snack(flavor, type, eaten) ->
+  <
+    <"flavor", flavor>,
+    <"snack_type", type>,
+    <"eaten", eaten>
+  >
+
+bbq_chips := snack("bbq", "chips", null)
+
+: "We aren't eating snacks right now, only desserts"
+: R(bbq_chips)
+
+// no transformation occurs, prints:
+// "We aren't eating snacks right now, only desserts"
+// <
+//   <"flavor", "bbq">,
+//   <"snack_type", "chips">,
+//   <"eaten", null>
+// >
+
+
+eaten_dessert := T(dessert([], []), "eaten", true)
+s_eaten : eaten_dessert => T(s_eaten, "dessert_type", "eaten")
+
+: "Eaten desserts lose their type, but not their flavor"
+: R(vanilla_pudding)
+
+// prints:
+// "Eaten desserts lose their type, but not their flavor"
+// <
+//   <"flavor", "vanilla">,
+//   <"dessert_type", "eaten">,
+//   <"eaten", true>
+// >

@@ -1,0 +1,23 @@
+: %("cake", "cake") // true
+: %("cake", "chocolate") // null
+: %(<"chocolate", "cake">, <"chocolate", "cake">) // true
+: %(<"chocolate", "cake">, <"cake", "chocolate">) // true
+: %(<"chocolate", "cake">, <"big", "chocolate", "cake">) // false
+: %(<"big", "chocolate", "cake">, <"chocolate", "cake">) // true
+
+: ""
+
+: %("cake", [])                               // true
+: %("cake", [])                               // true
+: %([], [])                                   // true
+: %(<"chocolate", "cake">, [])                // true
+: %(<"chocolate", "cake">, <[]>)              // true
+: %(<"chocolate", "cake">, <[], []>)          // true
+: %(<"chocolate", "cake">, <"chocolate", []>) // true
+: %(<"chocolate", "cake">, <"cherry", []>)    // null
+
+: ""
+
+: %([], [*])                                // true
+: %("cake", [*])                            // null
+: %(<"chocolate", []>, <"chocolate", [*]>) // true

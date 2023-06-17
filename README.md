@@ -48,6 +48,10 @@ When run, you should get the following output:
 "Hello, World"
 ```
 
+## Examples
+
+The code examples found in this tutorial can be found in the `cogm/exanmples/` directory.
+
 ## Entities & Atoms
 
 The basic objects within the language are referred to as *entities*. The simplest entities are known as *atoms*, and are
@@ -112,6 +116,9 @@ the following syntax.
 sym := <"some", structure">
 : sym
 ```
+
+Symbols may must begin with an upper or lowercase letters and can continue with letters, numerals, and underscores `_`.
+By convention, symbols are `snake_cased`.
 
 ## Extraction
 
@@ -267,6 +274,132 @@ If you need to match an integer exactly, you can prefix it with the dot operator
 : %(0, *1)  // null
 : %(1, *1)  // true
 : %(20, *1) // null
+```
+
+## Operation Definitions
+
+You can define certain arrangements of operations as your own custom operations. Here are a couple examples:
+
+```
+dessert(flavor, type) ->
+  <
+    <"flavor", flavor>,
+    <"dessert_type", type>,
+    <"eaten", null>
+  >
+
+EatDessert(dessert) -> T(dessert, "eaten", true)
+
+: dessert("chocolate", "cake")
+: EatDessert(dessert("peach", "cobbler"))
+
+// prints:
+// <
+//   <"flavor", "chocolate">,
+//   <"dessert_type", "cake">,
+//   <"eaten", null>
+// >
+// <
+//   <"flavor", "peach">,
+//   <"dessert_type", "cobbler">,
+//   <"eaten", true>
+// >
+```
+
+Operations may must begin with an upper or lowercase letters and can continue with letters, numerals, and underscores `_`.
+By convention, operations that only create a compoound entity are `snake_cased`, while operations are `PascalCased`.
+
+## Relations
+
+The primarily interesting point of the structure of the language is how its logic is enacted by a series of 
+*relations*. A relation defines a conditionally applied transition between an entity that matches a certain *specifier*
+and a transformed state.
+
+Let's show an example:
+
+```
+uneaten_dessert := dessert([], [])
+s_eat : uneaten_dessert => EatDessert(s_eat)
+```
+
+The parts of this statement are:
+
+- `s_eat`, referred to as the *bound symbol*; this symbol represents the starting state of the entity that this relation is
+  applied to.
+- The *bound symbol* is followed by a colon `:` and another expression that is the *specifier*. The *specifier* represents 
+  a pattern of a structure which an entity *must* match before this relation will be applied. This expression can be 
+  either a symbol or a literal representation of some entity.
+- The *specifier* is followed by a double arrow `=>` and then some *result expression* that represents the transformed 
+  state after applying the relation. In the scope of the *result expression* the *bound symbol* refers to the initial
+  entity the relation has been applied to.
+
+## Evaluation
+
+Relations are not applied to an entity until they are *evaluated*. Evaluation is signified by an operation `R`, which 
+takes a single argument that is the entity to apply any relevant relations to.  From our example:
+
+```
+vanilla_pudding := dessert("vanilla", "pudding")
+
+: "Vanilla pudding that sits around gets eaten"
+: R(vanilla_pudding)
+
+// prints:
+// "Vanilla pudding that sits around gets eaten"
+// <
+//   <"flavor", "vanilla">,
+//   <"dessert_type", "pudding">,
+//   <"eaten", true>
+// >
+```
+
+Note that although `vanilla_pudding` is not exactly the same as `dessert`, it does *match* `dessert`, and therefore
+the relation is applied. In this alternative example, the relation will not be applied because the `"dessert_type"` is
+missing.
+
+```
+snack(flavor, type, eaten) ->
+  <
+    <"flavor", flavor>,
+    <"snack_type", type>,
+    <"eaten", eaten>
+  >
+
+bbq_chips := snack("bbq", "chips", null)
+
+: "We aren't eating snacks right now, only desserts"
+: R(bbq_chips)
+
+// no transformation occurs, prints:
+// "We aren't eating snacks right now, only desserts"
+// <
+//   <"flavor", "bbq">,
+//   <"snack_type", "chips">,
+//   <"eaten", null>
+// >
+```
+
+## Evaluation Order
+
+When an evaluation is run, it does not stop after the first match. It continues to step through all applied relations 
+until no further matching relations are found.
+
+For example, if we create another relation that will convert all eaten desserts to a `"dessert_type"` of `"eaten"`:
+
+```
+eaten_dessert := T(dessert([], []), "eaten", true)
+s_eaten : eaten_dessert => T(s_eaten, "dessert_type", "eaten")
+
+: "Eaten desserts lose their type, but not their flavor"
+: R(vanilla_pudding)
+
+// prints:
+// "Eaten desserts lose their type, but not their flavor"
+// <
+//   <"flavor", "vanilla">,
+//   <"dessert_type", "eaten">,
+//   <"eaten", true>
+// >
 ```
 
 ## The Book

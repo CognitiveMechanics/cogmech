@@ -1,4 +1,7 @@
 
+
+// This file defines macros for experimental alternative syntax
+
 proxy :: []
 
 Match      :: %

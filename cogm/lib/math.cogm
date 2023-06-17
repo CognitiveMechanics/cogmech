@@ -1,4 +1,6 @@
 
+// These aliases are defined for clarity in specifiers
+
 anynum :: 0
 not0   :: 1
 
