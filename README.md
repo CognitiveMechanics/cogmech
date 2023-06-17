@@ -407,6 +407,63 @@ s_eaten : eaten_dessert => T(s_eaten, "dessert_type", "eaten")
 // >
 ```
 
+**NOTE:** It is possible to create relations that result in circular evaluations. The behavior of these circumstances is 
+currently undefined, and could possibly result in an infinite loop in your program.
+
+## Including Files
+
+There is an `@include` directive that can be used to include other cogm files. This behaves basically as if you 
+simply inserted the source of the other file into your own.
+
+```
+@include "path/to/somefile.cogm"
+```
+
+## Debugging
+
+There is also a `@trace` directive that will enable traces through the evaluation process. This can be helpful in 
+debugging relations, but their current iteration could use improvement. The directive is specified as follows:
+
+```
+@trace 1 // The 1 indicates the trace level.
+```
+
+Currently, the three levels are:
+
+- **0**: No tracing
+- **1**: Essential trace logging
+- **2**: Slightly more detiled trace logging
+
+## Macros
+
+The language also enables you to define macros with the doubke-colon `::` operator. A macro acts as a literal token 
+substitution, so that everying from the beginning of the definition to the end of the line will be inserted into the list 
+of evaluation tokens.
+
+This can be useful for trying eperimental syntax (see `cogm/lib/alt.cogm`), and can also be useful in other areas.
+
+Keep in mind the value of a macro does not need to be a valid expression, and may contain any list of tokens.
+
+Here's an example that replaces the word `to` with the `=>` operator.
+
+```
+to :: =>
+s : "begin" to "end" // this is now alternative syntax for a relation definition
+
+: R("begin") // prints "end"
+```
+
+Sometimes the result of an operation or relation is complex and could be simplifed by etracting out a list of tokens,
+but the tokens contain words that refer to parameters or bound symbols that are not defined in the outer context.
+
+```
+some_structure(first, second) -> <first, second>
+op_result :: some_structure(a, b) // Notice `a` and `b` are not defined in this context
+
+Op(a, b) -> op_result
+: Op(1, 2) // prints: <1, 2>
+```
+
 ## The Book
 
 The language is based on the system outlined in the book *Cognitive Mechanics*. Reading the book is not necessary, but 

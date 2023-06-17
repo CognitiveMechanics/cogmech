@@ -1,0 +1,19 @@
+
+// Alternative syntax example
+
+to :: =>
+s : "begin" to "end" // this is now alternative syntax for a relation definition
+
+: R("begin") // prints "end"
+
+
+// Readability example
+
+// Sometimes the result of an operation or relation is complex and could be simplifed by etracting out a list of tokens,
+// but the tokens contain words that refer to parameters or bound symbols that are not defined in the outer context.
+
+some_structure(first, second) -> <first, second>
+op_result :: some_structure(a, b) // Notice `a` and `b` are not defined in this context
+
+Op(a, b) -> op_result
+: Op(1, 2) // prints: <1, 2>
