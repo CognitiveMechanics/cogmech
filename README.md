@@ -191,12 +191,12 @@ otherwise it returns `null`.
 Illustrated by example:
 
 ```cogm
-: %("cake", "cake")                                       // true
-: %("cake", "chocolate")                                  // null
-: %(<"chocolate", "cake">, <"chocolate", "cake">)         // true
-: %(<"chocolate", "cake">, <"cake", "chocolate">)         // true
-: %(<"chocolate", "cake">, <"big", "chocolate", "cake">)  // null
-: %(<"big", "chocolate", "cake">, <"chocolate", "cake">)  // true
+: %(                       "cake",                        "cake" )  // true
+: %(                       "cake",                   "chocolate" )  // null
+: %(        <"chocolate", "cake">,         <"chocolate", "cake"> )  // true
+: %(        <"chocolate", "cake">,         <"cake", "chocolate"> )  // true
+: %(        <"chocolate", "cake">,  <"big", "chocolate", "cake"> )  // null
+: %( <"big", "chocolate", "cake">,         <"chocolate", "cake"> )  // true
 ```
 
 ## Proxy
@@ -206,14 +206,14 @@ in the structure. In that case, we can use the *proxy*, represented by exmpty sq
 that is matches against the proxy will return `true`.
 
 ```cogm
-: %("cake", [])                               // true
-: %("cake", [])                               // true
-: %([], [])                                   // true
-: %(<"chocolate", "cake">, [])                // true
-: %(<"chocolate", "cake">, <[]>)              // true
-: %(<"chocolate", "cake">, <[], []>)          // true
-: %(<"chocolate", "cake">, <"chocolate", []>) // true
-: %(<"chocolate", "cake">, <"cherry", []>)    // null
+: %(                "cake",                [] )  // true
+: %(                "cake",                [] )  // true
+: %(                    [],                [] )  // true
+: %( <"chocolate", "cake">,                [] )  // true
+: %( <"chocolate", "cake">,              <[]> )  // true
+: %( <"chocolate", "cake">,          <[], []> )  // true
+: %( <"chocolate", "cake">, <"chocolate", []> )  // true
+: %( <"chocolate", "cake">,    <"cherry", []> )  // null
 ```
 
 ## Dot Proxy
@@ -222,9 +222,9 @@ Sometimes we want to match the proxy specifically, and only the proxy. For that 
 represented by `[*]`. The dot proxy also matches itself.
 
 ```cogm
-: %([], [*])                                // true
-: %("cake", [*])                            // null
-: %(<"chocolate", []>, <"chocolate", [*]>)  // true
+: %(                [],                 [*] )  // true
+: %(            "cake",                 [*] )  // null
+: %( <"chocolate", []>,  <"chocolate", [*]> )  // true
 ```
 
 ## Dot
