@@ -1,6 +1,6 @@
 
 // anything after the :: is a legal part of the macro that gets expanded as a set of tokens
-// this is particularly useful for complex relation definitions (see 13-add.cogm example)
+// this is particularly useful for complex relation definitions
 
 to_a :: -> a
 

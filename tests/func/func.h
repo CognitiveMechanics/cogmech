@@ -23,7 +23,7 @@ static char *CM_FUNC_TEST_FILES[] = {
 	"../cogm/tests/10-integers.cogm",
 	"../cogm/tests/11-increment-decrement.cogm",
 	"../cogm/tests/12-include.cogm",
-	"../cogm/tests/13-add.cogm",
+	"../cogm/tests/13-math.cogm",
 	"../cogm/tests/14-comments.cogm",
 	"../cogm/tests/15-macros.cogm",
 	"../cogm/tests/16-test-trace-1.cogm",

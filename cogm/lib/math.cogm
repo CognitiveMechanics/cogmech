@@ -4,3 +4,102 @@
 anynum :: 0
 not0   :: 1
 
+
+//            Addition Operation
+// =============================================
+
+// The idea behind this operation is that we keep decrementing one addend and incrementing the other
+// until the first addend is equal to zero, leaving the second addend with the sum.
+
+// The add() specifier contains two addends "op1" and "op2", and their "sum"
+
+add(a, b, r) ->
+  <
+    <"op1", a>,
+    <"op2", b>,
+    <"sum", r>
+  >
+
+// First we shift which position each addend is in so that it is no longer in the starting state.
+
+sadd_0 : add( [], [], [*] ) =>
+  add(
+    [],
+    sadd_0["op1"],
+    sadd_0["op2"]
+  )
+
+// While "op2" is not zero, we decrement it by one and increment the "sum".
+
+sadd_1 : add( [*], not0, [] ) =>
+  add(
+    [],
+    -(sadd_1["op2"]),
+    +(sadd_1["sum"])
+  )
+
+// When "op2" is zero, we are finished.
+
+sadd_2 : add( [*], *0, [] ) =>
+  add(
+    [],
+    [],
+    sadd_2["sum"]
+  )
+
+// This gives a single clear operation for ordniary use.
+
+Add(a, b) ->
+  R(
+    add(a, b, [])
+  )["sum"]
+
+
+//          Multiplication Operation
+// =============================================
+
+// The idea behind this operation is that we keep adding one factor to the product while decrementing the other
+// until the second factor is equal to zero.
+
+// The add() specifier contains two addends "op1" and "op2", and their "sum"
+
+multiply(a, b, r) ->
+  <
+    <"op1", a>,
+    <"op2", b>,
+    <"product", r>
+  >
+
+// First we shift which position each factor is in so that it is no longer in the starting state.
+
+smultiply_0 : multiply( [], [], [*] ) =>
+  multiply(
+    smultiply_0["op1"],
+    smultiply_0["op2"],
+    0
+  )
+
+// While "op2" is not zero, we decrement it by one and increment the "sum".
+
+smultiply_1 : multiply( [], not0, [] ) =>
+  multiply(
+    smultiply_1["op1"],
+    -(smultiply_1["op2"]),
+    Add(smultiply_1["op1"], smultiply_1["product"])
+  )
+
+// When "op2" is zero, we are finished.
+
+smultiply_2 : multiply( [], *0, [] ) =>
+  multiply(
+    [],
+    [],
+    smultiply_2["product"]
+  )
+
+// This gives a single clear operation for ordniary use.
+
+Multiply(a, b) ->
+  R(
+    multiply(a, b, [])
+  )["product"]

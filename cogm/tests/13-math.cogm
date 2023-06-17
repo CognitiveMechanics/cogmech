@@ -1,0 +1,11 @@
+
+// This file tests mathj.cogm from the standard library
+
+@include "../lib/math.cogm"
+
+: Add(1, 2)
+: Add(10, 2)
+: Add(12643, 75)
+
+: Multiply(2, 3)
+: Multiply(10, 5)

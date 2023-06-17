@@ -464,6 +464,10 @@ Op(a, b) -> op_result
 : Op(1, 2) // prints: <1, 2>
 ```
 
+## Practcal Examples
+
+Look to `cogm/lib/math.cogm` to see examples that perform arithmetical oeprations.
+
 ## The Book
 
 The language is based on the system outlined in the book *Cognitive Mechanics*. Reading the book is not necessary, but 
