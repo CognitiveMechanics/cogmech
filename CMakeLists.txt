@@ -49,9 +49,11 @@ add_executable(func
         tests/func/func.c
         tests/func/main.c)
 
-target_compile_options(cogmech PUBLIC -Wall -Wextra -std=c11 -pedantic)
-target_compile_options(test PUBLIC -Wall -Wextra -std=c11 -pedantic)
-target_compile_options(func PUBLIC -Wall -Wextra -std=c11 -pedantic)
+add_compile_options("$<$<CONFIG:Debug>:-Wall -Wextra -pedantic>")
+
+target_compile_options(cogmech PUBLIC -std=c11)
+target_compile_options(test PUBLIC -std=c11)
+target_compile_options(func PUBLIC -std=c11)
 
 set(INSTALL_DIR "/usr/local/bin")
 install(TARGETS cogmech DESTINATION ${INSTALL_DIR})
