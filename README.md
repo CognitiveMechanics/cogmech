@@ -186,7 +186,7 @@ The language also includes an operation *match* to determine if two entities hav
 The operation is denotes by `%` and takes arguments in the format `%(match, against)`. 
 
 Match returns a special entity `true` if the first argument `match` contains equivalent structural pieces to `against`,
-otherwise it returns `null`.
+otherwise it returns `null`. In other words, `against` must have a structure that is a subset of `match`.
 
 Illustrated by example:
 
