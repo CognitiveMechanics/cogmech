@@ -199,7 +199,7 @@ Illustrated by example:
 : %(<"big", "chocolate", "cake">, <"chocolate", "cake">)  // true
 ```
 
-# Proxy
+## Proxy
 
 Sometimes, we are looking to match a particular structure without actually caring about the specific entity that is
 in the structure. In that case, we can use the *proxy*, represented by exmpty square brackets `[]`. Any entity
@@ -216,7 +216,7 @@ that is matches against the proxy will return `true`.
 : %(<"chocolate", "cake">, <"cherry", []>)    // null
 ```
 
-# Dot Proxy
+## Dot Proxy
 
 Sometimes we want to match the proxy specifically, and only the proxy. For that purpose, we can use the *dot proxy*,
 represented by `[*]`. The dot proxy also matches itself.
@@ -227,7 +227,7 @@ represented by `[*]`. The dot proxy also matches itself.
 : %(<"chocolate", []>, <"chocolate", [*]>)  // true
 ```
 
-# Dot
+## Dot
 
 The *dot* operator recursively traverses an entity and replaces all instances of `[]` with `[*]`. For example:
 
@@ -247,7 +247,7 @@ box :=
 
 This is useful for when you need to match an entity *exactly*, including proxies.
 
-# Integer Comparisons
+## Integer Comparisons
 
 An integer matches another integer if it is equal to or greater than that integer. For example:
 
