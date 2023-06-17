@@ -464,7 +464,7 @@ Op(a, b) -> op_result
 : Op(1, 2) // prints: <1, 2>
 ```
 
-## Practical Examples
+## "Practical" Examples
 
 Look to `cogm/lib/math.cogm` to see examples that perform arithmetical oeprations.
 
