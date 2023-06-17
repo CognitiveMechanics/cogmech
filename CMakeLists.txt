@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.0)
 project(cogmech C)
 
-set(CMAKE_C_STANDARD 17)
+set(CMAKE_C_STANDARD 11)
 
 include_directories(src)
 include_directories(tests/unit)
@@ -49,9 +49,9 @@ add_executable(func
         tests/func/func.c
         tests/func/main.c)
 
-target_compile_options(cogmech PUBLIC -Wall -Wextra -std=c17 -pedantic)
-target_compile_options(test PUBLIC -Wall -Wextra -std=c17 -pedantic)
-target_compile_options(func PUBLIC -Wall -Wextra -std=c17 -pedantic)
+target_compile_options(cogmech PUBLIC -Wall -Wextra -std=c11 -pedantic)
+target_compile_options(test PUBLIC -Wall -Wextra -std=c11 -pedantic)
+target_compile_options(func PUBLIC -Wall -Wextra -std=c11 -pedantic)
 
 set(INSTALL_DIR "/usr/local/bin")
 install(TARGETS cogmech DESTINATION ${INSTALL_DIR})
