@@ -121,7 +121,7 @@ There are a small number of structural operations we can perform on entities bui
 Very often we will use componds structures in a way that is variously termed an *associative array*, *dictionary*,
 *map*, *hash*, etc. In other language. This is essentially a set of key-value pairs.
 
-```cogm
+```c++
 ex_map :=
   <
     <"key1", "value1">,
@@ -132,13 +132,13 @@ ex_map :=
 In order to read one of the values from `ex_map` we can use the extract operation. We use subscripting (array-indexing, etc.)
 syntax with square brackets to read the value with `"key1"`.
 
-```cogm
+```c++
 : ex_map["key1"] // prints: "value1"
 ```
 
 We can also use a symbol as the key:
 
-```cogm
+```
 ex_key := "key2"
 : ex_map[ex_key] // prints: "value2"
 ```
