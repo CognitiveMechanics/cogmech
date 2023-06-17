@@ -32,7 +32,7 @@ cogmech
 
 Now to create our first program. Create a file called `hello.cogm` with the following contents:
 
-```cogm
+```
 : "Hello, World"
 ```
 
@@ -59,14 +59,14 @@ a string of characters as it might appear to be, but the representation of a sin
 Entities on their own are *expressions*, but are not valid statements in the language. So the following program will 
 give an error:
 
-```cogm
+```
 "Hello, World"
 ```
 
 The simplest statement is the print statement. A print statement is defined by beginning a line with a colon `:`, 
 followed by an expression, as in our `hello.cogm` example:
 
-```cogm
+```
 : "Hello, World"
 ```
 
@@ -75,7 +75,7 @@ followed by an expression, as in our `hello.cogm` example:
 We can add line comments by adding the sequence `//`. Once that sequence is encoutnered, all text until the end of the 
 line is considered part fo the comment and will be ignored by the interpreter.
 
-```cogm
+```
 // This is a comment on its own line.
 : "We're testing out comments" // This is a comment after a statement 
 ```
@@ -108,7 +108,7 @@ meaning. They can also be nested as we will see below.
 In CogMech all entities are immutable, so there are no variables. But you can assign an entity to a *symbol* with
 the following syntax.
 
-```cogm
+```
 sym := <"some", structure">
 : sym
 ```
@@ -121,7 +121,7 @@ There are a small number of structural operations we can perform on entities bui
 Very often we will use componds structures in a way that is variously termed an *associative array*, *dictionary*,
 *map*, *hash*, etc. In other language. This is essentially a set of key-value pairs.
 
-```c++
+```
 ex_map :=
   <
     <"key1", "value1">,
@@ -132,7 +132,7 @@ ex_map :=
 In order to read one of the values from `ex_map` we can use the extract operation. We use subscripting (array-indexing, etc.)
 syntax with square brackets to read the value with `"key1"`.
 
-```c++
+```
 : ex_map["key1"] // prints: "value1"
 ```
 
@@ -145,7 +145,7 @@ ex_key := "key2"
 
 When a key doesn't exist, *extract* will return a special `null` entity:
 
-```cogm
+```
 : ex_map["nonexistent_key"] // prints: null
 ```
 
@@ -156,7 +156,7 @@ the existing pair that contains the key with the value, or if none is found it w
 
 The operation is represented by the letter `T` and takes argmuents in the format `T(subject, key, value)`.
 
-```cogm
+```
 ex_map_1 := T(ex_map, "key1", "updated_value") 
 
 // ex_map_1 is:
@@ -190,7 +190,7 @@ otherwise it returns `null`. In other words, `against` must have a structure tha
 
 Illustrated by example:
 
-```cogm
+```
 : %(                       "cake",                        "cake" )  // true
 : %(                       "cake",                   "chocolate" )  // null
 : %(        <"chocolate", "cake">,         <"chocolate", "cake"> )  // true
@@ -205,7 +205,7 @@ Sometimes, we are looking to match a particular structure without actually carin
 in the structure. In that case, we can use the *proxy*, represented by exmpty square brackets `[]`. Any entity
 that is matches against the proxy will return `true`.
 
-```cogm
+```
 : %(                "cake",                [] )  // true
 : %(                "cake",                [] )  // true
 : %(                    [],                [] )  // true
@@ -221,7 +221,7 @@ that is matches against the proxy will return `true`.
 Sometimes we want to match the proxy specifically, and only the proxy. For that purpose, we can use the *dot proxy*,
 represented by `[*]`. The dot proxy also matches itself.
 
-```cogm
+```
 : %(                [],                 [*] )  // true
 : %(            "cake",                 [*] )  // null
 : %( <"chocolate", []>,  <"chocolate", [*]> )  // true
@@ -231,7 +231,7 @@ represented by `[*]`. The dot proxy also matches itself.
 
 The *dot* operator recursively traverses an entity and replaces all instances of `[]` with `[*]`. For example:
 
-```cogm
+```
 box := 
   <
     <"contents", []>
@@ -251,7 +251,7 @@ This is useful for when you need to match an entity *exactly*, including proxies
 
 An integer matches another integer if it is equal to or greater than that integer. For example:
 
-```cogm
+```
 : %(0, 0)  // true
 : %(1, 0)  // true
 : %(0, 1)  // null
@@ -261,7 +261,7 @@ An integer matches another integer if it is equal to or greater than that intege
 
 If you need to match an integer exactly, you can prefix it with the dot operator `*`:
 
-```cogm
+```
 : %(0, *0)  // true
 : %(1, *0)  // null
 : %(0, *1)  // null
