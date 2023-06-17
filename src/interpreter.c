@@ -94,7 +94,6 @@ void _cm_print_entity (CMNode *node, const char *prefix, int indent_level, int n
 			break;
 		}
 
-		// TODO made out parseable
 		case CM_NODE_TYPE_KEY: {
 			printf(
 				"%s%*skey%s\n",
