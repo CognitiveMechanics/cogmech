@@ -5,6 +5,8 @@ Cogmech is an experimental programming language.
 
 ## To install
 
+The language is currently tested on MacOS and Debian 11. It likely doesn't work on Windows without some tinkering.
+
 First, you'll need to install CMake and make on your system. CMake has installation instructions here: 
 [https://cmake.org/install/](https://cmake.org/install/).
 
@@ -13,6 +15,8 @@ Note that on MacOS you also have the option of installing with Homebrew:
 ```bash
 brew install cmake
 ```
+
+And it's also available within most Linux package managers.
 
 Then in the root directory, you can run:
 
