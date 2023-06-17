@@ -307,7 +307,8 @@ EatDessert(dessert) -> T(dessert, "eaten", true)
 ```
 
 Operations may must begin with an upper or lowercase letters and can continue with letters, numerals, and underscores `_`.
-By convention, operations that only create a compoound entity are `snake_cased`, while operations are `PascalCased`.
+By convention, operations that only create a compoound entity are `snake_cased`, while operations that apply
+transformations to data are `PascalCased`.
 
 ## Relations
 
