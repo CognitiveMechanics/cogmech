@@ -55,7 +55,7 @@ bool cm_is_not_space (char c)
 
 bool cm_is_num (char c)
 {
-	return (bool) isnumber(c) || c == '_';
+	return (bool) isdigit(c) || c == '_';
 }
 
 
@@ -223,7 +223,7 @@ CMTokenList _cm_tokenize (CMContext *context, CMLoc *loc, CMStringView sv, CMTok
 				cm_tokenlist_append(&list, word);
 			}
 
-		} else if (isnumber(sv.data[0])) {
+		} else if (isdigit(sv.data[0])) {
 			CMToken word = cm_tokenize_int(loc, &sv);
 			cm_tokenlist_append(&list, word);
 
