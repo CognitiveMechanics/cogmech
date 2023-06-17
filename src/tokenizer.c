@@ -59,7 +59,6 @@ bool cm_is_num (char c)
 }
 
 
-// TODO: test
 CMToken cm_tokenize_quote (CMLoc *loc, CMStringView *sv)
 {
 	CMToken quoted = cm_token(loc->filename, loc->row, loc->col, CM_TOKEN_TYPE_QUOTED);
@@ -91,7 +90,6 @@ CMToken cm_tokenize_quote (CMLoc *loc, CMStringView *sv)
 }
 
 
-// TODO: test
 CMToken cm_tokenize_int (CMLoc *loc, CMStringView *sv)
 {
 	CMToken word = cm_token(loc->filename, loc->row, loc->col, CM_TOKEN_TYPE_INT);

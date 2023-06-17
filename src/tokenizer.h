@@ -18,6 +18,9 @@
 
 void cm_syntax_error (CMToken token, const char *message);
 
+CMToken cm_tokenize_quote (CMLoc *loc, CMStringView *sv);
+CMToken cm_tokenize_int (CMLoc *loc, CMStringView *sv);
+
 CMTokenList cm_tokenize (CMContext *context, const char *filename, CMStringView sv);
 CMTokenList cm_tokenize_file (CMContext *context, const char *filename);
 
