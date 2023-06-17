@@ -102,14 +102,15 @@ CMNode *cm_parse_transclude (CMTokenList *list)
 		cm_syntax_error(op, "Transclude accepts exactly 3 arguments");
 	}
 
-	CMNode *entity = new_node->children[0];
+//	CMNode *entity = new_node->children[0];
 
-	if (entity->type != CM_NODE_TYPE_COMPOSE
-	    && entity->type != CM_NODE_TYPE_SYMBOL
-        && entity->type != CM_NODE_TYPE_OP_INVOKE)
-	{
-		cm_syntax_error(entity->token, "Transcluded nodes must be composed entities, symbols, or operation invocations");
-	}
+//	if (entity->type != CM_NODE_TYPE_COMPOSE
+//	    && entity->type != CM_NODE_TYPE_SYMBOL
+//       && entity->type != CM_NODE_TYPE_SYMBOL
+//        && entity->type != CM_NODE_TYPE_OP_INVOKE)
+//	{
+//		cm_syntax_error(entity->token, "Transcluded nodes must be composed entities, symbols, or operation invocations");
+//	}
 
 	return new_node;
 }

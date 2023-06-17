@@ -308,7 +308,10 @@ CMNode *cm_interpret_transclude (CMContext *context, CMNode *node)
 	CMNode *key = cm_interpret_entity(context, node->children[1]);
 	CMNode *new_value = cm_interpret_entity(context, node->children[2]);
 
-	assert(entity->type == CM_NODE_TYPE_COMPOSE);
+	if (entity->type != CM_NODE_TYPE_COMPOSE) {
+		cm_syntax_error(node->token, "Only composed entities can be transcluded");
+	}
+
 	CMNode *new_entity = cm_node(CM_NODE_TYPE_COMPOSE);
 
 	bool found = false;
