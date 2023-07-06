@@ -19,7 +19,7 @@ add_executable(cogmech
         src/interpreter.c
         src/main.c)
 
-add_executable(test
+add_executable(cogmech-test
         src/file.c
         src/util.c
         src/stringview.c
@@ -43,7 +43,7 @@ add_executable(test
         tests/func/func.c
         tests/main.c)
 
-add_executable(func
+add_executable(cogmech-func
         src/file.c
         src/util.c
         tests/func/func.c
@@ -52,8 +52,8 @@ add_executable(func
 add_compile_options("$<$<CONFIG:Debug>:-Wall -Wextra -pedantic>")
 
 target_compile_options(cogmech PUBLIC -std=c11)
-target_compile_options(test PUBLIC -std=c11)
-target_compile_options(func PUBLIC -std=c11)
+target_compile_options(cogmech-test PUBLIC -std=c11)
+target_compile_options(cogmech-func PUBLIC -std=c11)
 
 set(INSTALL_DIR "/usr/local/bin")
 install(TARGETS cogmech DESTINATION ${INSTALL_DIR})
